@@ -1,0 +1,9 @@
+# Ignore HTML templates and static files for language stats
+
+donation/templates/* linguist-vendored
+donation/myapp/templates/* linguist-vendored
+donation/donation2/templates/* linguist-vendored
+donation/waqaf/templates/* linguist-vendored
+donation/static/* linguist-vendored
+templates/* linguist-vendored
+static/* linguist-vendored 
