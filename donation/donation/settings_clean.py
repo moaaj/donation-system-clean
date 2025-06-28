@@ -29,10 +29,13 @@ INSTALLED_APPS = [
     'waqaf',
     'accounts',
     'rest_framework',
+    'crispy_forms',
+    'crispy_bootstrap5',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -61,13 +64,28 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'donation.wsgi.application'
 
-# Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Database Configuration
+# Use PostgreSQL in production, SQLite in development
+DATABASE_URL = os.getenv('DATABASE_URL', '')
+
+if DATABASE_URL and not DEBUG:
+    # Production: Use PostgreSQL
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL)
     }
-}
+else:
+    # Development: Use SQLite or local PostgreSQL
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', 'donation_db'),
+            'USER': os.getenv('DB_USER', 'donation_user'),
+            'PASSWORD': os.getenv('DB_PASSWORD', ''),
+            'HOST': os.getenv('DB_HOST', 'localhost'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -110,6 +128,10 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
+# Crispy Forms
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
@@ -130,4 +152,15 @@ FPX_SECRET = os.getenv('FPX_SECRET', '')
 # SSLCommerz settings (environment variables)
 SSLCOMMERZ_STORE_ID = os.getenv('SSLCOMMERZ_STORE_ID', '')
 SSLCOMMERZ_STORE_PASSWORD = os.getenv('SSLCOMMERZ_STORE_PASSWORD', '')
-SSLCOMMERZ_SANDBOX = os.getenv('SSLCOMMERZ_SANDBOX', 'True').lower() == 'true' 
+SSLCOMMERZ_SANDBOX = os.getenv('SSLCOMMERZ_SANDBOX', 'True').lower() == 'true'
+
+# Security settings for production
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_REDIRECT_EXEMPT = []
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True 

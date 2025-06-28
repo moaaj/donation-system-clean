@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    container_name: donation_postgres
+    environment:
+      POSTGRES_DB: donation_db
+      POSTGRES_USER: donation_user
+      POSTGRES_PASSWORD: donation_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./setup_postgres.sql:/docker-entrypoint-initdb.d/setup_postgres.sql
+    networks:
+      - donation_network
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: donation_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - donation_network
+
+  # Django Application
+  web:
+    build: .
+    container_name: donation_web
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - DB_HOST=db
+      - DB_NAME=donation_db
+      - DB_USER=donation_user
+      - DB_PASSWORD=donation_password
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    networks:
+      - donation_network
+
+volumes:
+  postgres_data:
+
+networks:
+  donation_network:
+    driver: bridge 
