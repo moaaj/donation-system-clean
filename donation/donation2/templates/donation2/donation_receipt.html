@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="text-center mb-0">Donation Receipt</h2>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-receipt text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    
+                    <div class="receipt-details">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Receipt Number:</strong></p>
+                                <p class="text-muted">#{{ donation.id }}</p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <p class="mb-1"><strong>Date:</strong></p>
+                                <p class="text-muted">{{ donation.created_at|date:"F j, Y" }}</p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Donor Name:</strong></p>
+                                <p class="text-muted">{{ donation.donor_name }}</p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <p class="mb-1"><strong>Donor Email:</strong></p>
+                                <p class="text-muted">{{ donation.donor_email }}</p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Event:</strong></p>
+                                <p class="text-muted">{{ donation.event.title }}</p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <p class="mb-1"><strong>Payment Method:</strong></p>
+                                <p class="text-muted">{{ donation.payment_method }}</p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Transaction ID:</strong></p>
+                                <p class="text-muted">{{ donation.transaction_id }}</p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <p class="mb-1"><strong>Status:</strong></p>
+                                <p class="text-muted">
+                                    <span class="badge {% if donation.status == 'completed' %}bg-success{% elif donation.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ donation.status|title }}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="amount-section text-center my-4 p-3 bg-light rounded">
+                            <p class="mb-1"><strong>Amount Donated:</strong></p>
+                            <h3 class="text-primary mb-0">${{ donation.amount }}</h3>
+                        </div>
+
+                        {% if donation.message %}
+                        <div class="message-section mt-4">
+                            <p class="mb-1"><strong>Message:</strong></p>
+                            <p class="text-muted">{{ donation.message }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button onclick="window.print()" class="btn btn-primary me-2">
+                            <i class="fas fa-print me-1"></i>Print Receipt
+                        </button>
+                        <a href="{% url 'donation_event_detail' donation.event.id %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Event
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .btn, .navbar, footer {
+            display: none !important;
+        }
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .card-header {
+            background-color: #fff !important;
+            color: #000 !important;
+        }
+    }
+    
+    .receipt-details {
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 20px;
+    }
+    
+    .amount-section {
+        border: 2px dashed #dee2e6;
+        border-radius: 10px;
+    }
+    
+    .badge {
+        font-size: 0.9em;
+        padding: 0.5em 1em;
+    }
+    
+    .text-muted {
+        color: #6c757d !important;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,481 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-gradient-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="text-center mb-0">
+                            <i class="fas fa-heart me-2"></i>Make a Donation
+                        </h2>
+                        <div>
+                            <a href="{% url 'add_donation_event' %}" class="btn btn-light me-2">
+                                <i class="fas fa-plus"></i> Create Event
+                            </a>
+                            <a href="{% url 'donation_events' %}" class="btn btn-outline-light">
+                                <i class="fas fa-calendar-alt"></i> View Events
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <p class="lead text-muted">Your generosity can make a real difference. Every contribution counts!</p>
+                    </div>
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="{{ form.event.id_for_label }}" class="form-label">Select Event</label>
+                            {{ form.event }}
+                            {% if form.event.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.event.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-4">
+                            <label for="{{ form.donor_name.id_for_label }}" class="form-label">Your Name</label>
+                            {{ form.donor_name }}
+                            {% if form.donor_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.donor_name.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.donor_email.id_for_label }}" class="form-label">Your Email</label>
+                            {{ form.donor_email }}
+                            {% if form.donor_email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.donor_email.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.amount.id_for_label }}" class="form-label">Donation Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.amount }}
+                            </div>
+                            {% if form.amount.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.amount.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.payment_method.id_for_label }}" class="form-label">Payment Method</label>
+                            {{ form.payment_method }}
+                            {% if form.payment_method.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.payment_method.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.message.id_for_label }}" class="form-label">
+                                <i class="fas fa-comment-alt me-2"></i>Message (Optional)
+                            </label>
+                            <div class="message-container">
+                                {{ form.message }}
+                                <div class="message-counter">
+                                    <span class="current-count">0</span>/<span class="max-count">200</span>
+                                </div>
+                            </div>
+                            {% if form.message.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.message.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="fas fa-heart me-2"></i>Donate Now
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chatbot Interface -->
+<div class="chat-widget" id="chatWidget">
+    <div class="chat-header" onclick="toggleChat()">
+        <h3>AI Assistant</h3>
+        <span class="toggle-icon">▼</span>
+    </div>
+    <div class="chat-body" id="chatBody">
+        <div class="message bot-message">
+            Hello! I'm your AI assistant. I can help you with:
+            <ul>
+                <li>Donations and fundraising</li>
+                <li>School fees and payments</li>
+                <li>School events and activities</li>
+            </ul>
+            How can I assist you today?
+        </div>
+        <div class="suggestions">
+            <button onclick="sendSuggestion('Tell me about current donation events')">Current Events</button>
+            <button onclick="sendSuggestion('How do I check my school fees?')">Check Fees</button>
+            <button onclick="sendSuggestion('What events are coming up?')">Upcoming Events</button>
+        </div>
+    </div>
+    <div class="chat-input">
+        <input type="text" id="messageInput" placeholder="Type your message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 20px;
+        border: none;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        border-radius: 20px 20px 0 0 !important;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        padding: 1.5rem;
+    }
+    
+    .form-control {
+        border-radius: 12px;
+        padding: 12px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        border-color: #3498db;
+    }
+
+    .input-group-text {
+        border-radius: 12px 0 0 12px;
+        background-color: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-right: none;
+    }
+
+    .input-group .form-control {
+        border-radius: 0 12px 12px 0;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 30px;
+        transition: all 0.3s ease;
+        font-weight: 600;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #2980b9, #3498db);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    .btn-light {
+        background-color: #ffffff;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .btn-light:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .lead {
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+
+    .invalid-feedback {
+        font-size: 0.875rem;
+        color: #dc3545;
+        margin-top: 0.25rem;
+    }
+
+    /* Custom select styling */
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%232c3e50' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        padding-right: 2.5rem;
+    }
+
+    /* Message textarea styling */
+    .message-container {
+        position: relative;
+    }
+
+    textarea.form-control {
+        height: 100px;
+        resize: none;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        padding: 12px 15px;
+        background-color: #f8f9fa;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    textarea.form-control:focus {
+        background-color: #fff;
+        border-color: #3498db;
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
+    }
+
+    .message-counter {
+        position: absolute;
+        bottom: 10px;
+        right: 15px;
+        font-size: 0.8rem;
+        color: #6c757d;
+        background-color: rgba(248, 249, 250, 0.9);
+        padding: 2px 8px;
+        border-radius: 10px;
+    }
+
+    .message-counter .current-count {
+        color: #3498db;
+        font-weight: 600;
+    }
+
+    /* Chat Widget Styles */
+    .chat-widget {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 350px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        z-index: 1000;
+    }
+    
+    .chat-header {
+        background: #4CAF50;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 10px 10px 0 0;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .chat-body {
+        height: 400px;
+        overflow-y: auto;
+        padding: 15px;
+        display: none;
+    }
+    
+    .message {
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        max-width: 80%;
+    }
+    
+    .bot-message {
+        background: #f0f0f0;
+        margin-right: auto;
+    }
+    
+    .user-message {
+        background: #4CAF50;
+        color: white;
+        margin-left: auto;
+    }
+    
+    .suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 10px;
+    }
+    
+    .suggestions button {
+        background: #e0e0e0;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: background 0.3s;
+    }
+    
+    .suggestions button:hover {
+        background: #d0d0d0;
+    }
+    
+    .chat-input {
+        padding: 10px;
+        border-top: 1px solid #eee;
+        display: none;
+    }
+    
+    .chat-input input {
+        width: 80%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-right: 5px;
+    }
+    
+    .chat-input button {
+        padding: 8px 15px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .chat-input button:hover {
+        background: #45a049;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageTextarea = document.querySelector('textarea[name="message"]');
+    const currentCount = document.querySelector('.current-count');
+    const maxCount = 200;
+
+    messageTextarea.addEventListener('input', function() {
+        const currentLength = this.value.length;
+        currentCount.textContent = currentLength;
+        
+        if (currentLength > maxCount) {
+            this.value = this.value.substring(0, maxCount);
+            currentCount.textContent = maxCount;
+        }
+    });
+});
+
+function toggleChat() {
+    const chatBody = document.getElementById('chatBody');
+    const chatInput = document.querySelector('.chat-input');
+    const toggleIcon = document.querySelector('.toggle-icon');
+    
+    if (chatBody.style.display === 'none' || !chatBody.style.display) {
+        chatBody.style.display = 'block';
+        chatInput.style.display = 'flex';
+        toggleIcon.textContent = '▲';
+    } else {
+        chatBody.style.display = 'none';
+        chatInput.style.display = 'none';
+        toggleIcon.textContent = '▼';
+    }
+}
+
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    
+    if (message) {
+        addMessage(message, 'user');
+        input.value = '';
+        
+        // Send message to server
+        fetch('/donation2/chat/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: `message=${encodeURIComponent(message)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            addMessage(data.message, 'bot');
+            if (data.suggestions) {
+                addSuggestions(data.suggestions);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+        });
+    }
+}
+
+function sendSuggestion(suggestion) {
+    document.getElementById('messageInput').value = suggestion;
+    sendMessage();
+}
+
+function addMessage(message, type) {
+    const chatBody = document.getElementById('chatBody');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}-message`;
+    messageDiv.textContent = message;
+    chatBody.appendChild(messageDiv);
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function addSuggestions(suggestions) {
+    const chatBody = document.getElementById('chatBody');
+    const suggestionsDiv = document.createElement('div');
+    suggestionsDiv.className = 'suggestions';
+    
+    suggestions.forEach(suggestion => {
+        const button = document.createElement('button');
+        button.textContent = suggestion;
+        button.onclick = () => sendSuggestion(suggestion);
+        suggestionsDiv.appendChild(button);
+    });
+    
+    chatBody.appendChild(suggestionsDiv);
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Handle Enter key in input
+document.getElementById('messageInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+});
+</script>
+{% endblock %}

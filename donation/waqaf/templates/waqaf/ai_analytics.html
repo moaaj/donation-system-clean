@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">AI-Powered Waqaf Analytics</h2>
+
+    <!-- Asset Value Predictions -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Asset Value Predictions</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for item in asset_predictions %}
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ item.asset.name }}</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Current Value:</span>
+                                <strong>RM {{ item.prediction.current_value }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Predicted Value:</span>
+                                <strong>RM {{ item.prediction.predicted_value }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Confidence:</span>
+                                <span class="badge {% if item.prediction.confidence == 'high' %}bg-success{% elif item.prediction.confidence == 'medium' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                    {{ item.prediction.confidence|title }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Contribution Patterns -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">Contribution Pattern Analysis</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Key Metrics</h5>
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Average Contribution
+                            <span class="badge bg-primary rounded-pill">RM {{ contribution_patterns.average_contribution }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Total Contributions
+                            <span class="badge bg-primary rounded-pill">{{ contribution_patterns.total_contributions }}</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5>Peak Contribution Periods</h5>
+                    {% if contribution_patterns.peak_periods %}
+                    <ul class="list-group">
+                        {% for period in contribution_patterns.peak_periods %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ period.month }}
+                            <span class="badge bg-success rounded-pill">RM {{ period.amount }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted">No peak periods identified</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Asset Management Recommendations -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h4 class="mb-0">Asset Management Recommendations</h4>
+        </div>
+        <div class="card-body">
+            {% if asset_recommendations %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Asset</th>
+                            <th>Type</th>
+                            <th>Recommendation</th>
+                            <th>Priority</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rec in asset_recommendations %}
+                        <tr>
+                            <td>{{ rec.asset }}</td>
+                            <td>{{ rec.type|title }}</td>
+                            <td>{{ rec.message }}</td>
+                            <td>
+                                <span class="badge {% if rec.priority == 'high' %}bg-danger{% elif rec.priority == 'medium' %}bg-warning{% else %}bg-info{% endif %}">
+                                    {{ rec.priority|title }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No recommendations at this time</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Donor Engagement Analysis -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0">Donor Engagement Analysis</h4>
+        </div>
+        <div class="card-body">
+            {% if donor_engagement %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Donor</th>
+                            <th>Total Contributed</th>
+                            <th>Frequency</th>
+                            <th>Last Contribution</th>
+                            <th>Engagement Score</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for donor in donor_engagement %}
+                        <tr>
+                            <td>{{ donor.contributor }}</td>
+                            <td>RM {{ donor.total_contributed }}</td>
+                            <td>{{ donor.contribution_frequency }}</td>
+                            <td>{{ donor.last_contribution|date:"M d, Y" }}</td>
+                            <td>{{ donor.engagement_score }}%</td>
+                            <td>
+                                <span class="badge {% if 'High' in donor.recommendation %}bg-success{% elif 'Medium' in donor.recommendation %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ donor.recommendation }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No donor engagement data available</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h2 class="text-center mb-0">Waqaf Properties</h2>
+                    <a href="{% url 'waqaf:waqaf_ai_analytics' %}" class="btn btn-light">
+                        <i class="fas fa-robot me-2"></i>AI Analytics
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-mosque fa-4x text-primary mb-3"></i>
+                        <p class="lead">Contribute to sustainable development through waqaf properties</p>
+                    </div>
+
+                    <div class="row g-4">
+                        <!-- Waqaf Property 1 -->
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <img src="https://images.unsplash.com/photo-1566669437685-2c5a58524d1f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                                     class="card-img-top" 
+                                     alt="Mosque Property"
+                                     onerror="this.src='https://placehold.co/600x400/2c3e50/ffffff?text=Mosque+Property'">
+                                <div class="card-body">
+                                    <h5 class="card-title">Mosque Property</h5>
+                                    <p class="card-text">Support the maintenance and development of our local mosque.</p>
+                                    <div class="progress mb-3">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">75% Funded</div>
+                                    </div>
+                                    <a href="{% url 'waqaf:contribute_waqaf' %}" class="btn btn-primary">Contribute Now</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Waqaf Property 2 -->
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <img src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                                     class="card-img-top" 
+                                     alt="Educational Center"
+                                     onerror="this.src='https://placehold.co/600x400/2c3e50/ffffff?text=Educational+Center'">
+                                <div class="card-body">
+                                    <h5 class="card-title">Educational Center</h5>
+                                    <p class="card-text">Help establish an Islamic educational center for the community.</p>
+                                    <div class="progress mb-3">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 45%;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">45% Funded</div>
+                                    </div>
+                                    <a href="{% url 'waqaf:contribute_waqaf' %}" class="btn btn-primary">Contribute Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Waqaf Information Section -->
+                    <div class="mt-5">
+                        <h3 class="text-center mb-4">About Waqaf</h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-info-circle text-primary me-2"></i>What is Waqaf?</h5>
+                                        <p class="card-text">Waqaf is an Islamic endowment of property to be held in trust and used for charitable or religious purposes. It is a form of continuous charity that benefits the community.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-hand-holding-heart text-primary me-2"></i>Benefits of Waqaf</h5>
+                                        <p class="card-text">Waqaf properties provide sustainable benefits to the community, including education, healthcare, and religious services. Your contribution creates lasting impact.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 15px;
+        border: none;
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .card-img-top {
+        border-radius: 15px 15px 0 0;
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .progress {
+        height: 10px;
+        border-radius: 5px;
+    }
+    
+    .btn-primary {
+        background-color: var(--secondary-color);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %} 

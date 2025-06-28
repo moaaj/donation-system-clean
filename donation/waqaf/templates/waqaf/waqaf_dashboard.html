@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
+<style>
+    .dashboard-card {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-card {
+        background: linear-gradient(45deg, #4158D0, #C850C0);
+        color: white;
+    }
+    
+    .stat-card .icon {
+        font-size: 2.5rem;
+        opacity: 0.8;
+    }
+    
+    .stat-card .value {
+        font-size: 1.8rem;
+        font-weight: bold;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    
+    .progress {
+        height: 8px;
+        border-radius: 4px;
+    }
+    
+    .asset-card {
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 0 15px rgba(0,0,0,0.05);
+    }
+    
+    .asset-card .progress {
+        height: 6px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Waqaf Dashboard</h1>
+        <div>
+            <a href="{% url 'waqaf:waqaf_ai_analytics' %}" class="btn btn-primary me-2">
+                <i class="fas fa-robot me-2"></i>AI Analytics
+            </a>
+        <a href="{% url 'waqaf:contribute_waqaf' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>New Contribution
+        </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card dashboard-card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">Total Assets</h6>
+                            <h3 class="value mb-0">RM {{ total_value|floatformat:2 }}</h3>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-mosque"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card dashboard-card" style="background: linear-gradient(45deg, #0093E9, #80D0C7);">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">Total Contributions</h6>
+                            <h3 class="value mb-0">RM {{ total_contributed|floatformat:2 }}</h3>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-hand-holding-heart"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card dashboard-card" style="background: linear-gradient(45deg, #8EC5FC, #E0C3FC);">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">Total Contributors</h6>
+                            <h3 class="value mb-0">{{ total_contributors }}</h3>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card dashboard-card" style="background: linear-gradient(45deg, #FF9A8B, #FF6A88);">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">Available Assets</h6>
+                            <h3 class="value mb-0">{{ available_assets.count }}</h3>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Monthly Contributions Chart -->
+        <div class="col-xl-8">
+            <div class="card dashboard-card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Monthly Contributions</h5>
+                    <div class="chart-container">
+                        <canvas id="monthlyContributionsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Status Chart -->
+        <div class="col-xl-4">
+            <div class="card dashboard-card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Payment Status</h5>
+                    <div class="chart-container">
+                        <canvas id="paymentStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Assets -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Available Waqaf Assets</h5>
+                    <div class="row g-4">
+                        {% for asset in available_assets %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card asset-card">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ asset.name }}</h6>
+                                    <p class="text-muted small mb-2">{{ asset.description|truncatewords:20 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-primary">RM {{ asset.current_value|floatformat:2 }}</span>
+                                        <span class="text-muted">{{ asset.slots_available }} slots available</span>
+                                    </div>
+                                    <div class="progress mb-3">
+                                        <div class="progress-bar bg-success" role="progressbar" 
+                                             style="width: {% widthratio asset.slots_available asset.total_slots 100 %}%">
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'waqaf:asset_detail' asset.id %}" class="btn btn-sm btn-outline-primary w-100">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function() {
+    // Monthly Contributions Chart
+    var monthlyData = {{ monthly_contributions|safe }};
+    if (!Array.isArray(monthlyData) || monthlyData.length === 0) {
+        monthlyData = [
+            {"month": "2024-01-01", "total": 100},
+            {"month": "2024-02-01", "total": 200},
+            {"month": "2024-03-01", "total": 150},
+            {"month": "2024-04-01", "total": 250}
+        ];
+    }
+    var monthlyCtx = document.getElementById('monthlyContributionsChart').getContext('2d');
+    new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+            labels: monthlyData.map(function(item) { return new Date(item.month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }); }),
+            datasets: [{
+                label: 'Contributions',
+                data: monthlyData.map(function(item) { return item.total; }),
+                borderColor: '#4158D0',
+                backgroundColor: 'rgba(65, 88, 208, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'RM ' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Payment Status Chart
+    var statusData = {{ payment_status|safe }};
+    if (!Array.isArray(statusData) || statusData.length === 0) {
+        statusData = [
+            {"payment_status": "Completed", "count": 5},
+            {"payment_status": "Pending", "count": 2},
+            {"payment_status": "Failed", "count": 1}
+        ];
+    }
+    var statusCtx = document.getElementById('paymentStatusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: statusData.map(function(item) { return item.payment_status; }),
+            datasets: [{
+                data: statusData.map(function(item) { return item.count; }),
+                backgroundColor: [
+                    '#4158D0',
+                    '#C850C0',
+                    '#FFCC70'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+})();
+</script>
+{% if certificate_id %}
+<script>
+    window.onload = function() {
+        window.location.href = "{% url 'waqaf:download_certificate' certificate_id %}";
+    }
+</script>
+{% endif %}
+{% endblock %}

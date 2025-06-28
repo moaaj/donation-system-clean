@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="text-center mb-0">Make a Waqaf Contribution</h2>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- Debug Information -->
+                    {% if available_assets %}
+                        <div class="alert alert-info">
+                            <h5>Available Assets:</h5>
+                            <ul>
+                                {% for asset in available_assets %}
+                                    <li data-asset-id="{{ asset.id }}">{{ asset.name }} - {{ asset.slots_available }} slots available (RM{{ asset.slot_price }} per slot)</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Contributor Information -->
+                        <div class="mb-4">
+                            <h4 class="mb-3">Contributor Information</h4>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ contributor_form.name.id_for_label }}" class="form-label">Full Name</label>
+                                    {{ contributor_form.name }}
+                                    {% if contributor_form.name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ contributor_form.name.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ contributor_form.email.id_for_label }}" class="form-label">Email</label>
+                                    {{ contributor_form.email }}
+                                    {% if contributor_form.email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ contributor_form.email.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ contributor_form.phone.id_for_label }}" class="form-label">Phone Number</label>
+                                    {{ contributor_form.phone }}
+                                    {% if contributor_form.phone.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ contributor_form.phone.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ contributor_form.address.id_for_label }}" class="form-label">Address</label>
+                                    {{ contributor_form.address }}
+                                    {% if contributor_form.address.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ contributor_form.address.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contribution Details -->
+                        <div class="mb-4">
+                            <h4 class="mb-3">Contribution Details</h4>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ contribution_form.asset.id_for_label }}" class="form-label">Select Waqaf Asset</label>
+                                    {{ contribution_form.asset }}
+                                    {% if contribution_form.asset.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ contribution_form.asset.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ contribution_form.number_of_slots.id_for_label }}" class="form-label">Number of Slots</label>
+                                    {{ contribution_form.number_of_slots }}
+                                    {% if contribution_form.number_of_slots.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ contribution_form.number_of_slots.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="{{ contribution_form.dedicated_for.id_for_label }}" class="form-label">Dedicated For</label>
+                                    {{ contribution_form.dedicated_for }}
+                                    {% if contribution_form.dedicated_for.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ contribution_form.dedicated_for.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Payment Type</label>
+                                    <div>
+                                        {{ contribution_form.payment_type }}
+                                    </div>
+                                    {% if contribution_form.payment_type.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ contribution_form.payment_type.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Each slot costs RM50. The total amount will be calculated automatically based on the number of slots selected.
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-hand-holding-heart me-2"></i>
+                                Make Contribution
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Bootstrap classes to form fields
+        const formFields = document.querySelectorAll('input, select, textarea');
+        formFields.forEach(field => {
+            field.classList.add('form-control');
+        });
+
+        // Add Bootstrap classes to radio buttons
+        const radioButtons = document.querySelectorAll('input[type="radio"]');
+        radioButtons.forEach(radio => {
+            radio.classList.remove('form-control');
+            radio.classList.add('form-check-input');
+            radio.parentElement.classList.add('form-check');
+        });
+
+        // Form validation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+
+        // Asset selection handler
+        const assetSelect = document.querySelector('#id_asset');
+        const slotsInput = document.querySelector('#id_number_of_slots');
+        
+        if (assetSelect && slotsInput) {
+            // Get available assets data from the debug section
+            const availableAssets = {};
+            document.querySelectorAll('.alert-info li').forEach(li => {
+                const text = li.textContent;
+                const match = text.match(/(\d+) slots available/);
+                if (match) {
+                    const assetId = li.closest('li').dataset.assetId;
+                    availableAssets[assetId] = parseInt(match[1]);
+                }
+            });
+
+            // Set initial max value based on first option
+            const firstOption = assetSelect.options[0];
+            if (firstOption && firstOption.value) {
+                const maxSlots = availableAssets[firstOption.value] || 0;
+                slotsInput.max = maxSlots;
+            }
+
+            // Handle asset selection change
+            assetSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption && selectedOption.value) {
+                    const maxSlots = availableAssets[selectedOption.value] || 0;
+                    slotsInput.max = maxSlots;
+                    
+                    // Update current value if it exceeds max
+                    const currentValue = parseInt(slotsInput.value) || 0;
+                    if (currentValue > maxSlots) {
+                        slotsInput.value = maxSlots;
+                    }
+                    
+                    // Update placeholder to show available slots
+                    slotsInput.placeholder = `Enter number of slots (max: ${maxSlots})`;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %} 
