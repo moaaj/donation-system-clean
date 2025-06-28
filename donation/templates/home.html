@@ -1,0 +1,601 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charity Platform</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 100px 0;
+            margin-bottom: 50px;
+        }
+        
+        .hero-image {
+            width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .hero-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .module-card {
+            transition: transform 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        
+        .module-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .module-icon {
+            font-size: 3rem;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+        }
+        
+        .btn-custom {
+            background-color: var(--secondary-color);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            color: white;
+        }
+        
+        .btn-custom:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-2px);
+            color: white;
+        }
+        
+        .feature-section {
+            padding: 80px 0;
+            background-color: white;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .section-title {
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background-color: var(--secondary-color);
+        }
+        
+        footer {
+            background-color: var(--primary-color);
+        }
+
+        .chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 380px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+            z-index: 1000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .chat-widget:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 16px 16px 0 0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chat-header h3 {
+            margin: 0;
+            font-size: 1.2em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-header h3::before {
+            content: '🤖';
+            font-size: 1.4em;
+        }
+
+        .toggle-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+
+        .chat-body {
+            height: 450px;
+            overflow-y: auto;
+            padding: 20px;
+            display: none;
+            background: #f8f9fa;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .chat-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .chat-body::-webkit-scrollbar-thumb {
+            background: #4CAF50;
+            border-radius: 3px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 85%;
+            line-height: 1.5;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bot-message {
+            background: white;
+            margin-right: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+        }
+
+        .bot-message ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .bot-message li {
+            margin: 5px 0;
+        }
+
+        .user-message {
+            background: #4CAF50;
+            color: white;
+            margin-left: auto;
+            box-shadow: 0 2px 8px rgba(76,175,80,0.2);
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .suggestions button {
+            background: white;
+            border: 1px solid #e9ecef;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            color: #4CAF50;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .suggestions button:hover {
+            background: #4CAF50;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(76,175,80,0.2);
+        }
+
+        .chat-input {
+            padding: 15px;
+            border-top: 1px solid #e9ecef;
+            display: none;
+            background: white;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .chat-input input {
+            width: 80%;
+            padding: 12px 16px;
+            border: 1px solid #e9ecef;
+            border-radius: 25px;
+            margin-right: 10px;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76,175,80,0.1);
+        }
+
+        .chat-input button {
+            padding: 12px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(76,175,80,0.2);
+        }
+
+        .chat-input button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Loading animation */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold mb-4">Make a Difference Today</h1>
+                    <p class="lead mb-4">Join us in our mission to support education, provide donations, and manage waqaf properties for a better tomorrow.</p>
+                    <a href="#modules" class="btn btn-light btn-lg">Explore Modules</a>
+                </div>
+                <div class="col-lg-6">
+                    <img src="https://images.unsplash.com/photo-1577896851231-70ef18881754?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                         alt="Charity and Community Support" 
+                         class="hero-image"
+                         onerror="this.src='https://placehold.co/600x400/2c3e50/ffffff?text=Charity+Platform'">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modules Section -->
+    <section id="modules" class="py-5">
+        <div class="container">
+            <h2 class="text-center section-title">Our Modules</h2>
+            <div class="row g-4">
+                <!-- School Fees Module -->
+                <div class="col-md-4">
+                    <div class="module-card card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="module-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <h3 class="card-title">School Fees</h3>
+                            <p class="card-text">Support students' education by contributing to their school fees. Help shape the future of our youth.</p>
+                            <a href="/school-fees" class="btn btn-custom">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Donation Module -->
+                <div class="col-md-4">
+                    <div class="module-card card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="module-icon">
+                                <i class="fas fa-hand-holding-heart"></i>
+                            </div>
+                            <h3 class="card-title">Donations</h3>
+                            <p class="card-text">Make a direct impact through your generous donations. Every contribution makes a difference.</p>
+                            <a href="{% url 'donate' %}" class="btn btn-custom">Donate Now</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Waqaf Module -->
+                <div class="col-md-4">
+                    <div class="module-card card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="module-icon">
+                                <i class="fas fa-mosque"></i>
+                            </div>
+                            <h3 class="card-title">Waqaf</h3>
+                            <p class="card-text">Contribute to sustainable development through waqaf properties. Create lasting benefits for the community.</p>
+                            <a href="/waqaf" class="btn btn-custom">Explore Waqaf</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="feature-section">
+        <div class="container">
+            <h2 class="text-center section-title">Our Impact</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-number">1000+</div>
+                        <h4>Students Supported</h4>
+                        <p>Through school fees assistance</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-number">$500K+</div>
+                        <h4>Donations Raised</h4>
+                        <p>For various charitable causes</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-number">50+</div>
+                        <h4>Waqaf Properties</h4>
+                        <p>Managed for community benefit</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Charity Platform</h5>
+                    <p>Making a difference one contribution at a time.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2024 Charity Platform. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Unified AI Assistant Chat Widget -->
+    <div class="chat-widget" id="chatWidget">
+        <div class="chat-header" onclick="toggleChat()">
+            <h3>AI Assistant</h3>
+            <span class="toggle-icon">▼</span>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <div class="message bot-message">
+                Hello! 👋 I'm your AI assistant. I can help you with:
+                <ul>
+                    <li>💝 Donations and fundraising</li>
+                    <li>💰 School fees and payments</li>
+                    <li>📅 School events and activities</li>
+                </ul>
+                How can I assist you today?
+            </div>
+            <div class="suggestions">
+                <button onclick="sendSuggestion('Tell me about current donation events')">🎯 Current Events</button>
+                <button onclick="sendSuggestion('How do I check my school fees?')">💰 Check Fees</button>
+                <button onclick="sendSuggestion('What events are coming up?')">📅 Upcoming Events</button>
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Type your message here...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+    function toggleChat() {
+        const chatBody = document.getElementById('chatBody');
+        const chatInput = document.querySelector('.chat-input');
+        const toggleIcon = document.querySelector('.toggle-icon');
+        
+        if (chatBody.style.display === 'none' || !chatBody.style.display) {
+            chatBody.style.display = 'block';
+            chatInput.style.display = 'flex';
+            toggleIcon.textContent = '▲';
+        } else {
+            chatBody.style.display = 'none';
+            chatInput.style.display = 'none';
+            toggleIcon.textContent = '▼';
+        }
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        
+        if (message) {
+            // Disable input and show loading state
+            input.disabled = true;
+            const sendButton = input.nextElementSibling;
+            sendButton.disabled = true;
+            sendButton.textContent = 'Sending...';
+            sendButton.classList.add('loading');
+            
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Send message to server
+            fetch('/donation/chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: `message=${encodeURIComponent(message)}`
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    addMessage('Sorry, I encountered an error: ' + data.error, 'bot');
+                } else {
+                    addMessage(data.message, 'bot');
+                    if (data.suggestions) {
+                        addSuggestions(data.suggestions);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+            })
+            .finally(() => {
+                // Re-enable input and restore button
+                input.disabled = false;
+                sendButton.disabled = false;
+                sendButton.textContent = 'Send';
+                sendButton.classList.remove('loading');
+                input.focus();
+            });
+        }
+    }
+
+    function sendSuggestion(suggestion) {
+        document.getElementById('messageInput').value = suggestion;
+        sendMessage();
+    }
+
+    function addMessage(message, type) {
+        const chatBody = document.getElementById('chatBody');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}-message`;
+        
+        // Handle HTML content in bot messages
+        if (type === 'bot') {
+            messageDiv.innerHTML = message;
+        } else {
+            messageDiv.textContent = message;
+        }
+        
+        chatBody.appendChild(messageDiv);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function addSuggestions(suggestions) {
+        const chatBody = document.getElementById('chatBody');
+        const suggestionsDiv = document.createElement('div');
+        suggestionsDiv.className = 'suggestions';
+        
+        suggestions.forEach(suggestion => {
+            const button = document.createElement('button');
+            button.textContent = suggestion;
+            button.onclick = () => sendSuggestion(suggestion);
+            suggestionsDiv.appendChild(button);
+        });
+        
+        chatBody.appendChild(suggestionsDiv);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Handle Enter key in input
+    document.getElementById('messageInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+    </script>
+</body>
+</html>
+{% endblock %}
