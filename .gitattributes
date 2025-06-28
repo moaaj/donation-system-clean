@@ -1,9 +1,59 @@
 # Ignore HTML templates and static files for language stats
+# This ensures Python is the dominant language in GitHub stats
 
+# Ignore all template directories
 donation/templates/* linguist-vendored
 donation/myapp/templates/* linguist-vendored
 donation/donation2/templates/* linguist-vendored
 donation/waqaf/templates/* linguist-vendored
-donation/static/* linguist-vendored
+donation/accounts/templates/* linguist-vendored
 templates/* linguist-vendored
-static/* linguist-vendored 
+
+# Ignore all static files
+donation/static/* linguist-vendored
+donation/staticfiles/* linguist-vendored
+static/* linguist-vendored
+staticfiles/* linguist-vendored
+
+# Ignore specific file types
+*.html linguist-vendored
+*.css linguist-vendored
+*.js linguist-vendored
+*.svg linguist-vendored
+*.png linguist-vendored
+*.jpg linguist-vendored
+*.jpeg linguist-vendored
+*.gif linguist-vendored
+*.ico linguist-vendored
+*.woff linguist-vendored
+*.woff2 linguist-vendored
+*.ttf linguist-vendored
+*.eot linguist-vendored
+
+# Ignore migration files (they're mostly auto-generated)
+donation/*/migrations/*.py linguist-vendored
+
+# Ignore admin static files
+donation/staticfiles/admin/* linguist-vendored
+
+# Ignore documentation files
+*.md linguist-vendored
+*.txt linguist-vendored
+*.rst linguist-vendored
+
+# Ignore configuration files
+*.json linguist-vendored
+*.xml linguist-vendored
+*.yaml linguist-vendored
+*.yml linguist-vendored
+
+# Ignore SQL files
+*.sql linguist-vendored
+
+# Ignore batch files
+*.bat linguist-vendored
+*.ps1 linguist-vendored
+
+# Ignore environment files
+.env* linguist-vendored
+env_example.txt linguist-vendored 
