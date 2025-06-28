@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Update Fee Status{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Update Fee Status</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Fee Details</h5>
+                        <table class="table">
+                            <tr>
+                                <th>Student:</th>
+                                <td>{{ fee_status.student.first_name }} {{ fee_status.student.last_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Fee Category:</th>
+                                <td>{{ fee_status.fee_structure.category.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Amount:</th>
+                                <td>RM {{ fee_status.amount }}</td>
+                            </tr>
+                            <tr>
+                                <th>Due Date:</th>
+                                <td>{{ fee_status.due_date }}</td>
+                            </tr>
+                            <tr>
+                                <th>Current Status:</th>
+                                <td>
+                                    <span class="badge {% if fee_status.status == 'overdue' %}bg-danger{% elif fee_status.status == 'pending' %}bg-warning{% else %}bg-success{% endif %}">
+                                        {{ fee_status.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Update Status</label>
+                            <select name="status" id="status" class="form-select" required>
+                                {% for status_value, status_label in fee_status.STATUS_CHOICES %}
+                                <option value="{{ status_value }}" {% if status_value == fee_status.status %}selected{% endif %}>
+                                    {{ status_label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="text-end">
+                            <a href="{% url 'pending_fees' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Update Status</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

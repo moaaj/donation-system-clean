@@ -1,0 +1,41 @@
+{% extends 'myapp/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    <h2 class="card-title">Thank You for Your Donation!</h2>
+                    <p class="card-text">Your donation of ${{ donation.amount }} has been received successfully.</p>
+                    
+                    <div class="alert alert-info text-start">
+                        <h5 class="alert-heading">Donation Details</h5>
+                        <p class="mb-1"><strong>Event:</strong> {{ donation.event.title }}</p>
+                        <p class="mb-1"><strong>Donor Name:</strong> {{ donation.donor_name }}</p>
+                        <p class="mb-1"><strong>Donor Email:</strong> {{ donation.donor_email }}</p>
+                        <p class="mb-1"><strong>Payment Method:</strong> {{ donation.get_payment_method_display }}</p>
+                        <p class="mb-1"><strong>Transaction ID:</strong> {{ donation.transaction_id }}</p>
+                        <p class="mb-0"><strong>Date:</strong> {{ donation.created_at|date:"F j, Y" }}</p>
+                    </div>
+                    
+                    <div class="d-grid gap-2 col-md-6 mx-auto mt-4">
+                        <a href="{% url 'donation_receipt' donation.id %}" class="btn btn-success">
+                            <i class="fas fa-file-pdf me-2"></i>Download Receipt
+                        </a>
+                        <a href="{% url 'donation_event_detail' donation.event.id %}" class="btn btn-primary">
+                            Back to Event
+                        </a>
+                        <a href="/" class="btn btn-outline-secondary">
+                            Return to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

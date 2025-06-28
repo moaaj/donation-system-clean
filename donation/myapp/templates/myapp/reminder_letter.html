@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Reminder Letter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 40px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .footer {
+            margin-top: 50px;
+        }
+        .signature {
+            margin-top: 50px;
+        }
+        .payment-details {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+        .date {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>PAYMENT REMINDER LETTER</h1>
+        <p>School Name</p>
+        <p>School Address</p>
+        <p>Phone: (123) 456-7890</p>
+    </div>
+
+    <div class="date">
+        {{ current_date|date:"d M Y" }}
+    </div>
+
+    <div class="content">
+        <p>Dear {{ payment.student.first_name }} {{ payment.student.last_name }},</p>
+
+        <p>This letter serves as a formal reminder regarding your outstanding payment for the following:</p>
+
+        <div class="payment-details">
+            <p><strong>Student ID:</strong> {{ payment.student.student_id }}</p>
+            <p><strong>Fee Category:</strong> {{ payment.fee_structure.category.name }}</p>
+            <p><strong>Amount Due:</strong> RM {{ payment.amount|floatformat:2 }}</p>
+            <p><strong>Due Date:</strong> {{ payment.payment_date|date:"d M Y" }}</p>
+            <p><strong>Days Overdue:</strong> {{ days_overdue }} days</p>
+        </div>
+
+        <p>Please note that this payment is now overdue. To avoid any late fees or penalties, we kindly request that you settle this payment as soon as possible.</p>
+
+        <p>You can make the payment through any of the following methods:</p>
+        <ul>
+            <li>Cash payment at the school office</li>
+            <li>Bank transfer to our school account</li>
+            <li>Online payment through our payment portal</li>
+        </ul>
+
+        <p>If you have already made the payment, please disregard this reminder and accept our thanks.</p>
+
+        <p>If you have any questions or need assistance, please do not hesitate to contact the school office.</p>
+    </div>
+
+    <div class="signature">
+        <p>Yours sincerely,</p>
+        <br><br>
+        <p>_______________________</p>
+        <p>School Administrator</p>
+    </div>
+
+    <div class="footer">
+        <p><strong>Note:</strong> This is a computer-generated letter and does not require a signature.</p>
+    </div>
+</body>
+</html> 

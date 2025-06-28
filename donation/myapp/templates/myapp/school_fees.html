@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}School Fees Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-section {
+        padding: 2rem 0 1rem 0;
+    }
+    .dashboard-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #2c3e50;
+        margin-bottom: 2rem;
+        letter-spacing: -1px;
+        text-align: center;
+    }
+    .dashboard-card {
+        border: none;
+        border-radius: 18px;
+        box-shadow: 0 4px 16px rgba(44,62,80,0.07), 0 1.5px 4px rgba(44,62,80,0.04);
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+        background: #fff;
+        position: relative;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-6px) scale(1.03);
+        box-shadow: 0 8px 32px rgba(44,62,80,0.13), 0 3px 8px rgba(44,62,80,0.08);
+        z-index: 2;
+    }
+    .dashboard-card .card-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #34495e;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .dashboard-card .card-text {
+        color: #7b8a99;
+        font-size: 1rem;
+        margin-bottom: 1.2rem;
+        min-height: 48px;
+    }
+    .dashboard-card .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 0.6rem 1.2rem;
+        transition: background 0.2s, color 0.2s;
+    }
+    .dashboard-card .btn i {
+        margin-right: 0.5rem;
+    }
+    .dashboard-row {
+        row-gap: 2rem;
+    }
+    @media (max-width: 767px) {
+        .dashboard-title {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container dashboard-section">
+    <div class="dashboard-title">School Fees Management</div>
+    <div class="row dashboard-row">
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-users text-primary"></i> Students</h5>
+                    <p class="card-text">Manage student information and fee records.</p>
+                    <a href="{% url 'student_list' %}" class="btn btn-primary w-100">
+                        <i class="fas fa-user-graduate"></i> View Students
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-list text-info"></i> Fee Structure</h5>
+                    <p class="card-text">View and manage fee categories and amounts.</p>
+                    <a href="{% url 'fee_structure_list' %}" class="btn btn-info w-100">
+                        <i class="fas fa-list"></i> View Fee Structure
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-money-check-alt text-success"></i> Payments</h5>
+                    <p class="card-text">Record and track fee payments.</p>
+                    <a href="{% url 'payment_list' %}" class="btn btn-success w-100">
+                        <i class="fas fa-money-bill-wave"></i> View Payments
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-percent text-warning"></i> Fee Waivers & Scholarships</h5>
+                    <p class="card-text">Manage fee waivers, discounts, and scholarships.</p>
+                    <a href="{% url 'fee_waivers' %}" class="btn btn-warning w-100 text-white">
+                        <i class="fas fa-percentage"></i> View Fee Waivers
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-chart-bar text-secondary"></i> Reports</h5>
+                    <p class="card-text">View comprehensive fee reports and statistics.</p>
+                    <a href="{% url 'fee_reports' %}" class="btn btn-secondary w-100">
+                        <i class="fas fa-chart-bar"></i> View Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-bell text-danger"></i> Payment Reminders</h5>
+                    <p class="card-text">Send reminders for pending payments.</p>
+                    <a href="{% url 'payment_reminders' %}" class="btn btn-danger w-100">
+                        <i class="fas fa-bell"></i> View Reminders
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-chart-line text-primary"></i> Analytics Dashboard</h5>
+                    <p class="card-text">View interactive charts and payment trends.</p>
+                    <a href="{% url 'ai_fee_analytics' %}" class="btn btn-primary w-100">
+                        <i class="fas fa-chart-line"></i> View Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-cogs text-dark"></i> Fee Settings</h5>
+                    <p class="card-text">Configure term-based or annual fee collection settings.</p>
+                    <a href="{% url 'fee_settings' %}" class="btn btn-dark w-100">
+                        <i class="fas fa-cogs"></i> Manage Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-tachometer-alt text-secondary"></i> Dashboard</h5>
+                    <p class="card-text">View the main dashboard with analytics, statistics, and recent activity.</p>
+                    <a href="{% url 'school_fees_dashboard' %}" class="btn btn-secondary w-100">
+                        <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,168 @@
+{% extends 'myapp/base.html' %}
+
+{% block extra_css %}
+<style>
+    body, html {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+    #three-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 0;
+        background: #0e1a2b;
+    }
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        padding-top: 7vh;
+        padding-bottom: 7vh;
+    }
+    .hero-title {
+        font-size: 3rem;
+        font-weight: 900;
+        color: #fff;
+        letter-spacing: -1px;
+        text-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    }
+    .hero-lead {
+        color: #e0e6ed;
+        font-size: 1.35rem;
+        margin-bottom: 2.5rem;
+        font-weight: 400;
+    }
+    .glass-card {
+        background: rgba(255,255,255,0.10);
+        border-radius: 18px;
+        box-shadow: 0 8px 32px rgba(44,62,80,0.13), 0 3px 8px rgba(44,62,80,0.08);
+        padding: 2.5rem 2rem 2rem 2rem;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255,255,255,0.18);
+    }
+    .btn-lg {
+        font-size: 1.15rem;
+        padding: 0.9rem 2.2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(44,62,80,0.08);
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-lg:hover {
+        transform: translateY(-2px) scale(1.04);
+        box-shadow: 0 6px 18px rgba(44,62,80,0.18);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<canvas id="three-bg"></canvas>
+<div class="container hero-content d-flex align-items-center justify-content-center min-vh-100">
+    <div class="row w-100 justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="glass-card">
+                <h1 class="hero-title mb-4">Welcome to Our Donation Platform</h1>
+                <p class="hero-lead mb-4">Make a difference in education through your generous contributions.</p>
+                {% if user.is_authenticated %}
+                    <div class="d-grid gap-3 col-md-6 mx-auto">
+                        <a href="{% url 'donation_events' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-heart"></i> View Donation Events
+                        </a>
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                        </a>
+                        <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-lg">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="d-grid gap-3 col-md-6 mx-auto">
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </a>
+                        <a href="{% url 'register' %}" class="btn btn-success btn-lg">
+                            <i class="fas fa-user-plus"></i> Register
+                        </a>
+                        <a href="{% url 'donation_events' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-heart"></i> View Donation Events
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script>
+// Colorful, interactive Three.js particles with parallax effect
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-bg'), alpha: true, antialias: true });
+renderer.setClearColor(0x0e1a2b, 1);
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+// Create colorful particles
+const particles = [];
+const particleCount = 90;
+const geometry = new THREE.SphereGeometry(0.18, 16, 16);
+for (let i = 0; i < particleCount; i++) {
+    const color = new THREE.Color();
+    color.setHSL(Math.random(), 0.7, 0.55 + Math.random() * 0.3);
+    const material = new THREE.MeshStandardMaterial({ color, transparent: true, opacity: 0.6 + Math.random() * 0.4 });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(
+        (Math.random() - 0.5) * 16,
+        (Math.random() - 0.5) * 10,
+        (Math.random() - 0.5) * 16
+    );
+    scene.add(mesh);
+    particles.push({ mesh, speed: 0.003 + Math.random() * 0.008 });
+}
+
+const light = new THREE.PointLight(0xffffff, 1.2, 100);
+light.position.set(0, 10, 10);
+scene.add(light);
+
+camera.position.z = 12;
+let targetX = 0, targetY = 0;
+let mouseX = 0, mouseY = 0;
+
+function animate() {
+    requestAnimationFrame(animate);
+    // Parallax camera movement
+    camera.position.x += (targetX - camera.position.x) * 0.05;
+    camera.position.y += (targetY - camera.position.y) * 0.05;
+    camera.lookAt(0, 0, 0);
+    particles.forEach((p, i) => {
+        p.mesh.position.y += Math.sin(Date.now() * p.speed + i) * 0.002;
+        p.mesh.position.x += Math.cos(Date.now() * p.speed + i) * 0.001;
+        p.mesh.rotation.y += 0.01 * p.speed;
+    });
+    renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('mousemove', (e) => {
+    // Normalize mouse position to [-1, 1]
+    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+    mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+    targetX = mouseX * 2.5;
+    targetY = -mouseY * 1.5;
+});
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+{% endblock %} 

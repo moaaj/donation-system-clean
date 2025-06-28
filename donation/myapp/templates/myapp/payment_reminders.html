@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Reminders{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Payment Reminders</h1>
+        </div>
+    </div>
+
+    <!-- Overdue Payments -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">Overdue Payments</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <strong>Total Overdue Amount:</strong> RM {{ total_overdue|floatformat:2 }}
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Fee Category</th>
+                                    <th>Amount</th>
+                                    <th>Due Date</th>
+                                    <th>Days Overdue</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in overdue_payments %}
+                                <tr>
+                                    <td>{{ payment.student.first_name }} {{ payment.student.last_name }}</td>
+                                    <td>{{ payment.fee_structure.category.name }}</td>
+                                    <td>RM {{ payment.amount|floatformat:2 }}</td>
+                                    <td>{{ payment.payment_date|date:"d M Y" }}</td>
+                                    <td>{{ payment.payment_date|timeuntil }}</td>
+                                    <td>
+                                        <a href="{% url 'send_payment_reminder' payment.id %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-envelope"></i> Send Reminder
+                                        </a>
+                                        <a href="{% url 'generate_reminder_letter' payment.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-file-alt"></i> Generate Letter
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No overdue payments</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Payments -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h5 class="card-title mb-0">Upcoming Payments</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>Total Upcoming Amount:</strong> RM {{ total_upcoming|floatformat:2 }}
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Fee Category</th>
+                                    <th>Amount</th>
+                                    <th>Due Date</th>
+                                    <th>Days Until Due</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in upcoming_payments %}
+                                <tr>
+                                    <td>{{ payment.student.first_name }} {{ payment.student.last_name }}</td>
+                                    <td>{{ payment.fee_structure.category.name }}</td>
+                                    <td>RM {{ payment.amount|floatformat:2 }}</td>
+                                    <td>{{ payment.payment_date|date:"d M Y" }}</td>
+                                    <td>{{ payment.payment_date|timeuntil }}</td>
+                                    <td>
+                                        <a href="{% url 'send_payment_reminder' payment.id %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-envelope"></i> Send Reminder
+                                        </a>
+                                        <a href="{% url 'generate_reminder_letter' payment.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-file-alt"></i> Generate Letter
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No upcoming payments</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

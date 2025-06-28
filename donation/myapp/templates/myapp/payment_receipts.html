@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Receipts{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Payment Receipts</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Payment Receipts</h5>
+                </div>
+                <div class="card-body">
+                    {% if payments %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Receipt Number</th>
+                                        <th>Student</th>
+                                        <th>Amount</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in payments %}
+                                        <tr>
+                                            <td>{{ payment.receipt_number }}</td>
+                                            <td>{{ payment.student.first_name }} {{ payment.student.last_name }}</td>
+                                            <td>RM {{ payment.amount }}</td>
+                                            <td>{{ payment.payment_date }}</td>
+                                            <td>
+                                                <a href="{% url 'payment_receipt' payment.id %}" class="btn btn-primary btn-sm" target="_blank">
+                                                    <i class="fas fa-print"></i> Print
+                                                </a>
+                                                <a href="{% url 'email_receipt' payment.id %}" class="btn btn-success btn-sm">
+                                                    <i class="fas fa-envelope"></i> Email
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            No payment receipts found.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

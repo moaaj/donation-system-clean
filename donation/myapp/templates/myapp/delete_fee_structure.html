@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Fee Structure{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="text-center mb-0">Delete Fee Structure</h2>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Are you sure you want to delete this fee structure?</p>
+                    <div class="alert alert-warning">
+                        <strong>Category:</strong> {{ fee_structure.category.name }}<br>
+                        <strong>Form:</strong> {{ fee_structure.form }}<br>
+                        <strong>Amount:</strong> RM {{ fee_structure.amount|floatformat:2 }}<br>
+                        <strong>Frequency:</strong> {{ fee_structure.frequency }}
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Confirm Delete
+                            </button>
+                            <a href="{% url 'fee_structure_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

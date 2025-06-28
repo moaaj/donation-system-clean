@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fee Waiver Letter{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h2>Fee Waiver Letter</h2>
+                        <p class="text-muted">Reference: {{ waiver.id }}/{{ waiver.created_at|date:"Y" }}</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <p>Date: {{ waiver.created_at|date:"d F Y" }}</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h4>To Whom It May Concern,</h4>
+                    </div>
+
+                    <div class="mb-4">
+                        <p>This letter is to confirm that a fee waiver has been {{ waiver.status }} for the following student:</p>
+                        
+                        <div class="ml-4">
+                            <p><strong>Student Name:</strong> {{ student_info.name }}</p>
+                            <p><strong>Student Class:</strong> {{ student_info.class }}</p>
+                            <p><strong>Student ID:</strong> {{ student_info.id }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Waiver Details:</h5>
+                        <div class="ml-4">
+                            <p><strong>Type:</strong> {{ waiver.get_waiver_type_display }}</p>
+                            <p><strong>Fee Category:</strong> {{ student_info.category }}</p>
+                            <p><strong>Discount:</strong> 
+                                {% if waiver.percentage %}
+                                    {{ waiver.percentage }}%
+                                {% else %}
+                                    RM {{ waiver.amount|floatformat:2 }}
+                                {% endif %}
+                            </p>
+                            <p><strong>Valid Period:</strong> {{ waiver.start_date|date:"d F Y" }} to {{ waiver.end_date|date:"d F Y" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Reason for Waiver:</h5>
+                        <div class="ml-4">
+                            <p>{{ student_info.reason }}</p>
+                        </div>
+                    </div>
+
+                    {% if waiver.status == 'approved' %}
+                    <div class="mb-4">
+                        <h5>Approval Details:</h5>
+                        <div class="ml-4">
+                            <p><strong>Approved by:</strong> School Administration</p>
+                            <p><strong>Approval Date:</strong> {{ waiver.approved_date|date:"d F Y" }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-5">
+                        <p>This letter serves as official documentation of the fee waiver status.</p>
+                        <p>For any queries, please contact the school administration.</p>
+                    </div>
+
+                    <div class="mt-5">
+                        <p>Yours sincerely,</p>
+                        <p class="mt-4">School Administration</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button onclick="window.print()" class="btn btn-primary">
+                    <i class="fas fa-print"></i> Print Letter
+                </button>
+                <a href="{% url 'fee_waivers' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Waivers
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .btn, .navbar, footer {
+            display: none !important;
+        }
+        .card {
+            border: none !important;
+        }
+        .container {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+    }
+</style>
+{% endblock %} 

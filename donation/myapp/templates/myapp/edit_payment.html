@@ -1,0 +1,101 @@
+{% extends 'myapp/base.html' %}
+
+{% block title %}Edit Payment{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">Edit Payment</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="id_student" class="form-label">Student</label>
+                            <select name="student" id="id_student" class="form-select" required>
+                                {% for student in students %}
+                                    <option value="{{ student.id }}" {% if payment.student.id == student.id %}selected{% endif %}>
+                                        {{ student.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_fee_structure" class="form-label">Fee Structure</label>
+                            <select name="fee_structure" id="id_fee_structure" class="form-select" required>
+                                {% for fee in fee_structures %}
+                                    <option value="{{ fee.id }}" {% if payment.fee_structure.id == fee.id %}selected{% endif %}>
+                                        {{ fee.category.name }} - ${{ fee.amount }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_amount" class="form-label">Amount</label>
+                            <input type="number" name="amount" id="id_amount" class="form-control" 
+                                   value="{{ payment.amount }}" step="0.01" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_payment_date" class="form-label">Payment Date</label>
+                            <input type="date" name="payment_date" id="id_payment_date" class="form-control" 
+                                   value="{{ payment.payment_date|date:'Y-m-d' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_payment_method" class="form-label">Payment Method</label>
+                            <select name="payment_method" id="id_payment_method" class="form-select" required>
+                                <option value="cash" {% if payment.payment_method == 'cash' %}selected{% endif %}>Cash</option>
+                                <option value="bank_transfer" {% if payment.payment_method == 'bank_transfer' %}selected{% endif %}>Bank Transfer</option>
+                                <option value="check" {% if payment.payment_method == 'check' %}selected{% endif %}>Check</option>
+                                <option value="online" {% if payment.payment_method == 'online' %}selected{% endif %}>Online</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_reference_number" class="form-label">Reference Number</label>
+                            <input type="text" name="reference_number" id="id_reference_number" class="form-control" 
+                                   value="{{ payment.reference_number }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_notes" class="form-label">Notes</label>
+                            <textarea name="notes" id="id_notes" class="form-control" rows="3">{{ payment.notes }}</textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Update Payment</button>
+                            <a href="{% url 'payment_list' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Form validation
+    (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+</script>
+{% endblock %}
+{% endblock %} 

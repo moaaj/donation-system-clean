@@ -1,0 +1,10 @@
+{% extends "myapp/base.html" %}
+
+{% block content %}
+  <h2>Create Donation Event</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Create Event</button>
+  </form>
+{% endblock %} 

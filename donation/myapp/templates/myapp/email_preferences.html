@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Email Preferences{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Email Preferences</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Manage Your Email Notifications</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Email Address -->
+                        <div class="form-group mb-4">
+                            <label for="email_address">Email Address</label>
+                            <input type="email" class="form-control" id="email_address" name="email_address" 
+                                   value="moaaj.upm@gmail.com" readonly>
+                            <small class="form-text text-muted">This is the email address where notifications will be sent.</small>
+                        </div>
+
+                        <!-- Notification Preferences -->
+                        <div class="form-group">
+                            <h6 class="mb-3">Notification Types</h6>
+                            
+                            <!-- Payment Receipts -->
+                            <div class="custom-control custom-switch mb-3">
+                                <input type="checkbox" class="custom-control-input" id="receive_payment_receipts" 
+                                       name="receive_payment_receipts" {% if preferences.receive_payment_receipts %}checked{% endif %}>
+                                <label class="custom-control-label" for="receive_payment_receipts">
+                                    Payment Receipts
+                                </label>
+                                <small class="form-text text-muted d-block">
+                                    Receive email notifications when payments are made
+                                </small>
+                            </div>
+
+                            <!-- Payment Reminders -->
+                            <div class="custom-control custom-switch mb-3">
+                                <input type="checkbox" class="custom-control-input" id="receive_payment_reminders" 
+                                       name="receive_payment_reminders" {% if preferences.receive_payment_reminders %}checked{% endif %}>
+                                <label class="custom-control-label" for="receive_payment_reminders">
+                                    Payment Reminders
+                                </label>
+                                <small class="form-text text-muted d-block">
+                                    Get reminders about upcoming or overdue payments
+                                </small>
+                            </div>
+
+                            <!-- Monthly Statements -->
+                            <div class="custom-control custom-switch mb-3">
+                                <input type="checkbox" class="custom-control-input" id="receive_monthly_statements" 
+                                       name="receive_monthly_statements" {% if preferences.receive_monthly_statements %}checked{% endif %}>
+                                <label class="custom-control-label" for="receive_monthly_statements">
+                                    Monthly Statements
+                                </label>
+                                <small class="form-text text-muted d-block">
+                                    Receive monthly payment summaries and statements
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Preferences
+                            </button>
+                            <a href="{% url 'payment_receipts' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Receipts
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,95 @@
+{% extends 'myapp/base.html' %}
+
+{% block title %}Payment Receipt{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Payment Receipt</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Receipt Details</h5>
+                            <p><strong>Receipt Number:</strong> {{ payment.receipt_number }}</p>
+                            <p><strong>Date:</strong> {{ payment.payment_date|date:"F d, Y" }}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="badge {% if payment.status == 'completed' %}bg-success{% elif payment.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ payment.status|title }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Student Information</h5>
+                            <p><strong>Name:</strong> {{ payment.student.first_name }} {{ payment.student.last_name }}</p>
+                            <p><strong>Student ID:</strong> {{ payment.student.student_id }}</p>
+                            <p><strong>Year Batch:</strong> {{ payment.student.year_batch }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5>Payment Details</h5>
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Description</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>{{ payment.fee_structure.category.name }} - {{ payment.fee_structure.form }}</td>
+                                        <td>${{ payment.amount }}</td>
+                                    </tr>
+                                    {% if payment.fee_structure.frequency %}
+                                    <tr>
+                                        <td>Frequency</td>
+                                        <td>{{ payment.fee_structure.frequency|title }}</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <th>Total Amount</th>
+                                        <th>${{ payment.amount }}</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Payment Method</h5>
+                            <p><strong>Method:</strong> {{ payment.payment_method|title }}</p>
+                            {% if payment.reference_number %}
+                            <p><strong>Reference Number:</strong> {{ payment.reference_number }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Additional Information</h5>
+                            {% if payment.notes %}
+                            <p><strong>Notes:</strong> {{ payment.notes }}</p>
+                            {% endif %}
+                            <p><strong>Created At:</strong> {{ payment.created_at|date:"F d, Y H:i" }}</p>
+                            <p><strong>Last Updated:</strong> {{ payment.updated_at|date:"F d, Y H:i" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'payment_list' %}" class="btn btn-secondary">Back to Payments</a>
+                        <a href="{% url 'print_receipts' %}" class="btn btn-primary">Print Receipt</a>
+                        {% if payment.status == 'completed' %}
+                        <a href="{% url 'email_receipt' payment.id %}" class="btn btn-success">Email Receipt</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

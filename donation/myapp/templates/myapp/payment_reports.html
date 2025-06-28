@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Reports{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Payment Reports</h1>
+        </div>
+    </div>
+
+    <!-- Fee Payment Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Overdue Fees</h5>
+                    <h2 class="card-text">RM {{ overdue_amount|default:"0.00"|floatformat:2 }}</h2>
+                    <p class="card-text">{{ overdue_count|default:"0" }} payments overdue</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Amount</h5>
+                    <h2 class="card-text">RM {{ pending_amount|default:"0.00"|floatformat:2 }}</h2>
+                    <p class="card-text">{{ pending_count|default:"0" }} payments pending</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Amount Paid</h5>
+                    <h2 class="card-text">RM {{ paid_amount|default:"0.00"|floatformat:2 }}</h2>
+                    <p class="card-text">{{ paid_count|default:"0" }} payments completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Amount Remaining</h5>
+                    <h2 class="card-text">RM {{ remaining_amount|default:"0.00"|floatformat:2 }}</h2>
+                    <p class="card-text">Total outstanding balance</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Monthly Payment Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Total Amount</th>
+                                    <th>Number of Payments</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for summary in monthly_summary %}
+                                <tr>
+                                    <td>{{ summary.payment_date__year }}-{{ summary.payment_date__month }}</td>
+                                    <td>RM {{ summary.total_amount|floatformat:2 }}</td>
+                                    <td>{{ summary.payment_count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center">No payment data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Payment Status Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Count</th>
+                                    <th>Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for summary in status_summary %}
+                                <tr>
+                                    <td>
+                                        <span class="badge badge-{{ summary.status|lower }}">
+                                            {{ summary.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ summary.count }}</td>
+                                    <td>RM {{ summary.total_amount|floatformat:2 }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center">No payment data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Summary -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Fee Category Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Total Amount</th>
+                                    <th>Number of Payments</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for summary in category_summary %}
+                                <tr>
+                                    <td>{{ summary.fee_structure__category__name }}</td>
+                                    <td>RM {{ summary.total_amount|floatformat:2 }}</td>
+                                    <td>{{ summary.payment_count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center">No payment data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

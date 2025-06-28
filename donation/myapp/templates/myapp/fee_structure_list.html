@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fee Structure{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h1>Fee Structure</h1>
+            <a href="{% url 'add_fee_structure' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Fee Structure
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Form</th>
+                                    <th>Amount</th>
+                                    <th>Frequency</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for fee_structure in fee_structures %}
+                                <tr>
+                                    <td>{{ fee_structure.category.name }}</td>
+                                    <td>{{ fee_structure.form }}</td>
+                                    <td>RM {{ fee_structure.amount|floatformat:2 }}</td>
+                                    <td>{{ fee_structure.frequency }}</td>
+                                    <td>
+                                        <span class="badge {% if fee_structure.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ fee_structure.is_active|yesno:'Active,Inactive' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'edit_fee_structure' fee_structure.id %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'delete_fee_structure' fee_structure.id %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No fee structures found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

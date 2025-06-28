@@ -1,0 +1,333 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}School Fees Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-card {
+        border: none;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    .stat-card .card-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        opacity: 0.8;
+    }
+    .stat-card .card-text {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    .chart-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+    .chart-card .card-header {
+        background: none;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+        padding: 1.25rem;
+    }
+    .chart-card .card-title {
+        margin: 0;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    .quick-action-btn {
+        border-radius: 10px;
+        padding: 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-bottom: 1rem;
+        text-align: center;
+        display: block;
+        text-decoration: none;
+    }
+    .quick-action-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .quick-action-btn i {
+        margin-right: 8px;
+    }
+    .table {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .table thead th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+    }
+    .badge {
+        padding: 0.5em 1em;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+    .bg-completed { background-color: #28a745; }
+    .bg-pending { background-color: #ffc107; }
+    .bg-overdue { background-color: #dc3545; }
+    .page-title {
+        color: #2c3e50;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h1 class="page-title">School Fees Dashboard</h1>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card bg-primary text-white">
+                <h5 class="card-title">
+                    <i class="fas fa-users"></i> Total Students
+                </h5>
+                    <h2 class="card-text">{{ total_students }}</h2>
+                </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card bg-success text-white">
+                <h5 class="card-title">
+                    <i class="fas fa-money-bill-wave"></i> Total Payments
+                </h5>
+                <h2 class="card-text">RM {{ total_payments|floatformat:2 }}</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card bg-warning text-white">
+                <h5 class="card-title">
+                    <i class="fas fa-clock"></i> Pending Payments
+                </h5>
+                <h2 class="card-text">{{ pending_payments }}</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card bg-info text-white">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-line"></i> Collection Rate
+                </h5>
+                <h2 class="card-text">{{ collection_rate|floatformat:1 }}%</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="chart-card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-chart-line me-2"></i>Monthly Collection Trend
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-chart-pie me-2"></i>Payment Distribution by Category
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryDistributionChart" style="max-width:250px;max-height:250px;width:100%;height:250px;display:block;margin:auto;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="chart-card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{% url 'add_student' %}" class="quick-action-btn btn btn-primary">
+                                <i class="fas fa-user-plus"></i> Add Student
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'add_payment' %}" class="quick-action-btn btn btn-success">
+                                <i class="fas fa-money-bill-wave"></i> Add Payment
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'add_fee_structure' %}" class="quick-action-btn btn btn-info">
+                                <i class="fas fa-list"></i> Add Fee Structure
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'fee_reports' %}" class="quick-action-btn btn btn-secondary">
+                                <i class="fas fa-chart-bar"></i> View Reports
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Payments -->
+    <div class="row">
+        <div class="col-12">
+            <div class="chart-card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="fas fa-history me-2"></i>Recent Payments
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Student</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in recent_payments %}
+                                <tr>
+                                    <td>{{ payment.payment_date|date:"d M Y" }}</td>
+                                    <td>{{ payment.student.first_name }} {{ payment.student.last_name }}</td>
+                                    <td>RM {{ payment.amount|floatformat:2 }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ payment.status|lower }}">
+                                            {{ payment.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'payment_receipt' payment.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No recent payments</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Monthly Trend Chart
+    const monthlyTrendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+    new Chart(monthlyTrendCtx, {
+        type: 'line',
+        data: {
+            labels: {{ monthly_labels|safe }},
+            datasets: [{
+                label: 'Collections',
+                data: {{ monthly_data|safe }},
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Monthly Collection Trend'
+                },
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'RM ' + value;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Category Distribution Chart
+    const categoryDistributionCtx = document.getElementById('categoryDistributionChart').getContext('2d');
+    new Chart(categoryDistributionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ category_labels|safe }},
+            datasets: [{
+                data: {{ category_data|safe }},
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(153, 102, 255)'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Payment Distribution by Category'
+                },
+                legend: {
+                    position: 'right',
+                    labels: {
+                        padding: 20
+                    }
+                }
+            },
+            cutout: '60%'
+        }
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .payment-details {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Payment Reminder</h2>
+        </div>
+        
+        <div class="content">
+            <p>Dear {{ payment.student.first_name }} {{ payment.student.last_name }},</p>
+            
+            <p>This is a friendly reminder about your pending payment:</p>
+            
+            <div class="payment-details">
+                <p><strong>Student ID:</strong> {{ payment.student.student_id }}</p>
+                <p><strong>Fee Category:</strong> {{ payment.fee_structure.category.name }}</p>
+                <p><strong>Amount Due:</strong> RM {{ payment.amount|floatformat:2 }}</p>
+                <p><strong>Due Date:</strong> {{ payment.payment_date|date:"d M Y" }}</p>
+                <p><strong>Status:</strong> {{ payment.status|title }}</p>
+            </div>
+
+            {% if payment.payment_date < now %}
+            <p style="color: #dc3545;"><strong>This payment is overdue.</strong> Please make the payment as soon as possible to avoid any late fees or penalties.</p>
+            {% else %}
+            <p>This payment is due soon. Please ensure timely payment to avoid any late fees.</p>
+            {% endif %}
+
+            <p>You can make the payment through any of the following methods:</p>
+            <ul>
+                <li>Cash payment at the school office</li>
+                <li>Bank transfer to our school account</li>
+                <li>Online payment through our payment portal</li>
+            </ul>
+
+            <p>If you have already made the payment, please ignore this reminder.</p>
+            
+            <p>If you have any questions or need assistance, please contact the school office.</p>
+            
+            <p>Thank you for your attention to this matter.</p>
+            
+            <p>Best regards,<br>School Administration</p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+            <p>© {% now "Y" %} School Name. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html> 

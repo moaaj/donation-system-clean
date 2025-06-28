@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fee Waivers & Scholarships{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Fee Waivers & Scholarships</h1>
+            <a href="{% url 'add_fee_waiver' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Waiver
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">All Fee Waivers</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Type</th>
+                                    <th>Category</th>
+                                    <th>Amount/Percentage</th>
+                                    <th>Period</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for waiver in waivers %}
+                                <tr>
+                                    <td>
+                                        {% if waiver.student %}
+                                            {{ waiver.student.first_name }} {{ waiver.student.last_name }}
+                                        {% else %}
+                                            <span class="text-muted">No student info</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ waiver.get_waiver_type_display }}</td>
+                                    <td>
+                                        {% if waiver.category %}
+                                            {{ waiver.category.name }}
+                                        {% else %}
+                                            <span class="text-muted">No category</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if waiver.percentage %}
+                                            {{ waiver.percentage }}%
+                                        {% else %}
+                                            RM {{ waiver.amount|floatformat:2 }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ waiver.start_date|date:"d M Y" }} to {{ waiver.end_date|date:"d M Y" }}
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold" style="color: black;">{{ waiver.get_status_display }}</span>
+                                    </td>
+                                    <td>
+                                        {% if waiver.status == 'pending' %}
+                                        <form method="post" action="{% url 'approve_fee_waiver' waiver.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="fas fa-check"></i> Approve
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{% url 'reject_fee_waiver' waiver.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        <a href="{% url 'view_fee_waiver_letter' waiver.id %}" class="btn btn-sm btn-info" target="_blank">
+                                            <i class="fas fa-file-alt"></i> View Letter
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center">No fee waivers found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

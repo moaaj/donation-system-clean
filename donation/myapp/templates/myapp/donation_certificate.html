@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Donation Certificate</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
+        body {
+            font-family: 'Times New Roman', serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .certificate {
+            width: 29.7cm;
+            height: 21cm;
+            margin: 0 auto;
+            padding: 2cm;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+            border: 1px solid #ddd;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2cm;
+        }
+        .header h1 {
+            font-size: 36px;
+            color: #2c3e50;
+            margin-bottom: 0.5cm;
+        }
+        .header p {
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+        .content {
+            text-align: center;
+            margin: 2cm 0;
+        }
+        .content h2 {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 1cm;
+        }
+        .content p {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 0.5cm;
+        }
+        .signature {
+            margin-top: 2cm;
+            text-align: center;
+        }
+        .signature p {
+            margin: 0;
+            padding: 0;
+        }
+        .signature .line {
+            width: 8cm;
+            border-top: 1px solid #000;
+            margin: 0.5cm auto;
+        }
+        .footer {
+            position: absolute;
+            bottom: 1cm;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        .certificate-number {
+            position: absolute;
+            top: 0.5cm;
+            right: 0.5cm;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate">
+        <div class="certificate-number">
+            Certificate #{{ certificate.certificate_number }}
+        </div>
+        <div class="header">
+            <h1>CERTIFICATE OF APPRECIATION</h1>
+            <p>This is to certify that</p>
+        </div>
+        <div class="content">
+            <h2>{{ certificate.donation.donor_name }}</h2>
+            <p>has generously donated</p>
+            <h2>${{ certificate.donation.amount }}</h2>
+            <p>to support</p>
+            <h2>{{ certificate.donation.event.title }}</h2>
+            <p>on {{ certificate.donation.created_at|date:"F j, Y" }}</p>
+        </div>
+        <div class="signature">
+            <p>Authorized Signatory</p>
+            <div class="line"></div>
+            <p>School Management System</p>
+        </div>
+        <div class="footer">
+            <p>This certificate is issued in recognition of your generous contribution to our educational initiatives.</p>
+            <p>Certificate issued on: {{ certificate.issue_date|date:"F j, Y" }}</p>
+        </div>
+    </div>
+</body>
+</html> 

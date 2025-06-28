@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bulk Upload Students{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="text-center mb-0">Bulk Upload Students</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle"></i> Instructions:</h5>
+                        <ol>
+                            <li>Download the template file below</li>
+                            <li>Fill in the student information</li>
+                            <li>Upload the completed file</li>
+                        </ol>
+                        <p class="mb-0"><strong>Required columns:</strong> student_id, nric, first_name, last_name, year_batch</p>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" class="mt-4">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Select File (Excel or CSV)</label>
+                            <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls,.csv" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload"></i> Upload Students
+                            </button>
+                            <a href="{% url 'student_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Student List
+                            </a>
+                        </div>
+                    </form>
+
+                    <div class="mt-4">
+                        <h5>Download Template:</h5>
+                        <a href="{% url 'download_student_template' %}" class="btn btn-success">
+                            <i class="fas fa-download"></i> Download Excel Template
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

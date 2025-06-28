@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Fees Management</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .stats div {
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .delete-btn {
+            background: #dc3545;
+            margin-left: 10px;
+        }
+        .charts {
+            display: flex;
+            justify-content: space-between;
+        }
+        canvas {
+            max-width: 45%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>School Fees Management Dashboard</h2>
+        <div class="stats">
+            <div>Total Collected: $<span id="collected">0</span></div>
+            <div>Pending Fees: $<span id="pending">0</span></div>
+            <div>Due Date: 10th of every month</div>
+        </div>
+
+        <input type="text" id="search" placeholder="Search by name or class" onkeyup="filterTable()">
+        
+        <div class="charts">
+            <canvas id="feesChart"></canvas>
+            <canvas id="pieChart"></canvas>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Student Name</th>
+                    <th>Class</th>
+                    <th>Category</th>
+                    <th>Fee Paid</th>
+                    <th>Balance</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="student-table">
+                <!-- Student records will be added dynamically -->
+            </tbody>
+        </table>
+
+        <div>
+            <h3>Add Payment</h3>
+            <div class="form-group">
+                <input type="text" id="name" placeholder="Student Name">
+            </div>
+            <div class="form-group">
+                <input type="text" id="class" placeholder="Class">
+            </div>
+            <div class="form-group">
+                <select id="category">
+                    <option value="Tuition Fees">Tuition Fees</option>
+                    <option value="Exam Fees">Exam Fees</option>
+                    <option value="Library Fees">Library Fees</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="number" id="fee" placeholder="Fee Paid">
+            </div>
+            <button onclick="addPayment()">Add Payment</button>
+        </div>
+    </div>
+
+    <script>
+        let totalCollected = 0;
+        let totalPending = 0;
+        let categoryData = { "Tuition Fees": 0, "Exam Fees": 0, "Library Fees": 0 };
+
+        function updateCharts() {
+            if (feesChart) {
+                feesChart.data.labels.push(new Date().toLocaleDateString());
+                feesChart.data.datasets[0].data.push(totalCollected);
+                feesChart.data.datasets[1].data.push(totalPending);
+                feesChart.update();
+            }
+
+            if (pieChart) {
+                pieChart.data.datasets[0].data = Object.values(categoryData);
+                pieChart.update();
+            }
+        }
+
+        function addPayment() {
+            let name = document.getElementById('name').value;
+            let studentClass = document.getElementById('class').value;
+            let category = document.getElementById('category').value;
+            let feePaid = parseFloat(document.getElementById('fee').value);
+            let balance = 1000 - feePaid; 
+            let status = balance === 0 ? 'Paid' : 'Unpaid';
+            let date = new Date().toLocaleDateString();
+
+            if (name && studentClass && !isNaN(feePaid)) {
+                let table = document.getElementById('student-table');
+                let row = table.insertRow(0);
+                row.innerHTML = `<td>${date}</td><td>${name}</td><td>${studentClass}</td><td>${category}</td><td>$${feePaid}</td><td>$${balance}</td><td>${status}</td>
+                <td>
+                    <button onclick="generateReceipt('${name}', '${studentClass}', '${category}', ${feePaid}, ${balance})">Receipt</button>
+                    <button class='delete-btn' onclick='deletePayment(this, ${feePaid}, "${category}", ${balance})'>Delete</button>
+                </td>`;
+
+                totalCollected += feePaid;
+                totalPending += balance;
+                categoryData[category] += feePaid;
+
+                document.getElementById('collected').innerText = totalCollected;
+                document.getElementById('pending').innerText = totalPending;
+                updateCharts();
+            } else {
+                alert('Please enter valid details.');
+            }
+        }
+
+        function deletePayment(button, feePaid, category, balance) {
+            let row = button.parentElement.parentElement;
+            row.remove();
+            totalCollected -= feePaid;
+            totalPending -= balance;
+            categoryData[category] -= feePaid;
+
+            document.getElementById('collected').innerText = totalCollected;
+            document.getElementById('pending').innerText = totalPending;
+            updateCharts();
+        }
+
+        function generateReceipt(name, studentClass, category, feePaid, balance) {
+            const { jsPDF } = window.jspdf;
+            let doc = new jsPDF();
+            doc.text("Payment Receipt", 90, 10);
+            doc.text(`Name: ${name}`, 20, 30);
+            doc.text(`Class: ${studentClass}`, 20, 40);
+            doc.text(`Category: ${category}`, 20, 50);
+            doc.text(`Fee Paid: $${feePaid}`, 20, 60);
+            doc.text(`Balance: $${balance}`, 20, 70);
+            doc.save(`${name}_receipt.pdf`);
+        }
+
+        let feesChart = new Chart(document.getElementById('feesChart'), { type: 'line', data: { labels: [], datasets: [{ label: 'Collected Fees', data: [], borderColor: 'green', fill: false }, { label: 'Pending Fees', data: [], borderColor: 'red', fill: false }] }, options: { responsive: true } });
+
+        let pieChart = new Chart(document.getElementById('pieChart'), { type: 'pie', data: { labels: Object.keys(categoryData), datasets: [{ data: Object.values(categoryData), backgroundColor: ['blue', 'orange', 'purple'] }] }, options: { responsive: true } });
+
+    </script>
+</body>
+</html>

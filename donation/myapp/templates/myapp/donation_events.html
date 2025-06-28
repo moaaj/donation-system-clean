@@ -1,0 +1,49 @@
+{% extends 'myapp/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Donation Events</h2>
+    
+    <div class="row">
+        {% for event in events %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ event.title }}</h5>
+                    <p class="card-text">{{ event.description|truncatewords:30 }}</p>
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" 
+                             data-width="{% widthratio event.current_amount event.target_amount 100 %}">
+                        </div>
+                    </div>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            ${{ event.current_amount }} raised of ${{ event.target_amount }} goal
+                        </small>
+                    </p>
+                    <a href="{% url 'donation_event_detail' event.id %}" class="btn btn-primary">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No active donation events at the moment.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach(bar => {
+        const width = bar.getAttribute('data-width');
+        bar.style.width = width + '%';
+    });
+});
+</script>
+{% endblock %} 

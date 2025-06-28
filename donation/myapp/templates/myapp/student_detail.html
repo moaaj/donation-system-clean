@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Details - {{ student.first_name }} {{ student.last_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Student Details</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Student Information -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Student Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <th>Student ID:</th>
+                            <td>{{ student.student_id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Name:</th>
+                            <td>{{ student.first_name }} {{ student.last_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>NRIC:</th>
+                            <td>{{ student.nric }}</td>
+                        </tr>
+                        <tr>
+                            <th>Form:</th>
+                            <td>{{ student.form }}</td>
+                        </tr>
+                        <tr>
+                            <th>Year Batch:</th>
+                            <td>{{ student.year_batch }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                <span class="badge badge-{{ student.is_active|yesno:'success,danger' }}">
+                                    {{ student.is_active|yesno:'Active,Inactive' }}
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment History -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Payment History</h5>
+                    <a href="{% url 'add_payment' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> Add Payment
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Fee Category</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Receipt</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments %}
+                                <tr>
+                                    <td>{{ payment.payment_date|date:"d M Y" }}</td>
+                                    <td>{{ payment.fee_structure.category.name }}</td>
+                                    <td>RM {{ payment.amount|floatformat:2 }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ payment.status|lower }}">
+                                            {{ payment.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if payment.receipt_number %}
+                                        <a href="#" class="btn btn-sm btn-info">
+                                            <i class="fas fa-file-invoice"></i>
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">No receipt</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No payment history</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Discounts -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Discounts & Waivers</h5>
+                    <a href="{% url 'add_discount' %}" class="btn btn-sm btn-success">
+                        <i class="fas fa-plus"></i> Add Discount
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Fee Category</th>
+                                    <th>Type</th>
+                                    <th>Value</th>
+                                    <th>Valid From</th>
+                                    <th>Valid To</th>
+                                    <th>Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for discount in discounts %}
+                                <tr>
+                                    <td>{{ discount.fee_structure.category.name }}</td>
+                                    <td>{{ discount.discount_type }}</td>
+                                    <td>
+                                        {% if discount.discount_type == 'percentage' %}
+                                        {{ discount.value }}%
+                                        {% else %}
+                                        RM {{ discount.value|floatformat:2 }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ discount.valid_from|date:"d M Y" }}</td>
+                                    <td>{{ discount.valid_to|date:"d M Y" }}</td>
+                                    <td>{{ discount.reason }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No discounts or waivers</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
