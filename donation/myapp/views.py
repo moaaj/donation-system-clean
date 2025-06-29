@@ -171,58 +171,6 @@ class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
 
-# User Login View
-def login_view(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        
-        if user is not None:
-            login(request, user)
-            messages.success(request, 'Successfully logged in!')
-            # Redirect to the next parameter if it exists, otherwise to dashboard
-            next_url = request.GET.get('next')
-            if next_url:
-                return redirect(next_url)
-            return redirect('school_fees_dashboard')
-        else:
-            messages.error(request, 'Invalid username or password.')
-    
-    return render(request, 'myapp/login.html')
-
-def register_view(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password1 = request.POST.get('password1')
-        password2 = request.POST.get('password2')
-        
-        if password1 != password2:
-            messages.error(request, 'Passwords do not match.')
-            return redirect('register')
-        
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists.')
-            return redirect('register')
-        
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'Email already exists.')
-            return redirect('register')
-        
-        user = User.objects.create_user(username=username, email=email, password=password1)
-        user.save()
-        
-        messages.success(request, 'Account created successfully! Please login.')
-        return redirect('login')
-    
-    return render(request, 'myapp/register.html')
-
-def logout_view(request):
-    logout(request)
-    messages.success(request, 'Successfully logged out!')
-    return redirect('login')
-
 # Dashboard View
 def dashboard(request):
     return render(request, "dashboard.html")
@@ -272,12 +220,15 @@ def fpx_payment_request(request):
     except requests.exceptions.RequestException as e:
         return Response({"error": str(e)}, status=500)
 
+@login_required
 def home(request):
     return render(request, 'home.html', {'name': 'Navin'})
 
+@login_required
 def school_fees(request):
     return render(request, 'myapp/school_fees.html')
 
+@login_required
 def school_fees_dashboard(request):
     # Get statistics
     total_students = Student.objects.filter(is_active=True).count()
@@ -334,6 +285,7 @@ def school_fees_dashboard(request):
     
     return render(request, 'myapp/school_fees_dashboard.html', context)
 
+@login_required
 def student_list(request):
     # Get the show parameter from the request
     show = request.GET.get('show', 'active')
@@ -346,6 +298,7 @@ def student_list(request):
     
     return render(request, 'myapp/student_list.html', {'students': students})
 
+@login_required
 def student_detail(request, id):
     student = get_object_or_404(Student, id=id)
     payments = Payment.objects.filter(student=student)
@@ -356,6 +309,7 @@ def student_detail(request, id):
         'discounts': discounts
     })
 
+@login_required
 def add_student(request):
     if request.method == 'POST':
         form = StudentForm(request.POST)
@@ -369,10 +323,12 @@ def add_student(request):
         form = StudentForm()
     return render(request, 'myapp/add_student.html', {'form': form})
 
+@login_required
 def fee_structure_list(request):
     fee_structures = FeeStructure.objects.select_related('category')
     return render(request, 'myapp/fee_structure_list.html', {'fee_structures': fee_structures})
 
+@login_required
 def add_fee_structure(request):
     if request.method == 'POST':
         form = FeeStructureForm(request.POST)
@@ -406,6 +362,7 @@ def delete_fee_structure(request, structure_id):
         return redirect('fee_structure_list')
     return render(request, 'myapp/delete_fee_structure.html', {'fee_structure': fee_structure})
 
+@login_required
 def payment_list(request):
     form = PaymentSearchForm(request.GET)
     payments = Payment.objects.select_related('student', 'fee_structure')
@@ -425,12 +382,13 @@ def payment_list(request):
         'form': form
     })
 
+@login_required
 def add_payment(request):
     if request.method == 'POST':
         form = PaymentForm(request.POST)
         if form.is_valid():
             payment = form.save(commit=False)
-            payment.status = 'pending'
+            payment.status = 'completed'  # Set status to completed
             payment.save()
             return redirect('payment_list')
     else:
@@ -478,6 +436,7 @@ def add_bank_account(request):
         form = SchoolBankAccountForm()
     return render(request, 'myapp/add_bank_account.html', {'form': form})
 
+@login_required
 def payment_reports(request):
     # Calculate overdue fees (payments with status pending and payment date in the past)
     overdue_payments = Payment.objects.filter(
@@ -588,6 +547,7 @@ def send_payment_reminder(request, payment_id):
     print("=== Payment Reminder Process Complete ===\n")
     return redirect('payment_reminders')
 
+@login_required
 def payment_reminders(request):
     # Get all pending payments
     pending_payments = Payment.objects.filter(
@@ -607,10 +567,12 @@ def payment_reminders(request):
     }
     return render(request, 'myapp/payment_reminders.html', context)
 
+@login_required
 def donation_categories(request):
     categories = DonationCategory.objects.all()
     return render(request, 'myapp/donation_categories.html', {'categories': categories})
 
+@login_required
 def add_donation_category(request):
     if request.method == 'POST':
         form = DonationCategoryForm(request.POST)
@@ -622,10 +584,12 @@ def add_donation_category(request):
         form = DonationCategoryForm()
     return render(request, 'myapp/add_donation_category.html', {'form': form})
 
+@login_required
 def donation_events(request):
     events = DonationEvent.objects.filter(is_active=True)
     return render(request, 'myapp/donation_events.html', {'events': events})
 
+@login_required
 def add_donation_event(request):
     if request.method == 'POST':
         form = DonationEventForm(request.POST)
@@ -658,10 +622,12 @@ def add_donation_event(request):
         form = DonationEventForm()
     return render(request, 'myapp/add_donation_event.html', {'form': form})
 
+@login_required
 def donation_event_detail(request, event_id):
     event = get_object_or_404(DonationEvent, id=event_id)
     return render(request, 'myapp/donation_event_detail.html', {'event': event})
 
+@login_required
 def make_donation(request, event_id):
     event = get_object_or_404(DonationEvent, id=event_id)
     
@@ -682,10 +648,12 @@ def make_donation(request, event_id):
         'event': event
     })
 
+@login_required
 def donation_success(request, donation_id):
     donation = get_object_or_404(Donation, id=donation_id)
     return render(request, 'myapp/donation_success.html', {'donation': donation})
 
+@login_required
 def donate(request):
     if request.method == 'POST':
         amount = request.POST.get('amount')
@@ -711,6 +679,7 @@ def donate(request):
     
     return render(request, 'myapp/donate.html')
 
+@login_required
 def payment_receipt(request, payment_id):
     try:
         payment = get_object_or_404(Payment, id=payment_id)
@@ -742,6 +711,7 @@ def payment_receipt(request, payment_id):
         messages.error(request, f"Error generating receipt: {str(e)}")
         return redirect('payment_list')
 
+@login_required
 def edit_payment(request, pk):
     payment = get_object_or_404(Payment, pk=pk)
     students = Student.objects.filter(is_active=True)
@@ -764,6 +734,7 @@ def edit_payment(request, pk):
     }
     return render(request, 'myapp/edit_payment.html', context)
 
+@login_required
 def delete_payment(request, pk):
     payment = get_object_or_404(Payment, pk=pk)
     if request.method == 'POST':
@@ -771,10 +742,12 @@ def delete_payment(request, pk):
         return redirect('payment_list')
     return render(request, 'myapp/delete_payment_confirm.html', {'payment': payment})
 
+@login_required
 def fee_categories(request):
     categories = FeeCategory.objects.all()
     return render(request, 'myapp/fee_categories.html', {'categories': categories})
 
+@login_required
 def add_fee_category(request):
     if request.method == 'POST':
         form = FeeCategoryForm(request.POST)
@@ -786,6 +759,7 @@ def add_fee_category(request):
         form = FeeCategoryForm()
     return render(request, 'myapp/add_fee_category.html', {'form': form})
 
+@login_required
 def edit_fee_category(request, category_id):
     category = get_object_or_404(FeeCategory, id=category_id)
     if request.method == 'POST':
@@ -798,6 +772,7 @@ def edit_fee_category(request, category_id):
         form = FeeCategoryForm(instance=category)
     return render(request, 'myapp/edit_fee_category.html', {'form': form, 'category': category})
 
+@login_required
 def delete_fee_category(request, category_id):
     category = get_object_or_404(FeeCategory, id=category_id)
     if request.method == 'POST':
@@ -806,6 +781,7 @@ def delete_fee_category(request, category_id):
         return redirect('fee_categories')
     return render(request, 'myapp/delete_fee_category.html', {'category': category})
 
+@login_required
 def payment_receipts(request):
     # Get all completed payments with receipts
     payments = Payment.objects.filter(
@@ -1005,10 +981,12 @@ def generate_reminder_letter(request, payment_id):
     
     return response
 
+@login_required
 def fee_waivers(request):
     waivers = FeeWaiver.objects.select_related('student', 'category').all().order_by('-created_at')
     return render(request, 'myapp/fee_waivers.html', {'waivers': waivers})
 
+@login_required
 def add_fee_waiver(request):
     if request.method == 'POST':
         form = FeeWaiverForm(request.POST)
@@ -1054,6 +1032,7 @@ def add_fee_waiver(request):
     
     return render(request, 'myapp/add_fee_waiver.html', {'form': form})
 
+@login_required
 def approve_fee_waiver(request, waiver_id):
     if request.method == 'POST':
         waiver = get_object_or_404(FeeWaiver, id=waiver_id)
@@ -1067,6 +1046,7 @@ def approve_fee_waiver(request, waiver_id):
             messages.error(request, 'This waiver cannot be approved.')
     return redirect('fee_waivers')
 
+@login_required
 def reject_fee_waiver(request, waiver_id):
     if request.method == 'POST':
         waiver = get_object_or_404(FeeWaiver, id=waiver_id)
@@ -1078,6 +1058,7 @@ def reject_fee_waiver(request, waiver_id):
             messages.error(request, 'This waiver cannot be rejected.')
     return redirect('fee_waivers')
 
+@login_required
 def view_fee_waiver_letter(request, waiver_id):
     waiver = get_object_or_404(FeeWaiver, id=waiver_id)
     
@@ -1116,6 +1097,7 @@ def view_fee_waiver_letter(request, waiver_id):
     
     return response
 
+@login_required
 def fee_reports(request):
     # Get date range from request
     start_date = request.GET.get('start_date')
@@ -1212,6 +1194,7 @@ def fee_reports(request):
     
     return render(request, 'myapp/fee_reports.html', context)
 
+@login_required
 def export_fee_report(request):
     # Get date range from request
     start_date = request.GET.get('start_date')
@@ -1329,6 +1312,7 @@ def export_fee_report(request):
     
     return response
 
+@login_required
 def edit_student(request, id):
     student = get_object_or_404(Student, id=id)
     if request.method == 'POST':
@@ -1343,6 +1327,7 @@ def edit_student(request, id):
         form = StudentForm(instance=student)
     return render(request, 'myapp/edit_student.html', {'form': form, 'student': student})
 
+@login_required
 def fee_analytics_dashboard(request):
     # Get date range from request
     start_date = request.GET.get('start_date')
@@ -1453,6 +1438,7 @@ def delete_term(request, term_id):
     messages.success(request, 'Academic term deleted successfully.')
     return redirect('fee_settings')
 
+@login_required
 def ai_fee_analytics(request):
     """View for AI-powered fee analytics and predictions"""
     prediction_service = PaymentPredictionService()
@@ -1513,7 +1499,10 @@ def ai_settings(request):
 
 @login_required
 def bulk_upload_students(request):
+    print("DEBUG: bulk_upload_students view called")
     if request.method == 'POST':
+        print("DEBUG: POST request received")
+        print("DEBUG: FILES:", request.FILES)
         if 'file' not in request.FILES:
             messages.error(request, 'Please select a file to upload.')
             return redirect('bulk_upload_students')
@@ -1582,6 +1571,8 @@ def bulk_upload_students(request):
             return redirect('student_list')
             
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             messages.error(request, f'Error processing file: {str(e)}')
             return redirect('bulk_upload_students')
     
@@ -1610,6 +1601,7 @@ def download_student_template(request):
     wb.save(response)
     return response
 
+@login_required
 def donation_receipt(request, donation_id):
     try:
         # Get donation with related data

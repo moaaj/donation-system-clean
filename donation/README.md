@@ -1,40 +1,235 @@
 # Django Donation & School Fees Management System
 
-A comprehensive Django web application for managing donations, school fees, and financial transactions with AI-powered analytics and modern UI.
+A comprehensive Django web application for managing donations, school fees, and financial transactions with AI-powered analytics and a modern UI.
 
 ## 🚀 Features
 
-### Core Functionality
-- **Donation Management**: Complete donation tracking with multiple payment methods
+- **Donation Management**: Track donations, generate receipts, and manage donation events
 - **School Fees Management**: Student fee tracking, payment processing, and reporting
 - **Waqaf Asset Management**: Islamic endowment asset tracking and contributions
-- **AI-Powered Analytics**: Machine learning insights for donation predictions and fraud detection
+- **AI-Powered Analytics**: Insights for donation predictions and fraud detection
 - **QR Code Generation**: Automatic QR code generation for donation events
-- **Multi-language Support**: Internationalization support (Malay/English)
+- **Multi-language Support**: Internationalization (Malay/English)
+- **Multiple Payment Methods**: Stripe, FPX, SSLCommerz, PayPal, Bank Transfer
+- **User Authentication**: Secure login, registration, and user management
+- **PostgreSQL Database**: Robust database support for production deployments
 
-### Payment Features
-- Multiple payment methods (SSLCommerz, Stripe, PayPal, Bank Transfer, etc.)
-- Payment receipt generation and email notifications
-- Fee waiver and discount management
-- Overdue payment tracking and reminders
-- Real-time payment status updates
+## 🛠️ Setup Instructions
 
-### Administrative Features
-- Comprehensive dashboard with analytics
-- Student management system
-- Fee structure and category management
-- Payment reports and exports
-- User authentication and authorization
-- Audit logging for all transactions
+### Option 1: Local Development Setup
 
-## 🛠️ Technology Stack
+1. **Clone the repository:**
+   ```sh
+   git clone https://github.com/moaaj/donation-system-clean.git
+   cd donation-system-clean/donation
+   ```
 
-- **Backend**: Django 5.1.7
-- **Database**: SQLite (development) / PostgreSQL (production)
-- **Frontend**: Bootstrap 5, jQuery, Chart.js
-- **AI/ML**: Python machine learning libraries
-- **Payment**: Multiple payment gateway integrations
-- **Email**: SMTP with Gmail integration
+2. **Create and activate a virtual environment:**
+   ```sh
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. **Install dependencies:**
+   ```sh
+   pip install -r requirements.txt
+   ```
+
+4. **Set up PostgreSQL:**
+   ```sh
+   # Install PostgreSQL (Ubuntu/Debian)
+   sudo apt-get install postgresql postgresql-contrib
+   
+   # Or use the setup script
+   python setup_postgres.py
+   ```
+
+5. **Configure environment variables:**
+   ```sh
+   cp env_example.txt .env
+   # Edit .env with your database credentials and API keys
+   ```
+
+6. **Apply migrations:**
+   ```sh
+   python manage.py migrate
+   ```
+
+7. **Create a superuser:**
+   ```sh
+   python manage.py createsuperuser
+   ```
+
+8. **Run the development server:**
+   ```sh
+   python manage.py runserver
+   ```
+
+### Option 2: Docker Setup (Recommended)
+
+1. **Clone the repository:**
+   ```sh
+   git clone https://github.com/moaaj/donation-system-clean.git
+   cd donation-system-clean/donation
+   ```
+
+2. **Start with Docker Compose:**
+   ```sh
+   docker-compose up -d
+   ```
+
+3. **Run migrations:**
+   ```sh
+   docker-compose exec web python manage.py migrate
+   ```
+
+4. **Create superuser:**
+   ```sh
+   docker-compose exec web python manage.py createsuperuser
+   ```
+
+5. **Access the application:**
+   - Web: http://localhost:8000
+   - Admin: http://localhost:8000/admin
+
+## 🗄️ Database Configuration
+
+### PostgreSQL Setup
+
+The application is configured to use PostgreSQL by default. You can configure it using environment variables:
+
+```bash
+DB_NAME=donation_db
+DB_USER=donation_user
+DB_PASSWORD=your_secure_password
+DB_HOST=localhost
+DB_PORT=5432
+```
+
+### Database Migration
+
+If you're migrating from SQLite to PostgreSQL:
+
+```sh
+# Export data from SQLite
+python manage.py dumpdata > data_backup.json
+
+# Apply migrations to PostgreSQL
+python manage.py migrate
+
+# Import data to PostgreSQL
+python manage.py loaddata data_backup.json
+```
+
+## 🐳 Docker Deployment
+
+### Production Docker Setup
+
+1. **Build the production image:**
+   ```sh
+   docker build -t donation-system .
+   ```
+
+2. **Run with production settings:**
+   ```sh
+   docker run -d \
+     -p 8000:8000 \
+     -e DEBUG=False \
+     -e DATABASE_URL=postgresql://user:pass@host:5432/db \
+     donation-system
+   ```
+
+### Docker Compose for Production
+
+```sh
+# Use production compose file
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+## 📂 Project Structure
+
+```
+donation/
+├── donation/          # Main Django project
+├── myapp/            # Core application
+├── donation2/        # Donation management app
+├── waqaf/           # Waqaf asset management
+├── accounts/        # User authentication
+├── templates/       # HTML templates
+├── static/          # Static files
+├── media/           # Uploaded files
+├── requirements.txt # Python dependencies
+├── docker-compose.yml # Docker configuration
+├── Dockerfile       # Docker image definition
+└── setup_postgres.py # Database setup script
+```
+
+## 🔧 Environment Variables
+
+Create a `.env` file with the following variables:
+
+```bash
+# Django Settings
+DJANGO_SECRET_KEY=your_secret_key
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Database Settings
+DB_NAME=donation_db
+DB_USER=donation_user
+DB_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=5432
+
+# Payment Gateway Settings
+STRIPE_PUBLIC_KEY=your_stripe_public_key
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_WEBHOOK_SECRET=your_webhook_secret
+
+# Email Settings
+EMAIL_HOST_USER=your_email
+EMAIL_HOST_PASSWORD=your_email_password
+```
+
+## 🚀 Deployment
+
+### Heroku Deployment
+
+1. **Create Heroku app:**
+   ```sh
+   heroku create your-app-name
+   ```
+
+2. **Add PostgreSQL addon:**
+   ```sh
+   heroku addons:create heroku-postgresql:hobby-dev
+   ```
+
+3. **Deploy:**
+   ```sh
+   git push heroku main
+   ```
+
+### Railway Deployment
+
+1. **Connect your GitHub repository**
+2. **Add PostgreSQL service**
+3. **Deploy automatically**
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+---
+
+For more details, see the code and comments, or open an issue if you have questions!
 
 ## 📋 Prerequisites
 

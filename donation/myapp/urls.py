@@ -8,14 +8,10 @@ router = DefaultRouter()
 router.register(r'payments', PaymentViewSet)
 
 urlpatterns = [
-    # Authentication URLs
-    path('login/', views.login_view, name='login'),
-    path('register/', views.register_view, name='register'),
-    path('logout/', views.logout_view, name='logout'),
-    
-    # Main URLs
+    # Main URLs (login required)
     path('', views.school_fees, name='school_fees'),
     path('dashboard/', views.school_fees_dashboard, name='school_fees_dashboard'),
+    path('home/', views.home, name='home'),
     
     # API URLs
     path('api/', include(router.urls)),

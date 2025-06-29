@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from .models import UserProfile
+from myapp.models import Student
 
 
 class EnhancedUserCreationForm(UserCreationForm):
@@ -28,6 +29,103 @@ class EnhancedUserCreationForm(UserCreationForm):
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError('This username is already taken.')
         return username
+
+
+class RoleBasedRegistrationForm(UserCreationForm):
+    """Registration form with role-based validation"""
+    email = forms.EmailField(
+        required=True, 
+        help_text='Required. Enter a valid email address.',
+        widget=forms.EmailInput(attrs={'class': 'form-control'})
+    )
+    first_name = forms.CharField(
+        max_length=30, 
+        required=True, 
+        help_text='Required.',
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    last_name = forms.CharField(
+        max_length=30, 
+        required=True, 
+        help_text='Required.',
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    phone_number = forms.CharField(
+        max_length=15, 
+        required=False, 
+        help_text='Optional.',
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    address = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}), 
+        required=False, 
+        help_text='Optional.'
+    )
+    role = forms.ChoiceField(
+        choices=[('admin', 'Admin'), ('student', 'Student')],
+        required=True,
+        help_text='Select your role.',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    student_id = forms.CharField(
+        max_length=20, 
+        required=False, 
+        help_text='Required for students. Enter your unique student ID.',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., STU2024001'})
+    )
+    
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name', 'password1', 'password2')
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'password1': forms.PasswordInput(attrs={'class': 'form-control'}),
+            'password2': forms.PasswordInput(attrs={'class': 'form-control'}),
+        }
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        role = self.cleaned_data.get('role')
+        
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('This email address is already in use.')
+        
+        # Validate admin email format
+        if role == 'admin' and not email.endswith('@admin.com'):
+            raise forms.ValidationError('Admin email addresses must end with @admin.com')
+        
+        return email
+    
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError('This username is already taken.')
+        return username
+    
+    def clean_student_id(self):
+        student_id = self.cleaned_data.get('student_id')
+        role = self.cleaned_data.get('role')
+        
+        if role == 'student':
+            if not student_id:
+                raise forms.ValidationError('Student ID is required for student registration.')
+            
+            # Check if student ID already exists
+            if Student.objects.filter(student_id=student_id).exists():
+                raise forms.ValidationError('This student ID is already registered.')
+        
+        return student_id
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        role = cleaned_data.get('role')
+        student_id = cleaned_data.get('student_id')
+        
+        # Additional validation for student role
+        if role == 'student' and not student_id:
+            self.add_error('student_id', 'Student ID is required for student registration.')
+        
+        return cleaned_data
 
 
 class EnhancedAuthenticationForm(AuthenticationForm):

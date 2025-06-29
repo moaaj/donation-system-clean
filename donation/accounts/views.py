@@ -17,9 +17,11 @@ from datetime import timedelta
 import json
 from .forms import (
     EnhancedUserCreationForm, EnhancedAuthenticationForm, 
-    UserProfileForm, PasswordChangeRequestForm, PasswordResetForm
+    UserProfileForm, PasswordChangeRequestForm, PasswordResetForm,
+    RoleBasedRegistrationForm
 )
 from .models import UserProfile, LoginAttempt
+from myapp.models import Student, UserProfile as MyAppUserProfile
 
 
 def get_client_ip(request):
@@ -50,11 +52,68 @@ def log_login_attempt(request, user, success):
 @require_http_methods(["GET", "POST"])
 def register_view(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password1']
-        user = User.objects.create_user(username=username, password=password)
-        return redirect('accounts:login')
-    return render(request, 'accounts/register.html')
+        form = RoleBasedRegistrationForm(request.POST)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    # Create the user
+                    user = form.save(commit=False)
+                    user.first_name = form.cleaned_data['first_name']
+                    user.last_name = form.cleaned_data['last_name']
+                    user.email = form.cleaned_data['email']
+                    user.save()
+                    
+                    # Create user profile
+                    role = form.cleaned_data['role']
+                    phone_number = form.cleaned_data.get('phone_number', '')
+                    address = form.cleaned_data.get('address', '')
+                    
+                    # Create profile in accounts app
+                    profile = UserProfile.objects.create(
+                        user=user,
+                        phone_number=phone_number,
+                        address=address
+                    )
+                    
+                    # Create profile in myapp with role
+                    myapp_profile = MyAppUserProfile.objects.create(
+                        user=user,
+                        role=role,
+                        phone_number=phone_number,
+                        address=address
+                    )
+                    
+                    # If student role, create or link student record
+                    if role == 'student':
+                        student_id = form.cleaned_data['student_id']
+                        # Check if student already exists
+                        student, created = Student.objects.get_or_create(
+                            student_id=student_id,
+                            defaults={
+                                'first_name': user.first_name,
+                                'last_name': user.last_name,
+                                'year_batch': timezone.now().year,
+                                'nric': f"TEMP-{student_id}"  # Temporary NRIC
+                            }
+                        )
+                        myapp_profile.student = student
+                        myapp_profile.save()
+                    
+                    # Set admin permissions if admin role
+                    if role == 'admin':
+                        user.is_staff = True
+                        user.save()
+                    
+                    messages.success(request, f'Account created successfully! You can now login as a {role}.')
+                    return redirect('accounts:login')
+                    
+            except Exception as e:
+                messages.error(request, f'Error creating account: {str(e)}')
+                return redirect('accounts:register')
+    else:
+        form = RoleBasedRegistrationForm()
+    
+    return render(request, 'accounts/register.html', {'form': form})
 
 
 @csrf_protect
@@ -86,7 +145,7 @@ def logout_view(request):
     user = request.user
     logout(request)
     messages.success(request, f'You have been successfully logged out. Goodbye, {user.get_full_name() or user.username}!')
-    return redirect('login')
+    return redirect('/accounts/login/?next=/')  # Redirect to login with next parameter
 
 
 @login_required

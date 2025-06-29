@@ -383,8 +383,35 @@ class AcademicTerm(models.Model):
         verbose_name_plural = 'Academic Terms'
 
     def __str__(self):
-        return f"{self.name} ({self.start_date.year})"
+        return self.name
 
     def is_current(self):
         today = timezone.now().date()
         return self.start_date <= today <= self.end_date
+
+class UserProfile(models.Model):
+    """Extended user profile with role-based access"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='myapp_profile')
+    role = models.CharField(
+        choices=[('admin', 'Admin'), ('student', 'Student')], 
+        default='student', 
+        max_length=10
+    )
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='user_profile', null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'User Profile'
+        verbose_name_plural = 'User Profiles'
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile ({self.role})"
+
+    def is_admin(self):
+        return self.role == 'admin'
+
+    def is_student(self):
+        return self.role == 'student'
