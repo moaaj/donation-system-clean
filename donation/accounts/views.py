@@ -68,12 +68,19 @@ def register_view(request):
                     phone_number = form.cleaned_data.get('phone_number', '')
                     address = form.cleaned_data.get('address', '')
                     
-                    # Create profile in accounts app
-                    profile = UserProfile.objects.create(
+                    # Update the automatically created profile in accounts app
+                    profile, created = UserProfile.objects.get_or_create(
                         user=user,
-                        phone_number=phone_number,
-                        address=address
+                        defaults={
+                            'phone_number': phone_number,
+                            'address': address
+                        }
                     )
+                    if not created:
+                        # Update existing profile
+                        profile.phone_number = phone_number
+                        profile.address = address
+                        profile.save()
                     
                     # Create profile in myapp with role
                     myapp_profile = MyAppUserProfile.objects.create(
@@ -93,7 +100,7 @@ def register_view(request):
                                 'first_name': user.first_name,
                                 'last_name': user.last_name,
                                 'year_batch': timezone.now().year,
-                                'nric': f"TEMP-{student_id}"  # Temporary NRIC
+                                'nric': f"T{student_id[:10]}"  # Shorter NRIC format
                             }
                         )
                         myapp_profile.student = student
@@ -108,8 +115,13 @@ def register_view(request):
                     return redirect('accounts:login')
                     
             except Exception as e:
+                print(f"Error during registration: {str(e)}")
+                import traceback
+                traceback.print_exc()
                 messages.error(request, f'Error creating account: {str(e)}')
                 return redirect('accounts:register')
+        else:
+            print(f"Form validation failed: {form.errors}")
     else:
         form = RoleBasedRegistrationForm()
     
@@ -124,6 +136,7 @@ def login_view(request):
         return redirect('dashboard')
     
     if request.method == 'POST':
+        form = EnhancedAuthenticationForm(request.POST)
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(request, username=username, password=password)

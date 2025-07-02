@@ -222,7 +222,7 @@ def fpx_payment_request(request):
 
 @login_required
 def home(request):
-    return render(request, 'home.html', {'name': 'Navin'})
+    return render(request, 'home.html')
 
 @login_required
 def school_fees(request):
@@ -659,23 +659,41 @@ def donate(request):
         amount = request.POST.get('amount')
         name = request.POST.get('name', 'Anonymous Donor')
         
-        # Generate certificate
-        template = get_template('myapp/certificate.html')
-        context = {
-            'name': name,
-            'amount': amount,
-            'date': datetime.now().strftime("%B %d, %Y"),
-        }
-        html = template.render(context)
+        # Create PDF using reportlab instead of WeasyPrint
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="donation_certificate_{name}.pdf"'
         
-        # Create PDF
-        result = BytesIO()
-        pdf = HTML(string=html).write_pdf()
+        # Create the PDF object
+        p = canvas.Canvas(response, pagesize=letter)
+        width, height = letter
         
-        if not pdf:
-            response = HttpResponse(result.getvalue(), content_type='application/pdf')
-            response['Content-Disposition'] = f'attachment; filename="donation_certificate_{name}.pdf"'
-            return response
+        # Add title
+        p.setFont("Helvetica-Bold", 24)
+        p.drawCentredString(width/2, height - 100, "Donation Certificate")
+        
+        # Add certificate content
+        p.setFont("Helvetica", 14)
+        p.drawCentredString(width/2, height - 150, f"This certificate is presented to")
+        
+        p.setFont("Helvetica-Bold", 18)
+        p.drawCentredString(width/2, height - 180, name)
+        
+        p.setFont("Helvetica", 14)
+        p.drawCentredString(width/2, height - 210, "in recognition of their generous donation of")
+        
+        p.setFont("Helvetica-Bold", 16)
+        p.drawCentredString(width/2, height - 240, f"RM {amount}")
+        
+        p.setFont("Helvetica", 12)
+        p.drawCentredString(width/2, height - 280, f"Date: {datetime.now().strftime('%B %d, %Y')}")
+        
+        p.setFont("Helvetica", 10)
+        p.drawCentredString(width/2, height - 320, "Thank you for your support!")
+        p.drawCentredString(width/2, height - 340, "Your contribution makes a difference.")
+        
+        p.showPage()
+        p.save()
+        return response
     
     return render(request, 'myapp/donate.html')
 

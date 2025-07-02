@@ -20,8 +20,10 @@ class EnhancedUserCreationForm(UserCreationForm):
     
     def clean_email(self):
         email = self.cleaned_data.get('email')
+        
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError('This email address is already in use.')
+        
         return email
     
     def clean_username(self):
@@ -85,14 +87,9 @@ class RoleBasedRegistrationForm(UserCreationForm):
     
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        role = self.cleaned_data.get('role')
         
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError('This email address is already in use.')
-        
-        # Validate admin email format
-        if role == 'admin' and not email.endswith('@admin.com'):
-            raise forms.ValidationError('Admin email addresses must end with @admin.com')
         
         return email
     

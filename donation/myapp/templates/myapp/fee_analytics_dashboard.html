@@ -212,23 +212,46 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Pass Django data to JavaScript safely -->
+{{ monthly_labels|json_script:"monthly-labels" }}
+{{ monthly_collected|json_script:"monthly-collected" }}
+{{ monthly_pending|json_script:"monthly-pending" }}
+{{ category_labels|json_script:"category-labels" }}
+{{ category_collected|json_script:"category-collected" }}
+{{ category_pending|json_script:"category-pending" }}
+{{ paid_amount|default:0|json_script:"paid-amount" }}
+{{ total_pending|default:0|json_script:"total-pending" }}
+{{ overdue_amount|default:0|json_script:"overdue-amount" }}
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Get data from JSON script tags
+    const monthlyLabels = JSON.parse(document.getElementById('monthly-labels').textContent);
+    const monthlyCollected = JSON.parse(document.getElementById('monthly-collected').textContent);
+    const monthlyPending = JSON.parse(document.getElementById('monthly-pending').textContent);
+    const categoryLabels = JSON.parse(document.getElementById('category-labels').textContent);
+    const categoryCollected = JSON.parse(document.getElementById('category-collected').textContent);
+    const categoryPending = JSON.parse(document.getElementById('category-pending').textContent);
+    const paidAmount = JSON.parse(document.getElementById('paid-amount').textContent);
+    const totalPending = JSON.parse(document.getElementById('total-pending').textContent);
+    const overdueAmount = JSON.parse(document.getElementById('overdue-amount').textContent);
+
     // Payment Trends Chart
     const trendsCtx = document.getElementById('paymentTrendsChart').getContext('2d');
     new Chart(trendsCtx, {
         type: 'line',
         data: {
-            labels: {{ monthly_labels|safe }},
+            labels: monthlyLabels,
             datasets: [{
                 label: 'Collected',
-                data: {{ monthly_collected|safe }},
+                data: monthlyCollected,
                 borderColor: '#1cc88a',
                 tension: 0.4,
                 fill: false
             }, {
                 label: 'Pending',
-                data: {{ monthly_pending|safe }},
+                data: monthlyPending,
                 borderColor: '#f6c23e',
                 tension: 0.4,
                 fill: false
@@ -262,11 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
         data: {
             labels: ['Paid', 'Pending', 'Overdue'],
             datasets: [{
-                data: [
-                    {{ paid_amount }},
-                    {{ total_pending }},
-                    {{ overdue_amount }}
-                ],
+                data: [paidAmount, totalPending, overdueAmount],
                 backgroundColor: ['#1cc88a', '#f6c23e', '#e74a3b']
             }]
         },
@@ -286,14 +305,14 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(categoryCtx, {
         type: 'bar',
         data: {
-            labels: {{ category_labels|safe }},
+            labels: categoryLabels,
             datasets: [{
                 label: 'Collected',
-                data: {{ category_collected|safe }},
+                data: categoryCollected,
                 backgroundColor: '#1cc88a'
             }, {
                 label: 'Pending',
-                data: {{ category_pending|safe }},
+                data: categoryPending,
                 backgroundColor: '#f6c23e'
             }]
         },
