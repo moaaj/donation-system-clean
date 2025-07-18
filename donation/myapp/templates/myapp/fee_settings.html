@@ -28,7 +28,7 @@
                     <h5 class="card-title mb-0">Fee Structure Settings</h5>
                 </div>
                 <div class="card-body">
-                    <form method="post" action="{% url 'fee_settings' %}">
+                    <form method="post" action="{% url 'myapp:fee_settings' %}">
                         {% csrf_token %}
                         <input type="hidden" name="update_settings" value="1">
                         <div class="mb-3">
@@ -127,7 +127,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form method="post" action="{% url 'fee_settings' %}">
+                <form method="post" action="{% url 'myapp:fee_settings' %}">
                     {% csrf_token %}
                     <input type="hidden" name="add_term" value="1">
                     <div class="mb-3">

@@ -1,0 +1,44 @@
+{% extends 'myapp/base_ubac.html' %}
+
+{% block title %}Payment Receipt{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0"><i class="fas fa-receipt"></i> Payment Receipt</h3>
+                </div>
+                <div class="card-body">
+                    <h5>Student: {{ student.first_name }} {{ student.last_name }} ({{ student.student_id }})</h5>
+                    <hr>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Fee Category</th>
+                                <th>Form</th>
+                                <th>Amount (RM)</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                            <tr>
+                                <td>{{ payment.fee_structure.category.name }}</td>
+                                <td>{{ payment.fee_structure.form }}</td>
+                                <td>RM {{ payment.amount }}</td>
+                                <td>{{ payment.payment_date }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="text-end">
+                        <h4>Total Paid: RM {{ payments|sum:'amount' }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

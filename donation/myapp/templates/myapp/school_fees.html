@@ -69,13 +69,15 @@
 {% block content %}
 <div class="container dashboard-section">
     <div class="dashboard-title">School Fees Management</div>
+    {% if not is_tamim %}
     <div class="row dashboard-row">
+        <!-- All the dashboard cards -->
         <div class="col-md-4 mb-4">
             <div class="dashboard-card card h-100">
                 <div class="card-body">
                     <h5 class="card-title"><i class="fas fa-users text-primary"></i> Students</h5>
                     <p class="card-text">Manage student information and fee records.</p>
-                    <a href="{% url 'student_list' %}" class="btn btn-primary w-100">
+                    <a href="{% url 'myapp:student_list' %}" class="btn btn-primary w-100">
                         <i class="fas fa-user-graduate"></i> View Students
                     </a>
                 </div>
@@ -86,7 +88,7 @@
                 <div class="card-body">
                     <h5 class="card-title"><i class="fas fa-list text-info"></i> Fee Structure</h5>
                     <p class="card-text">View and manage fee categories and amounts.</p>
-                    <a href="{% url 'fee_structure_list' %}" class="btn btn-info w-100">
+                    <a href="{% url 'myapp:fee_structure_list' %}" class="btn btn-info w-100">
                         <i class="fas fa-list"></i> View Fee Structure
                     </a>
                 </div>
@@ -97,7 +99,7 @@
                 <div class="card-body">
                     <h5 class="card-title"><i class="fas fa-money-check-alt text-success"></i> Payments</h5>
                     <p class="card-text">Record and track fee payments.</p>
-                    <a href="{% url 'payment_list' %}" class="btn btn-success w-100">
+                    <a href="{% url 'myapp:payment_list' %}" class="btn btn-success w-100">
                         <i class="fas fa-money-bill-wave"></i> View Payments
                     </a>
                 </div>
@@ -108,7 +110,7 @@
                 <div class="card-body">
                     <h5 class="card-title"><i class="fas fa-percent text-warning"></i> Fee Waivers & Scholarships</h5>
                     <p class="card-text">Manage fee waivers, discounts, and scholarships.</p>
-                    <a href="{% url 'fee_waivers' %}" class="btn btn-warning w-100 text-white">
+                    <a href="{% url 'myapp:fee_waivers' %}" class="btn btn-warning w-100 text-white">
                         <i class="fas fa-percentage"></i> View Fee Waivers
                     </a>
                 </div>
@@ -119,7 +121,7 @@
                 <div class="card-body">
                     <h5 class="card-title"><i class="fas fa-chart-bar text-secondary"></i> Reports</h5>
                     <p class="card-text">View comprehensive fee reports and statistics.</p>
-                    <a href="{% url 'fee_reports' %}" class="btn btn-secondary w-100">
+                    <a href="{% url 'myapp:fee_reports' %}" class="btn btn-secondary w-100">
                         <i class="fas fa-chart-bar"></i> View Reports
                     </a>
                 </div>
@@ -130,7 +132,7 @@
                 <div class="card-body">
                     <h5 class="card-title"><i class="fas fa-bell text-danger"></i> Payment Reminders</h5>
                     <p class="card-text">Send reminders for pending payments.</p>
-                    <a href="{% url 'payment_reminders' %}" class="btn btn-danger w-100">
+                    <a href="{% url 'myapp:payment_reminders' %}" class="btn btn-danger w-100">
                         <i class="fas fa-bell"></i> View Reminders
                     </a>
                 </div>
@@ -141,7 +143,7 @@
                 <div class="card-body">
                     <h5 class="card-title"><i class="fas fa-chart-line text-primary"></i> Analytics Dashboard</h5>
                     <p class="card-text">View interactive charts and payment trends.</p>
-                    <a href="{% url 'ai_fee_analytics' %}" class="btn btn-primary w-100">
+                    <a href="{% url 'myapp:ai_fee_analytics' %}" class="btn btn-primary w-100">
                         <i class="fas fa-chart-line"></i> View Analytics
                     </a>
                 </div>
@@ -152,7 +154,7 @@
                 <div class="card-body">
                     <h5 class="card-title"><i class="fas fa-cogs text-dark"></i> Fee Settings</h5>
                     <p class="card-text">Configure term-based or annual fee collection settings.</p>
-                    <a href="{% url 'fee_settings' %}" class="btn btn-dark w-100">
+                    <a href="{% url 'myapp:fee_settings' %}" class="btn btn-dark w-100">
                         <i class="fas fa-cogs"></i> Manage Settings
                     </a>
                 </div>
@@ -163,12 +165,13 @@
                 <div class="card-body">
                     <h5 class="card-title"><i class="fas fa-tachometer-alt text-secondary"></i> Dashboard</h5>
                     <p class="card-text">View the main dashboard with analytics, statistics, and recent activity.</p>
-                    <a href="{% url 'school_fees_dashboard' %}" class="btn btn-secondary w-100">
+                    <a href="{% url 'myapp:school_fees_dashboard' %}" class="btn btn-secondary w-100">
                         <i class="fas fa-tachometer-alt"></i> Go to Dashboard
                     </a>
                 </div>
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %} 

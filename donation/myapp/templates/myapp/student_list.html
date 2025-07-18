@@ -9,17 +9,17 @@
         <div class="col-12 d-flex justify-content-between align-items-center">
             <h1>Students</h1>
             <div>
-                <a href="{% url 'bulk_upload_students' %}" class="btn btn-success me-2">
+                <a href="{% url 'myapp:bulk_upload_students' %}" class="btn btn-success me-2">
                     <i class="fas fa-file-import"></i> Bulk Upload
                 </a>
-                <a href="{% url 'add_student' %}" class="btn btn-primary">
+                <a href="{% url 'myapp:add_student' %}" class="btn btn-primary">
                     <i class="fas fa-user-plus"></i> Add Student
                 </a>
                 <div class="btn-group ms-2">
-                    <a href="{% url 'student_list' %}?show=active" class="btn btn-outline-primary {% if request.GET.show != 'all' %}active{% endif %}">
+                    <a href="{% url 'myapp:student_list' %}?show=active" class="btn btn-outline-primary {% if request.GET.show != 'all' %}active{% endif %}">
                         Active Students
                     </a>
-                    <a href="{% url 'student_list' %}?show=all" class="btn btn-outline-primary {% if request.GET.show == 'all' %}active{% endif %}">
+                    <a href="{% url 'myapp:student_list' %}?show=all" class="btn btn-outline-primary {% if request.GET.show == 'all' %}active{% endif %}">
                         All Students
                     </a>
                 </div>
@@ -58,11 +58,14 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="{% url 'student_detail' student.id %}" class="btn btn-sm btn-info">
+                                        <a href="{% url 'myapp:student_detail' student.id %}" class="btn btn-sm btn-info">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{% url 'edit_student' student.id %}" class="btn btn-sm btn-warning">
+                                        <a href="{% url 'myapp:edit_student' student.id %}" class="btn btn-sm btn-warning" title="Edit">
                                             <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'myapp:delete_student' student.id %}" class="btn btn-sm btn-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
                                         </a>
                                     </td>
                                 </tr>

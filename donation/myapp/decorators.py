@@ -12,7 +12,7 @@ def role_required(allowed_roles):
             if user_profile and user_profile.role in allowed_roles:
                 return view_func(request, *args, **kwargs)
             messages.error(request, 'You do not have permission to access this page.')
-            return redirect('school_fees')
+            return redirect('myapp:school_fees_home')
         return _wrapped_view
     return decorator
 

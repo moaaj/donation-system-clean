@@ -1,8 +1,10 @@
+app_name = 'myapp'
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 from .views import PaymentViewSet
 from django.utils import timezone
+from . import views_ubac
 
 router = DefaultRouter()
 router.register(r'payments', PaymentViewSet)
@@ -23,6 +25,7 @@ urlpatterns = [
     path('students/<int:id>/edit/', views.edit_student, name='edit_student'),
     path('students/bulk-upload/', views.bulk_upload_students, name='bulk_upload_students'),
     path('students/download-template/', views.download_student_template, name='download_student_template'),
+    path('students/<int:id>/delete/', views.delete_student, name='delete_student'),
     
     # Fee Structure URLs
     path('fee-structure/', views.fee_structure_list, name='fee_structure_list'),
@@ -84,4 +87,30 @@ urlpatterns = [
     path('api/chatbot/query/', views.chatbot_query, name='chatbot_query'),
     path('donation/success/<int:donation_id>/', views.donation_success, name='donation_success'),
     path('donation/receipt/<int:donation_id>/', views.donation_receipt, name='donation_receipt'),
+
+    # --- Merged from urls_ubac.py ---
+    # ADMIN-ONLY URLS
+    path('admin/dashboard/', views_ubac.admin_dashboard, name='admin_dashboard'),
+    path('admin/students/', views_ubac.student_management, name='student_management'),
+    path('admin/fee-structures/', views_ubac.fee_structure_management, name='fee_structure_management'),
+    path('admin/payment-reports/', views_ubac.payment_reports, name='payment_reports'),
+    # STUDENT-ONLY URLS
+    path('student/dashboard/', views_ubac.student_dashboard, name='student_dashboard'),
+    path('student/payments/', views_ubac.student_payment_history, name='student_payment_history'),
+    path('student/make-payment/', views_ubac.make_payment, name='make_payment'),
+    path('student/add-to-cart/', views_ubac.add_to_cart, name='add_to_cart'),
+    path('student/view-cart/', views_ubac.view_cart, name='view_cart'),
+    path('student/remove-from-cart/', views_ubac.remove_from_cart, name='remove_from_cart'),
+    path('student/checkout-cart/', views_ubac.checkout_cart, name='checkout_cart'),
+    path('student/cart-receipt/', views_ubac.cart_receipt, name='cart_receipt'),
+    path('student/cart-receipt-pdf/', views_ubac.cart_receipt_pdf, name='cart_receipt_pdf'),
+    # ROLE-BASED URLS
+    path('payment/<int:payment_id>/', views_ubac.payment_detail, name='payment_detail'),
+    path('student/<int:student_id>/', views_ubac.student_detail, name='student_detail'),
+    # MODULE-BASED URLS
+    path('school-fees/', views_ubac.school_fees_home, name='school_fees_home'),
+    path('donations/', views_ubac.donation_home, name='donation_home'),
+    # UTILITY URLS
+    path('profile/', views_ubac.profile_view, name='profile'),
+    path('access-denied/', views_ubac.access_denied, name='access_denied'),
 ]

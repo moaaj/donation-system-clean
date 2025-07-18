@@ -226,7 +226,21 @@ def home(request):
 
 @login_required
 def school_fees(request):
-    return render(request, 'myapp/school_fees.html')
+    if hasattr(request.user, 'myapp_profile') and request.user.myapp_profile.role == 'student':
+        student = request.user.myapp_profile.student
+        available_fees = FeeStructure.objects.filter(is_active=True)
+        student_payments = Payment.objects.filter(student=student).order_by('-created_at')
+        total_payments = Payment.objects.filter(student=student).count()
+        context = {
+            'student': student,
+            'available_fees': available_fees,
+            'recent_payments': student_payments[:5],
+            'view_type': 'student',
+            'total_payments': total_payments,
+        }
+        return render(request, 'myapp/school_fees_student.html', context)
+    is_tamim = request.user.username == 'tamim123'
+    return render(request, 'myapp/school_fees.html', {'is_tamim': is_tamim})
 
 @login_required
 def school_fees_dashboard(request):
@@ -325,7 +339,28 @@ def add_student(request):
 
 @login_required
 def fee_structure_list(request):
+    # Special logic for tamim123 (student): only show due fees, or empty if all paid
+    user = request.user
+    is_tamim = user.username == 'tamim123'
+    is_student = hasattr(user, 'myapp_profile') and getattr(user.myapp_profile, 'role', None) == 'student'
     fee_structures = FeeStructure.objects.select_related('category')
+    if is_tamim and is_student:
+        student = user.myapp_profile.student
+        from .models import FeeStatus
+        due_statuses = FeeStatus.objects.filter(student=student, status__in=['pending', 'overdue'])
+        if due_statuses.count() == 0:
+            fee_structures = FeeStructure.objects.none()
+        else:
+            due_fee_ids = due_statuses.values_list('fee_structure_id', flat=True)
+            fee_structures = FeeStructure.objects.filter(is_active=True, id__in=due_fee_ids).select_related('category')
+    # Failsafe: if student and no due fees, show empty
+    elif is_student:
+        student = user.myapp_profile.student
+        from .models import FeeStatus
+        due_statuses = FeeStatus.objects.filter(student=student, status__in=['pending', 'overdue'])
+        if due_statuses.count() == 0:
+            fee_structures = FeeStructure.objects.none()
+    print(f"DEBUG: username={user.username}, is_student={is_student}, fee_structures_count={fee_structures.count()}")
     return render(request, 'myapp/fee_structure_list.html', {'fee_structures': fee_structures})
 
 @login_required
@@ -335,7 +370,7 @@ def add_fee_structure(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Fee structure added successfully.')
-            return redirect('fee_structure_list')
+            return redirect('myapp:fee_structure_list')
     else:
         form = FeeStructureForm()
     return render(request, 'myapp/add_fee_structure.html', {'form': form})
@@ -359,7 +394,7 @@ def delete_fee_structure(request, structure_id):
     if request.method == 'POST':
         fee_structure.delete()
         messages.success(request, 'Fee structure deleted successfully.')
-        return redirect('fee_structure_list')
+        return redirect('myapp:fee_structure_list')
     return render(request, 'myapp/delete_fee_structure.html', {'fee_structure': fee_structure})
 
 @login_required
@@ -1062,7 +1097,7 @@ def approve_fee_waiver(request, waiver_id):
             messages.success(request, 'Fee waiver has been approved successfully.')
         else:
             messages.error(request, 'This waiver cannot be approved.')
-    return redirect('fee_waivers')
+    return redirect('myapp:fee_waivers')
 
 @login_required
 def reject_fee_waiver(request, waiver_id):
@@ -1344,6 +1379,15 @@ def edit_student(request, id):
     else:
         form = StudentForm(instance=student)
     return render(request, 'myapp/edit_student.html', {'form': form, 'student': student})
+
+@login_required
+def delete_student(request, id):
+    student = get_object_or_404(Student, id=id)
+    if request.method == 'POST':
+        student.delete()
+        messages.success(request, 'Student deleted successfully!')
+        return redirect('student_list')
+    return render(request, 'myapp/delete_student_confirm.html', {'student': student})
 
 @login_required
 def fee_analytics_dashboard(request):

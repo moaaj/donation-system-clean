@@ -8,7 +8,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <h1>Fee Waivers & Scholarships</h1>
-            <a href="{% url 'add_fee_waiver' %}" class="btn btn-primary">
+            <a href="{% url 'myapp:add_fee_waiver' %}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Add New Waiver
             </a>
         </div>
@@ -67,20 +67,20 @@
                                     </td>
                                     <td>
                                         {% if waiver.status == 'pending' %}
-                                        <form method="post" action="{% url 'approve_fee_waiver' waiver.id %}" class="d-inline">
+                                        <form method="post" action="{% url 'myapp:approve_fee_waiver' waiver.id %}" class="d-inline">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-sm btn-success">
                                                 <i class="fas fa-check"></i> Approve
                                             </button>
                                         </form>
-                                        <form method="post" action="{% url 'reject_fee_waiver' waiver.id %}" class="d-inline">
+                                        <form method="post" action="{% url 'myapp:reject_fee_waiver' waiver.id %}" class="d-inline ms-1">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-sm btn-danger">
                                                 <i class="fas fa-times"></i> Reject
                                             </button>
                                         </form>
                                         {% endif %}
-                                        <a href="{% url 'view_fee_waiver_letter' waiver.id %}" class="btn btn-sm btn-info" target="_blank">
+                                        <a href="{% url 'myapp:view_fee_waiver_letter' waiver.id %}" class="btn btn-sm btn-secondary ms-1" target="_blank">
                                             <i class="fas fa-file-alt"></i> View Letter
                                         </a>
                                     </td>

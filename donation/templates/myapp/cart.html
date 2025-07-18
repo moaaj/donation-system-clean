@@ -1,0 +1,51 @@
+{% extends 'myapp/base_ubac.html' %}
+
+{% block title %}Your Cart{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-shopping-cart"></i> Your Cart</h2>
+    {% if fees %}
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Form</th>
+                <th>Amount (RM)</th>
+                <th>Frequency</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fee in fees %}
+            <tr>
+                <td>{{ fee.category.name }}</td>
+                <td>{{ fee.form }}</td>
+                <td>RM {{ fee.amount }}</td>
+                <td>{{ fee.get_frequency_display }}</td>
+                <td>
+                    <form method="post" action="{% url 'myapp:remove_from_cart' %}" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="fee_id" value="{{ fee.id }}">
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="text-end">
+        <h4>Total: RM {{ total }}</h4>
+        <a href="{% url 'myapp:checkout_cart' %}" class="btn btn-success">
+            <i class="fas fa-credit-card"></i> Checkout
+        </a>
+    </div>
+    {% else %}
+    <div class="alert alert-info mt-4">
+        <i class="fas fa-info-circle"></i> Your cart is empty.
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

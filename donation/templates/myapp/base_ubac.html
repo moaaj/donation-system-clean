@@ -27,6 +27,18 @@
                             <i class="fas fa-home"></i> Home
                         </a>
                     </li>
+                    {% if is_student %}
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{% url 'myapp:view_cart' %}">
+                            <i class="fas fa-shopping-cart"></i> Cart
+                            {% if request.session.cart %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ request.session.cart|length }}
+                                </span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    {% endif %}
                     
                     <!-- Admin-Only Menu Items -->
                     {% if is_admin %}
@@ -51,53 +63,7 @@
                     </li>
                     {% endif %}
                     
-                    <!-- Student-Only Menu Items -->
-                    {% if is_student %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="studentDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-graduate"></i> Student
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'myapp:student_dashboard' %}">
-                                <i class="fas fa-tachometer-alt"></i> Dashboard
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'myapp:student_payment_history' %}">
-                                <i class="fas fa-history"></i> Payment History
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'myapp:make_payment' %}">
-                                <i class="fas fa-credit-card"></i> Make Payment
-                            </a></li>
-                        </ul>
-                    </li>
-                    {% endif %}
-                    
-                    <!-- Module-Based Menu Items -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="modulesDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-th-large"></i> Modules
-                        </a>
-                        <ul class="dropdown-menu">
-                            <!-- School Fees - Different access for different roles -->
-                            <li><a class="dropdown-item" href="{% url 'myapp:school_fees_home' %}">
-                                <i class="fas fa-money-bill-wave"></i> School Fees
-                                {% if is_student %}
-                                    <span class="badge bg-info">Student View</span>
-                                {% elif is_admin %}
-                                    <span class="badge bg-warning">Admin View</span>
-                                {% endif %}
-                            </a></li>
-                            
-                            <!-- Donations - Different access for different roles -->
-                            <li><a class="dropdown-item" href="{% url 'myapp:donation_home' %}">
-                                <i class="fas fa-hand-holding-heart"></i> Donations
-                                {% if is_student %}
-                                    <span class="badge bg-info">Student View</span>
-                                {% elif is_admin %}
-                                    <span class="badge bg-warning">Admin View</span>
-                                {% endif %}
-                            </a></li>
-                        </ul>
-                    </li>
+                    <!-- Removed Student and Modules dropdowns -->
                 </ul>
                 
                 <!-- User Menu -->

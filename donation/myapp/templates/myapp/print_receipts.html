@@ -38,7 +38,7 @@
                                             <td>RM {{ payment.amount }}</td>
                                             <td>{{ payment.payment_date }}</td>
                                             <td>
-                                                <a href="{% url 'payment_receipt' payment.id %}" class="btn btn-primary btn-sm" target="_blank">
+                                                <a href="{% url 'myapp:payment_receipt' payment.id %}" class="btn btn-primary btn-sm" target="_blank">
                                                     <i class="fas fa-print"></i> Print
                                                 </a>
                                             </td>

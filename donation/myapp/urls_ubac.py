@@ -18,6 +18,10 @@ urlpatterns = [
     path('student/dashboard/', views_ubac.student_dashboard, name='student_dashboard'),
     path('student/payments/', views_ubac.student_payment_history, name='student_payment_history'),
     path('student/make-payment/', views_ubac.make_payment, name='make_payment'),
+    path('student/add-to-cart/', views_ubac.add_to_cart, name='add_to_cart'),
+    path('student/view-cart/', views_ubac.view_cart, name='view_cart'),
+    path('student/remove-from-cart/', views_ubac.remove_from_cart, name='remove_from_cart'),
+    path('student/checkout-cart/', views_ubac.checkout_cart, name='checkout_cart'),
     
     # ============================================================================
     # ROLE-BASED URLS (Multiple roles can access)
