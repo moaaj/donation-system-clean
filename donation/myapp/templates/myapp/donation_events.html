@@ -21,7 +21,7 @@
                             ${{ event.current_amount }} raised of ${{ event.target_amount }} goal
                         </small>
                     </p>
-                    <a href="{% url 'donation_event_detail' event.id %}" class="btn btn-primary">
+                    <a href="{% url 'myapp:donation_event_detail' event.id %}" class="btn btn-primary">
                         View Details
                     </a>
                 </div>

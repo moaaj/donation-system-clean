@@ -1,0 +1,397 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Donation Receipt #{{ donation.id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .receipt-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .receipt-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .receipt-header h1 {
+        margin: 0;
+        font-size: 2.5em;
+        font-weight: bold;
+    }
+    
+    .receipt-id {
+        font-size: 1.2em;
+        opacity: 0.9;
+        margin-top: 10px;
+    }
+    
+    .receipt-content {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    
+    .receipt-section {
+        margin-bottom: 30px;
+    }
+    
+    .receipt-section:last-child {
+        margin-bottom: 0;
+    }
+    
+    .section-title {
+        font-size: 1.3em;
+        font-weight: bold;
+        color: #333;
+        border-bottom: 2px solid #e1e5e9;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .detail-value {
+        color: #666;
+        text-align: right;
+    }
+    
+    .amount-highlight {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        margin: 20px 0;
+    }
+    
+    .amount-highlight .label {
+        font-size: 1.1em;
+        opacity: 0.9;
+        margin-bottom: 5px;
+    }
+    
+    .amount-highlight .value {
+        font-size: 2.5em;
+        font-weight: bold;
+    }
+    
+    .event-details {
+        background: #e8f5e8;
+        border: 1px solid #28a745;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+    
+    .event-title {
+        font-size: 1.3em;
+        font-weight: bold;
+        color: #28a745;
+        margin-bottom: 10px;
+    }
+    
+    .event-description {
+        color: #666;
+        line-height: 1.6;
+    }
+    
+    .donation-message {
+        background: #f8f9fa;
+        border: 1px solid #e1e5e9;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+    
+    .donation-message .label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .donation-message .content {
+        color: #666;
+        font-style: italic;
+        line-height: 1.6;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        font-size: 1.1em;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+    
+    .print-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 30px;
+        text-align: center;
+    }
+    
+    .print-section p {
+        color: #666;
+        margin-bottom: 15px;
+    }
+    
+    @media print {
+        .action-buttons, .print-section {
+            display: none;
+        }
+        
+        .receipt-container {
+            padding: 0;
+        }
+        
+        .receipt-content {
+            box-shadow: none;
+            border: 1px solid #ddd;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="receipt-container">
+    <div class="receipt-header">
+        <h1>📄 Donation Receipt</h1>
+        <div class="receipt-id">Receipt #{{ donation.id|stringformat:"06d" }}</div>
+    </div>
+    
+    <div class="receipt-content">
+        <!-- Amount Highlight -->
+        <div class="amount-highlight">
+            <div class="label">Donation Amount</div>
+            <div class="value">${{ donation.amount|floatformat:2 }}</div>
+        </div>
+        
+        <!-- Donation Details -->
+        <div class="receipt-section">
+            <div class="section-title">📋 Donation Details</div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Receipt ID:</span>
+                    <span class="detail-value">#{{ donation.id|stringformat:"06d" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Date:</span>
+                    <span class="detail-value">{{ donation.created_at|date:"F d, Y" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Time:</span>
+                    <span class="detail-value">{{ donation.created_at|time:"g:i A" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value">
+                        <span class="status-badge status-{{ donation.status|lower }}">
+                            {{ donation.get_status_display }}
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Donor Information -->
+        <div class="receipt-section">
+            <div class="section-title">👤 Donor Information</div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Name:</span>
+                    <span class="detail-value">{{ donation.donor_name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">{{ donation.donor_email }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Event Information -->
+        <div class="receipt-section">
+            <div class="section-title">🎯 Event Information</div>
+            <div class="event-details">
+                <div class="event-title">{{ donation.event.title }}</div>
+                <div class="event-description">{{ donation.event.description }}</div>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Event Target:</span>
+                    <span class="detail-value">${{ donation.event.target_amount|floatformat:2 }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Current Raised:</span>
+                    <span class="detail-value">${{ donation.event.current_amount|floatformat:2 }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Event Period:</span>
+                    <span class="detail-value">{{ donation.event.start_date|date:"M d, Y" }} - {{ donation.event.end_date|date:"M d, Y" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Event Status:</span>
+                    <span class="detail-value">
+                        {% if donation.event.is_active %}
+                            <span style="color: #28a745; font-weight: bold;">Active</span>
+                        {% else %}
+                            <span style="color: #dc3545; font-weight: bold;">Inactive</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Information -->
+        <div class="receipt-section">
+            <div class="section-title">💳 Payment Information</div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Payment Method:</span>
+                    <span class="detail-value">{{ donation.get_payment_method_display }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Transaction ID:</span>
+                    <span class="detail-value">{{ donation.transaction_id|default:"Pending" }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Message (if exists) -->
+        {% if donation.message %}
+        <div class="receipt-section">
+            <div class="section-title">💬 Your Message</div>
+            <div class="donation-message">
+                <div class="label">Personal Message:</div>
+                <div class="content">"{{ donation.message }}"</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+                                 <a href="{% url 'download_receipt_pdf' donation.id %}" class="btn btn-success">
+                    <i class="fas fa-download"></i> Download PDF
+                </a>
+                <a href="{% url 'donation_history' %}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Back to History
+                </a>
+        <button onclick="window.print()" class="btn btn-secondary">
+            <i class="fas fa-print"></i> Print Receipt
+        </button>
+    </div>
+    
+    <!-- Print Information -->
+    <div class="print-section">
+        <p><i class="fas fa-info-circle"></i> This receipt serves as proof of your generous donation.</p>
+        <p>Thank you for making a difference in our community!</p>
+    </div>
+</div>
+
+<script>
+// Auto-print when PDF download is clicked (optional)
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any additional functionality here
+});
+</script>
+{% endblock %}

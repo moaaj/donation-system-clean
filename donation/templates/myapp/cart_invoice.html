@@ -1,0 +1,159 @@
+{% extends 'myapp/base_ubac.html' %}
+
+{% block title %}Payment Invoice{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Success Message -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Thank You Section -->
+    <div class="card mb-4" style="background: linear-gradient(135deg, #28a745, #20c997); border: none; border-radius: 15px;">
+        <div class="card-body text-center text-white py-5">
+            <div class="mb-3">
+                <i class="fas fa-file-invoice" style="font-size: 3rem; color: rgba(255,255,255,0.9);"></i>
+            </div>
+            <h2 class="mb-3"><strong>Payment Invoice Generated!</strong></h2>
+            <p class="mb-4">Your payment has been successfully processed and an invoice has been generated.</p>
+            <div class="row justify-content-center">
+                <div class="col-md-3">
+                    <div class="bg-white bg-opacity-20 rounded p-3">
+                        <h4 class="mb-1">{{ invoices|length }}</h4>
+                        <small>Invoice(s) Generated</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="bg-white bg-opacity-20 rounded p-3">
+                        <h4 class="mb-1">RM {{ invoices|sum:'total_amount' }}</h4>
+                        <small>Total Amount</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Details -->
+    {% for invoice in invoices %}
+    <div class="card mb-4 shadow-sm" style="border-radius: 15px; border: 1px solid #e9ecef;">
+        <div class="card-header bg-white" style="border-bottom: 2px solid #f8f9fa; border-radius: 15px 15px 0 0;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-receipt text-primary me-2"></i>
+                    Invoice #{{ invoice.invoice_number }}
+                </h5>
+                <span class="badge bg-success px-3 py-2">{{ invoice.get_status_display }}</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Student Information -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="text-muted mb-2">STUDENT INFORMATION</h6>
+                    <p class="mb-1"><strong>{{ student.first_name }} {{ student.last_name }}</strong></p>
+                    <p class="mb-1 text-muted">Student ID: {{ student.student_id }}</p>
+                    <p class="mb-0 text-muted">Class: {{ student.class_name|default:"Not specified" }}</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h6 class="text-muted mb-2">INVOICE DETAILS</h6>
+                    <p class="mb-1"><strong>Issue Date:</strong> {{ invoice.issue_date }}</p>
+                    <p class="mb-1"><strong>Due Date:</strong> {{ invoice.due_date }}</p>
+                    <p class="mb-0"><strong>Status:</strong> {{ invoice.get_status_display }}</p>
+                </div>
+            </div>
+
+            <!-- Payment Details -->
+            <div class="bg-light rounded p-4 mb-4">
+                <h6 class="text-muted mb-3">PAYMENT DETAILS</h6>
+                <div class="row">
+                    <div class="col-md-8">
+                        <p class="mb-2">
+                            <strong>
+                                {% if invoice.payment.fee_structure %}
+                                    {{ invoice.payment.fee_structure.category.name }} - {{ invoice.payment.fee_structure.form }}
+                                {% else %}
+                                    Individual Student Fee
+                                {% endif %}
+                            </strong>
+                        </p>
+                        <small class="text-muted">
+                            {% if invoice.payment.fee_structure %}
+                                {{ invoice.payment.fee_structure.get_frequency_display }} Payment
+                            {% else %}
+                                One-time Payment
+                            {% endif %}
+                        </small>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <p class="mb-1"><strong>Amount:</strong> RM {{ invoice.amount }}</p>
+                        <p class="mb-1"><strong>Tax (6%):</strong> RM {{ invoice.tax_amount }}</p>
+                        <p class="mb-0"><strong>Total:</strong> RM {{ invoice.total_amount }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes and Terms -->
+            {% if invoice.notes %}
+            <div class="mb-3">
+                <h6 class="text-muted mb-2">NOTES</h6>
+                <p class="mb-0">{{ invoice.notes }}</p>
+            </div>
+            {% endif %}
+
+            {% if invoice.terms_conditions %}
+            <div class="mb-3">
+                <h6 class="text-muted mb-2">TERMS & CONDITIONS</h6>
+                <p class="mb-0">{{ invoice.terms_conditions }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Total Summary -->
+    <div class="card mb-4" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); border: none; border-radius: 15px;">
+        <div class="card-body text-center">
+            <h4 class="mb-2">Total Amount Due</h4>
+            <h2 class="text-primary mb-0">RM {{ invoices|sum:'total_amount' }}</h2>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <a href="{% url 'myapp:cart_invoice_pdf' %}" class="btn btn-primary w-100 py-3" style="border-radius: 10px;">
+                        <i class="fas fa-download me-2"></i>
+                        Download PDF Invoice
+                    </a>
+                </div>
+                <div class="col-md-6">
+                    <a href="{% url 'myapp:cart_receipt' %}" class="btn btn-success w-100 py-3" style="border-radius: 10px;">
+                        <i class="fas fa-receipt me-2"></i>
+                        View Receipt
+                    </a>
+                </div>
+                <div class="col-md-6">
+                    <a href="{% url 'myapp:school_fees_home' %}" class="btn btn-outline-secondary w-100 py-3" style="border-radius: 10px;">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Back to School Fees
+                    </a>
+                </div>
+                <div class="col-md-6">
+                    <a href="{% url 'myapp:student_payment_history' %}" class="btn btn-outline-info w-100 py-3" style="border-radius: 10px;">
+                        <i class="fas fa-history me-2"></i>
+                        Payment History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

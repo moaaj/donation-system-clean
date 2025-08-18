@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mark Fee as Paid{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>Mark Fee as Paid</h1>
+                <a href="{% url 'myapp:individual_student_fees' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">Confirm Payment</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Note:</strong> This will mark the fee as paid. Make sure the student has actually paid the fee.
+                    </div>
+                    
+                    <h6>Fee Details:</h6>
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>Student:</strong></td>
+                            <td>{{ fee.student.first_name }} {{ fee.student.last_name }} ({{ fee.student.student_id }})</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fee Name:</strong></td>
+                            <td>{{ fee.name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Category:</strong></td>
+                            <td>{{ fee.category.name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Amount:</strong></td>
+                            <td>RM {{ fee.amount|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Due Date:</strong></td>
+                            <td>{{ fee.due_date|date:"d M Y" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Current Status:</strong></td>
+                            <td>
+                                {% if fee.is_overdue %}
+                                    <span class="badge bg-danger">Overdue</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'myapp:individual_student_fees' %}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Mark as Paid
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

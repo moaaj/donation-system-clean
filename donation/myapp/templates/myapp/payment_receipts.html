@@ -41,7 +41,7 @@
                                                 <a href="{% url 'myapp:payment_receipt' payment.id %}" class="btn btn-primary btn-sm" target="_blank">
                                                     <i class="fas fa-print"></i> Print
                                                 </a>
-                                                <a href="{% url 'email_receipt' payment.id %}" class="btn btn-success btn-sm">
+                                                <a href="{% url 'myapp:email_receipt' payment.id %}" class="btn btn-success btn-sm">
                                                     <i class="fas fa-envelope"></i> Email
                                                 </a>
                                             </td>

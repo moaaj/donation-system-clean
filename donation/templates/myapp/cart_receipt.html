@@ -16,8 +16,8 @@
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>Fee Category</th>
-                                <th>Form</th>
+                                <th>Fee Type</th>
+                                <th>Description</th>
                                 <th>Amount (RM)</th>
                                 <th>Date</th>
                             </tr>
@@ -25,8 +25,21 @@
                         <tbody>
                             {% for payment in payments %}
                             <tr>
-                                <td>{{ payment.fee_structure.category.name }}</td>
-                                <td>{{ payment.fee_structure.form }}</td>
+                                {% if payment.fee_structure %}
+                                    <td>{{ payment.fee_structure.category.name }}</td>
+                                    <td>{{ payment.fee_structure.form }} - {{ payment.fee_structure.get_frequency_display }}</td>
+                                {% else %}
+                                    {% for individual_fee in student.individual_fees.all %}
+                                        {% if individual_fee.amount == payment.amount and individual_fee.is_paid %}
+                                            <td>{{ individual_fee.category.name }}</td>
+                                            <td>{{ individual_fee.name }}</td>
+                                            {% break %}
+                                        {% endif %}
+                                    {% empty %}
+                                        <td>Individual Fee</td>
+                                        <td>Individual Student Fee</td>
+                                    {% endfor %}
+                                {% endif %}
                                 <td>RM {{ payment.amount }}</td>
                                 <td>{{ payment.payment_date }}</td>
                             </tr>
@@ -35,6 +48,21 @@
                     </table>
                     <div class="text-end">
                         <h4>Total Paid: RM {{ payments|sum:'amount' }}</h4>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'myapp:cart_invoice' %}" class="btn btn-primary">
+                            <i class="fas fa-file-invoice"></i> View Invoice
+                        </a>
+                        <a href="{% url 'myapp:cart_invoice_pdf' %}" class="btn btn-info">
+                            <i class="fas fa-download"></i> Download Invoice PDF
+                        </a>
+                        <a href="{% url 'myapp:cart_receipt_pdf' %}" class="btn btn-success">
+                            <i class="fas fa-download"></i> Download Receipt PDF
+                        </a>
+                        <a href="{% url 'myapp:school_fees_home' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to School Fees
+                        </a>
                     </div>
                 </div>
             </div>

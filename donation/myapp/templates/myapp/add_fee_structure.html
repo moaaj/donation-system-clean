@@ -18,7 +18,7 @@
                     <form method="post">
                         {% csrf_token %}
                         
-                        <div class="form-group">
+                        <div class="form-group mb-3">
                             <label for="{{ form.category.id_for_label }}">Category</label>
                             {{ form.category }}
                             {% if form.category.errors %}
@@ -28,7 +28,7 @@
                             {% endif %}
                         </div>
 
-                        <div class="form-group">
+                        <div class="form-group mb-3">
                             <label for="{{ form.form.id_for_label }}">Form</label>
                             {{ form.form }}
                             {% if form.form.errors %}
@@ -38,22 +38,74 @@
                             {% endif %}
                         </div>
 
-                        <div class="form-group">
-                            <label for="{{ form.amount.id_for_label }}">Amount (RM)</label>
-                            {{ form.amount }}
-                            {% if form.amount.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.amount.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-group">
+                        <div class="form-group mb-3">
                             <label for="{{ form.frequency.id_for_label }}">Frequency</label>
                             {{ form.frequency }}
                             {% if form.frequency.errors %}
                             <div class="invalid-feedback d-block">
                                 {{ form.frequency.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Monthly Payment Options (shown only when frequency is monthly) -->
+                        <div id="monthly-options" style="display: none;">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-calendar-alt"></i> Monthly Payment Options</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group mb-3">
+                                        <label for="{{ form.total_amount.id_for_label }}">Total Amount (RM)</label>
+                                        {{ form.total_amount }}
+                                        <small class="form-text text-muted">{{ form.total_amount.help_text }}</small>
+                                        {% if form.total_amount.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.total_amount.errors }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="form-group mb-3">
+                                        <label for="{{ form.monthly_duration.id_for_label }}">Payment Duration</label>
+                                        {{ form.monthly_duration }}
+                                        <small class="form-text text-muted">{{ form.monthly_duration.help_text }}</small>
+                                        {% if form.monthly_duration.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.monthly_duration.errors }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="form-group mb-3">
+                                        <div class="form-check">
+                                            {{ form.auto_generate_payments }}
+                                            <label class="form-check-label" for="{{ form.auto_generate_payments.id_for_label }}">
+                                                Auto-generate monthly payments for all students
+                                            </label>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.auto_generate_payments.help_text }}</small>
+                                        {% if form.auto_generate_payments.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.auto_generate_payments.errors }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div id="monthly-calculation" class="alert alert-info" style="display: none;">
+                                        <strong>Monthly Amount:</strong> <span id="monthly-amount">RM 0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Regular Amount Field (shown for non-monthly frequencies) -->
+                        <div id="regular-amount" class="form-group mb-3">
+                            <label for="{{ form.amount.id_for_label }}">Amount (RM)</label>
+                            {{ form.amount }}
+                            {% if form.amount.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.amount.errors }}
                             </div>
                             {% endif %}
                         </div>
@@ -72,4 +124,56 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const frequencySelect = document.getElementById('{{ form.frequency.id_for_label }}');
+    const monthlyOptions = document.getElementById('monthly-options');
+    const regularAmount = document.getElementById('regular-amount');
+    const totalAmountInput = document.getElementById('{{ form.total_amount.id_for_label }}');
+    const monthlyDurationSelect = document.getElementById('{{ form.monthly_duration.id_for_label }}');
+    const monthlyCalculation = document.getElementById('monthly-calculation');
+    const monthlyAmountSpan = document.getElementById('monthly-amount');
+
+    function toggleMonthlyOptions() {
+        const isMonthly = frequencySelect.value === 'monthly';
+        monthlyOptions.style.display = isMonthly ? 'block' : 'none';
+        regularAmount.style.display = isMonthly ? 'none' : 'block';
+        
+        // Handle required attribute for amount field
+        const amountInput = document.getElementById('{{ form.amount.id_for_label }}');
+        if (isMonthly) {
+            amountInput.removeAttribute('required');
+            amountInput.setAttribute('readonly', 'readonly');
+            amountInput.style.backgroundColor = '#f8f9fa';
+            calculateMonthlyAmount();
+        } else {
+            amountInput.setAttribute('required', 'required');
+            amountInput.removeAttribute('readonly');
+            amountInput.style.backgroundColor = '';
+        }
+    }
+
+    function calculateMonthlyAmount() {
+        const totalAmount = parseFloat(totalAmountInput.value) || 0;
+        const duration = parseInt(monthlyDurationSelect.value) || 1;
+        
+        if (totalAmount > 0 && duration > 0) {
+            const monthlyAmount = totalAmount / duration;
+            monthlyAmountSpan.textContent = `RM ${monthlyAmount.toFixed(2)}`;
+            monthlyCalculation.style.display = 'block';
+        } else {
+            monthlyCalculation.style.display = 'none';
+        }
+    }
+
+    // Event listeners
+    frequencySelect.addEventListener('change', toggleMonthlyOptions);
+    totalAmountInput.addEventListener('input', calculateMonthlyAmount);
+    monthlyDurationSelect.addEventListener('change', calculateMonthlyAmount);
+
+    // Initialize on page load
+    toggleMonthlyOptions();
+});
+</script>
 {% endblock %} 

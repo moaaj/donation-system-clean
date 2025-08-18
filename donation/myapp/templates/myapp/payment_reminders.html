@@ -43,10 +43,10 @@
                                     <td>{{ payment.payment_date|date:"d M Y" }}</td>
                                     <td>{{ payment.payment_date|timeuntil }}</td>
                                     <td>
-                                        <a href="{% url 'send_payment_reminder' payment.id %}" class="btn btn-sm btn-warning">
+                                        <a href="{% url 'myapp:send_payment_reminder' payment.id %}" class="btn btn-sm btn-warning">
                                             <i class="fas fa-envelope"></i> Send Reminder
                                         </a>
-                                        <a href="{% url 'generate_reminder_letter' payment.id %}" class="btn btn-sm btn-info">
+                                        <a href="{% url 'myapp:generate_reminder_letter' payment.id %}" class="btn btn-sm btn-info">
                                             <i class="fas fa-file-alt"></i> Generate Letter
                                         </a>
                                     </td>
@@ -96,10 +96,10 @@
                                     <td>{{ payment.payment_date|date:"d M Y" }}</td>
                                     <td>{{ payment.payment_date|timeuntil }}</td>
                                     <td>
-                                        <a href="{% url 'send_payment_reminder' payment.id %}" class="btn btn-sm btn-warning">
-                                            <i class="fas fa-envelope"></i> Send Reminder
-                                        </a>
-                                        <a href="{% url 'generate_reminder_letter' payment.id %}" class="btn btn-sm btn-info">
+                                                                                 <a href="{% url 'myapp:send_payment_reminder' payment.id %}" class="btn btn-sm btn-warning">
+                                             <i class="fas fa-envelope"></i> Send Reminder
+                                         </a>
+                                         <a href="{% url 'myapp:generate_reminder_letter' payment.id %}" class="btn btn-sm btn-info">
                                             <i class="fas fa-file-alt"></i> Generate Letter
                                         </a>
                                     </td>

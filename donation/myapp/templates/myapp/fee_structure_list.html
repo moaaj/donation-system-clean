@@ -8,15 +8,172 @@
     <div class="row mb-4">
         <div class="col-12 d-flex justify-content-between align-items-center">
             <h1>Fee Structure</h1>
-            <a href="{% url 'myapp:add_fee_structure' %}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Add Fee Structure
-            </a>
+            {% if not is_tamim %}
+            <div>
+                <a href="{% url 'myapp:add_individual_student_fee' %}" class="btn btn-warning me-2">
+                    <i class="fas fa-user-clock"></i> Add Overtime/Demerit Fee
+                </a>
+                <a href="{% url 'myapp:add_fee_structure' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Fee Structure
+                </a>
+            </div>
+            {% endif %}
         </div>
     </div>
 
+        <!-- Overtime and Demerit Penalties Section (Admin Only) -->
+    {% if not is_tamim %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-clock"></i> Overtime & Demerit Penalties
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-warning">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-clock text-warning" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">Overtime Fees</h6>
+                                    <p class="text-muted small">Late pickups, extended hours, after-school activities</p>
+                                    <a href="{% url 'myapp:add_individual_student_fee' %}?category=overtime" class="btn btn-outline-warning btn-sm">
+                                        <i class="fas fa-plus"></i> Add Overtime Fee
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-danger">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-exclamation-triangle text-danger" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">Demerit Penalties</h6>
+                                    <p class="text-muted small">Behavioral issues, rule violations, disciplinary actions</p>
+                                    <a href="{% url 'myapp:add_individual_student_fee' %}?category=demerit" class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-plus"></i> Add Demerit Penalty
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                     <!-- Quick Actions -->
+                      <div class="row mt-3">
+                          <div class="col-12">
+                              <div class="d-flex justify-content-center gap-2">
+                                  <a href="{% url 'myapp:individual_student_fees' %}?status=pending" class="btn btn-outline-primary btn-sm">
+                                      <i class="fas fa-clock"></i> View Pending Fees
+                                  </a>
+                                  <a href="{% url 'myapp:individual_student_fees' %}?status=overdue" class="btn btn-outline-danger btn-sm">
+                                      <i class="fas fa-exclamation-circle"></i> View Overdue Fees
+                                  </a>
+                                  <a href="{% url 'myapp:individual_student_fees' %}" class="btn btn-outline-secondary btn-sm">
+                                      <i class="fas fa-list"></i> View All Individual Fees
+                                  </a>
+                              </div>
+                          </div>
+                      </div>
+                      
+                      <!-- Recent Individual Fees -->
+                      {% if recent_individual_fees %}
+                      <div class="row mt-3">
+                          <div class="col-12">
+                              <h6 class="text-muted mb-2">Recent Individual Fees:</h6>
+                              <div class="table-responsive">
+                                  <table class="table table-sm table-borderless">
+                                      <tbody>
+                                          {% for fee in recent_individual_fees %}
+                                          <tr>
+                                              <td class="text-muted small">{{ fee.created_at|date:"d M Y" }}</td>
+                                              <td><strong>{{ fee.student.first_name }} {{ fee.student.last_name }}</strong></td>
+                                              <td>{{ fee.name }}</td>
+                                              <td>{{ fee.category.name }}</td>
+                                              <td>RM {{ fee.amount|floatformat:2 }}</td>
+                                              <td>
+                                                  {% if fee.is_paid %}
+                                                      <span class="badge bg-success">Paid</span>
+                                                  {% elif fee.is_overdue %}
+                                                      <span class="badge bg-danger">Overdue</span>
+                                                  {% else %}
+                                                      <span class="badge bg-warning">Pending</span>
+                                                  {% endif %}
+                                              </td>
+                                          </tr>
+                                          {% endfor %}
+                                      </tbody>
+                                  </table>
+                              </div>
+                          </div>
+                      </div>
+                      {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Individual Student Fees (for students to see their own fees) -->
+    {% if individual_fees %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-clock"></i> Your Individual Fees
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Fee Name</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for fee in individual_fees %}
+                                <tr>
+                                    <td><strong>{{ fee.name }}</strong></td>
+                                    <td>{{ fee.category.name }}</td>
+                                    <td>{{ fee.description }}</td>
+                                    <td>RM {{ fee.amount|floatformat:2 }}</td>
+                                    <td>{{ fee.due_date|date:"d M Y" }}</td>
+                                    <td>
+                                        {% if fee.is_paid %}
+                                            <span class="badge bg-success">Paid</span>
+                                        {% elif fee.is_overdue %}
+                                            <span class="badge bg-danger">Overdue</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Regular Fee Structures -->
     <div class="row">
         <div class="col-12">
             <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list"></i> Regular Fee Structures
+                    </h5>
+                </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-striped">
@@ -27,7 +184,9 @@
                                     <th>Amount</th>
                                     <th>Frequency</th>
                                     <th>Status</th>
+                                    {% if not is_tamim %}
                                     <th>Actions</th>
+                                    {% endif %}
                                 </tr>
                             </thead>
                             <tbody>
@@ -35,13 +194,30 @@
                                 <tr>
                                     <td>{{ fee_structure.category.name }}</td>
                                     <td>{{ fee_structure.form }}</td>
-                                    <td>RM {{ fee_structure.amount|floatformat:2 }}</td>
-                                    <td>{{ fee_structure.frequency }}</td>
+                                    <td>
+                                        {% if fee_structure.frequency == 'monthly' and fee_structure.total_amount %}
+                                            <strong>RM {{ fee_structure.total_amount|floatformat:2 }}</strong><br>
+                                            <small class="text-muted">({{ fee_structure.monthly_duration }} months × RM {{ fee_structure.get_monthly_amount|floatformat:2 }})</small>
+                                        {% else %}
+                                            RM {{ fee_structure.amount|floatformat:2 }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if fee_structure.frequency == 'monthly' and fee_structure.monthly_duration %}
+                                            <span class="badge bg-info">{{ fee_structure.frequency|title }} ({{ fee_structure.monthly_duration }} months)</span>
+                                            {% if fee_structure.auto_generate_payments %}
+                                                <br><small class="text-success"><i class="fas fa-check"></i> Auto-generated</small>
+                                            {% endif %}
+                                        {% else %}
+                                            {{ fee_structure.frequency|title }}
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         <span class="badge {% if fee_structure.is_active %}bg-success{% else %}bg-danger{% endif %}">
                                             {{ fee_structure.is_active|yesno:'Active,Inactive' }}
                                         </span>
                                     </td>
+                                    {% if not is_tamim %}
                                     <td>
                                         <a href="{% url 'myapp:edit_fee_structure' fee_structure.id %}" class="btn btn-sm btn-warning">
                                             <i class="fas fa-edit"></i>
@@ -50,10 +226,11 @@
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </td>
+                                    {% endif %}
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="6" class="text-center">No fee structures found</td>
+                                    <td colspan="{% if is_tamim %}5{% else %}6{% endif %}" class="text-center">No fee structures found</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

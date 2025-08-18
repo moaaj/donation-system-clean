@@ -1,0 +1,471 @@
+{% extends 'myapp/base_ubac.html' %}
+
+{% block title %}Payment Analytics Dashboard{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css" rel="stylesheet">
+<style>
+    .analytics-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e9ecef;
+        margin-bottom: 1.5rem;
+    }
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    .stat-card.success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+    }
+    .stat-card.warning {
+        background: linear-gradient(135deg, #ffc107, #fd7e14);
+    }
+    .stat-card.danger {
+        background: linear-gradient(135deg, #dc3545, #e83e8c);
+    }
+    .stat-card.info {
+        background: linear-gradient(135deg, #17a2b8, #6f42c1);
+    }
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin: 1rem 0;
+    }
+    .filter-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .table-responsive {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .progress-ring {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+    }
+    .progress-ring circle {
+        transition: stroke-dasharray 0.35s;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0"><i class="fas fa-chart-line text-primary me-2"></i>Payment Analytics Dashboard</h1>
+            <p class="text-muted">Comprehensive payment analysis and reporting</p>
+        </div>
+        <div>
+            <a href="?export=csv" class="btn btn-success">
+                <i class="fas fa-download me-2"></i>Export CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filter-section">
+        <h5 class="mb-3"><i class="fas fa-filter me-2"></i>Filters</h5>
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label">Filter Type</label>
+                <select name="filter_type" class="form-select" onchange="this.form.submit()">
+                    <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All</option>
+                    <option value="student" {% if filter_type == 'student' %}selected{% endif %}>Student</option>
+                    <option value="class" {% if filter_type == 'class' %}selected{% endif %}>Class</option>
+                    <option value="category" {% if filter_type == 'category' %}selected{% endif %}>Category</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Filter Value</label>
+                {% if filter_type == 'student' %}
+                    <select name="filter_value" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Students</option>
+                        {% for student in students %}
+                            <option value="{{ student.first_name }}" {% if filter_value == student.first_name %}selected{% endif %}>
+                                {{ student.first_name }} {{ student.last_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                {% elif filter_type == 'class' %}
+                    <select name="filter_value" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Classes</option>
+                        {% for class_name in classes %}
+                            <option value="{{ class_name }}" {% if filter_value == class_name %}selected{% endif %}>
+                                {{ class_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                {% elif filter_type == 'category' %}
+                    <select name="filter_value" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                            <option value="{{ category.name }}" {% if filter_value == category.name %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    <input type="text" name="filter_value" class="form-control" value="{{ filter_value }}" placeholder="Enter value...">
+                {% endif %}
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                    <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Date From</label>
+                <input type="date" name="date_from" class="form-control" value="{{ date_from }}" onchange="this.form.submit()">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Date To</label>
+                <input type="date" name="date_to" class="form-control" value="{{ date_to }}" onchange="this.form.submit()">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card success">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-1">{{ total_paid }}</h4>
+                        <p class="mb-0">Paid Payments</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card warning">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-1">{{ total_pending }}</h4>
+                        <p class="mb-0">Pending Payments</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card info">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-1">RM {{ total_amount_paid|floatformat:2 }}</h4>
+                        <p class="mb-0">Total Collected</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-money-bill-wave fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-1">{{ payment_rate|floatformat:1 }}%</h4>
+                        <p class="mb-0">Payment Rate</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-percentage fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Payments by Category -->
+        <div class="col-md-6">
+            <div class="analytics-card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Payments by Category</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments by Class -->
+        <div class="col-md-6">
+            <div class="analytics-card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Payments by Class</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="classChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Trends -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="analytics-card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Monthly Payment Trends</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Tables -->
+    <div class="row mb-4">
+        <!-- Recent Payments -->
+        <div class="col-md-8">
+            <div class="analytics-card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-table me-2"></i>Recent Payments</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Class</th>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in recent_payments %}
+                                <tr>
+                                    <td>{{ payment.student.first_name }} {{ payment.student.last_name }}</td>
+                                    <td>{{ payment.student.class_name|default:"N/A" }}</td>
+                                    <td>{{ payment.fee_structure.category.name|default:"Individual Fee" }}</td>
+                                    <td>RM {{ payment.amount }}</td>
+                                    <td>
+                                        {% if payment.status == 'completed' %}
+                                            <span class="badge bg-success">Paid</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ payment.payment_date|date:"d M Y" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">No payments found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="col-md-4">
+            <div class="analytics-card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Summary Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="progress-ring">
+                                <svg width="120" height="120">
+                                    <circle cx="60" cy="60" r="50" stroke="#e9ecef" stroke-width="8" fill="none"/>
+                                    <circle cx="60" cy="60" r="50" stroke="#28a745" stroke-width="8" fill="none" 
+                                            stroke-dasharray="{{ payment_rate|floatformat:0 }} 100" stroke-dashoffset="0"/>
+                                </svg>
+                                <div class="position-absolute top-50 start-50 translate-middle">
+                                    <strong>{{ payment_rate|floatformat:1 }}%</strong>
+                                </div>
+                            </div>
+                            <small class="text-muted">Payment Rate</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="progress-ring">
+                                <svg width="120" height="120">
+                                    <circle cx="60" cy="60" r="50" stroke="#e9ecef" stroke-width="8" fill="none"/>
+                                    <circle cx="60" cy="60" r="50" stroke="#17a2b8" stroke-width="8" fill="none" 
+                                            stroke-dasharray="{{ collection_rate|floatformat:0 }} 100" stroke-dashoffset="0"/>
+                                </svg>
+                                <div class="position-absolute top-50 start-50 translate-middle">
+                                    <strong>{{ collection_rate|floatformat:1 }}%</strong>
+                                </div>
+                            </div>
+                            <small class="text-muted">Collection Rate</small>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h6 class="text-success">{{ paid_fee_statuses }}</h6>
+                            <small class="text-muted">Paid Fees</small>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-warning">{{ pending_fee_statuses }}</h6>
+                            <small class="text-muted">Pending Fees</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row text-center mt-3">
+                        <div class="col-6">
+                            <h6 class="text-danger">{{ overdue_fee_statuses }}</h6>
+                            <small class="text-muted">Overdue Fees</small>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-info">{{ total_payments }}</h6>
+                            <small class="text-muted">Total Payments</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script>
+// Parse chart data from Django context
+const categoryChartData = {{ category_chart_data|safe }};
+const classChartData = {{ class_chart_data|safe }};
+const monthlyChartData = {{ monthly_chart_data|safe }};
+const statusDistribution = {{ status_distribution|safe }};
+
+// Category Chart (Pie Chart)
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+new Chart(categoryCtx, {
+    type: 'pie',
+    data: {
+        labels: categoryChartData.labels,
+        datasets: [{
+            data: categoryChartData.data,
+            backgroundColor: [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Class Chart (Bar Chart)
+const classCtx = document.getElementById('classChart').getContext('2d');
+new Chart(classCtx, {
+    type: 'bar',
+    data: {
+        labels: classChartData.labels,
+        datasets: [{
+            label: 'Amount (RM)',
+            data: classChartData.data,
+            backgroundColor: '#36A2EB',
+            borderColor: '#2693e6',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Monthly Trends Chart (Line Chart)
+const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+new Chart(monthlyCtx, {
+    type: 'line',
+    data: {
+        labels: monthlyChartData.labels,
+        datasets: [{
+            label: 'Amount (RM)',
+            data: monthlyChartData.amounts,
+            borderColor: '#28a745',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            tension: 0.4,
+            fill: true
+        }, {
+            label: 'Number of Payments',
+            data: monthlyChartData.counts,
+            borderColor: '#17a2b8',
+            backgroundColor: 'rgba(23, 162, 184, 0.1)',
+            tension: 0.4,
+            fill: false,
+            yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                beginAtZero: true
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                beginAtZero: true,
+                grid: {
+                    drawOnChartArea: false,
+                },
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

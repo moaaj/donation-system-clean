@@ -1,0 +1,359 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Donation Success{% endblock %}
+
+{% block extra_css %}
+<style>
+    .success-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+    }
+    
+    .success-header {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .success-icon {
+        font-size: 4em;
+        margin-bottom: 20px;
+        animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+    
+    .success-header h1 {
+        margin: 0;
+        font-size: 2.5em;
+        font-weight: bold;
+    }
+    
+    .success-summary {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 20px;
+    }
+    
+    .summary-item {
+        text-align: center;
+    }
+    
+    .summary-item .value {
+        font-size: 2em;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .summary-item .label {
+        font-size: 0.9em;
+        opacity: 0.9;
+    }
+    
+    .donations-list {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .donations-list h3 {
+        margin-bottom: 20px;
+        color: #333;
+        border-bottom: 2px solid #e1e5e9;
+        padding-bottom: 10px;
+    }
+    
+    .donation-item {
+        border: 1px solid #e1e5e9;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        background: #f8f9fa;
+        text-align: left;
+    }
+    
+    .donation-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .event-title {
+        font-weight: bold;
+        color: #333;
+        font-size: 1.1em;
+    }
+    
+    .donation-amount {
+        font-weight: bold;
+        color: #4CAF50;
+        font-size: 1.2em;
+    }
+    
+    .donation-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+        font-size: 0.9em;
+        color: #666;
+    }
+    
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .donation-message {
+        background: #e8f5e8;
+        border: 1px solid #4CAF50;
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 10px;
+        font-style: italic;
+    }
+    
+    .donation-message:empty {
+        display: none;
+    }
+    
+    .next-steps {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .next-steps h3 {
+        margin-bottom: 20px;
+        color: #333;
+    }
+    
+    .steps-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .steps-list li {
+        padding: 10px 0;
+        border-bottom: 1px solid #e1e5e9;
+        display: flex;
+        align-items: center;
+    }
+    
+    .steps-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .step-icon {
+        margin-right: 15px;
+        color: #4CAF50;
+        font-size: 1.2em;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        font-size: 1.1em;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+    
+    .impact-message {
+        background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+        border: 2px solid #4CAF50;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .impact-message h4 {
+        color: #4CAF50;
+        margin-bottom: 15px;
+    }
+    
+    .impact-message p {
+        color: #333;
+        line-height: 1.6;
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-container">
+    <div class="success-header">
+        <div class="success-icon">🎉</div>
+        <h1>Thank You for Your Generosity!</h1>
+        <p>Your donations have been successfully processed and will make a real difference.</p>
+        
+        <div class="success-summary">
+            <div class="summary-item">
+                <span class="value">{{ donation_count }}</span>
+                <span class="label">Events Supported</span>
+            </div>
+            <div class="summary-item">
+                <span class="value">${{ total_amount|floatformat:2 }}</span>
+                <span class="label">Total Donated</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="impact-message">
+        <h4>🌟 Your Impact</h4>
+        <p>Your generous contribution of ${{ total_amount|floatformat:2 }} will help support {{ donation_count }} different causes. 
+        Every dollar makes a difference in our community. Thank you for being part of positive change!</p>
+    </div>
+    
+    <div class="donations-list">
+        <h3>📋 Donation Summary</h3>
+        {% for donation in donations %}
+        <div class="donation-item">
+            <div class="donation-header">
+                <span class="event-title">{{ donation.event.title }}</span>
+                <span class="donation-amount">${{ donation.amount|floatformat:2 }}</span>
+            </div>
+            
+            <div class="donation-details">
+                <div class="detail-item">
+                    <span class="detail-label">Payment Method:</span>
+                    <span>{{ donation.get_payment_method_display }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Transaction ID:</span>
+                    <span>{{ donation.transaction_id|default:"Pending" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Date:</span>
+                    <span>{{ donation.created_at|date:"M d, Y H:i" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Status:</span>
+                    <span style="color: #4CAF50; font-weight: bold;">{{ donation.get_status_display }}</span>
+                </div>
+            </div>
+            
+            {% if donation.message %}
+            <div class="donation-message">
+                <strong>Your Message:</strong> "{{ donation.message }}"
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="next-steps">
+        <h3>📧 What Happens Next?</h3>
+        <ul class="steps-list">
+            <li>
+                <i class="fas fa-envelope step-icon"></i>
+                <span>You'll receive a confirmation email with donation receipts</span>
+            </li>
+            <li>
+                <i class="fas fa-chart-line step-icon"></i>
+                <span>Track the impact of your donations through our progress updates</span>
+            </li>
+            <li>
+                <i class="fas fa-bell step-icon"></i>
+                <span>Get notified when your supported events reach their goals</span>
+            </li>
+            <li>
+                <i class="fas fa-heart step-icon"></i>
+                <span>Your generosity will be acknowledged in our donor recognition program</span>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="action-buttons">
+                 <a href="{% url 'donation_events' %}" class="btn btn-primary">
+            <i class="fas fa-search"></i> Browse More Events
+        </a>
+                 <a href="{% url 'donation_history' %}" class="btn btn-success">
+            <i class="fas fa-history"></i> View Donation History
+        </a>
+                 <a href="{% url 'donation_analytics' %}" class="btn btn-primary">
+            <i class="fas fa-chart-bar"></i> View Impact Analytics
+        </a>
+                 <a href="{% url 'view_cart' %}" class="btn btn-secondary">
+            <i class="fas fa-shopping-cart"></i> Back to Cart
+        </a>
+    </div>
+</div>
+
+<script>
+// Auto-scroll to top
+window.scrollTo(0, 0);
+
+// Show a thank you message after a short delay
+setTimeout(function() {
+    if (typeof toastr !== 'undefined') {
+        toastr.success('Thank you for your generous donations! 🎉');
+    }
+}, 1000);
+</script>
+{% endblock %}

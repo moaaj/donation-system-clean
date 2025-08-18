@@ -5,47 +5,150 @@
 {% block content %}
 <div class="container mt-4">
     <h2><i class="fas fa-shopping-cart"></i> Your Cart</h2>
-    {% if fees %}
-    <table class="table table-bordered mt-3">
-        <thead>
-            <tr>
-                <th>Category</th>
-                <th>Form</th>
-                <th>Amount (RM)</th>
-                <th>Frequency</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for fee in fees %}
-            <tr>
-                <td>{{ fee.category.name }}</td>
-                <td>{{ fee.form }}</td>
-                <td>RM {{ fee.amount }}</td>
-                <td>{{ fee.get_frequency_display }}</td>
-                <td>
-                    <form method="post" action="{% url 'myapp:remove_from_cart' %}" style="display:inline;">
+    
+    {% if regular_fees or individual_fees %}
+        <!-- Regular Fees Section -->
+        {% if regular_fees %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Regular Fees</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Form</th>
+                            <th>Amount (RM)</th>
+                            <th>Frequency</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fee in regular_fees %}
+                        <tr>
+                            <td>{{ fee.category.name }}</td>
+                            <td>{{ fee.form }}</td>
+                            <td>RM {{ fee.amount }}</td>
+                            <td>{{ fee.get_frequency_display }}</td>
+                            <td>
+                                <form method="post" action="{% url 'myapp:remove_from_cart' %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="fee_id" value="{{ fee.id }}">
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash"></i> Remove
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="text-end">
+                    <h6>Regular Fees Subtotal: RM {{ regular_total }}</h6>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Individual Fees Section -->
+        {% if individual_fees %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-user"></i> Individual Fees</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Fee Name</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Amount (RM)</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fee in individual_fees %}
+                        <tr>
+                            <td>{{ fee.name }}</td>
+                            <td>{{ fee.category.name }}</td>
+                            <td>{{ fee.description }}</td>
+                            <td>RM {{ fee.amount }}</td>
+                            <td>{{ fee.due_date|date:"d M Y" }}</td>
+                            <td>
+                                {% if fee.is_paid %}
+                                    <span class="badge bg-success">Paid</span>
+                                {% elif fee.is_overdue %}
+                                    <span class="badge bg-danger">Overdue</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="post" action="{% url 'myapp:remove_from_cart' %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="individual_fee_id" value="{{ fee.id }}">
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash"></i> Remove
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="text-end">
+                    <h6>Individual Fees Subtotal: RM {{ individual_total }}</h6>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Total and Checkout -->
+        <div class="card">
+            <div class="card-body">
+                <div class="text-end">
+                    <h4>Total: RM {{ total }}</h4>
+                    <form method="post" action="{% url 'myapp:checkout_cart' %}" style="display:inline;" id="checkoutForm">
                         {% csrf_token %}
-                        <input type="hidden" name="fee_id" value="{{ fee.id }}">
-                        <button type="submit" class="btn btn-danger btn-sm">
-                            <i class="fas fa-trash"></i> Remove
+                        <button type="submit" class="btn btn-success" id="checkoutBtn">
+                            <i class="fas fa-credit-card"></i> Checkout
                         </button>
                     </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <div class="text-end">
-        <h4>Total: RM {{ total }}</h4>
-        <a href="{% url 'myapp:checkout_cart' %}" class="btn btn-success">
-            <i class="fas fa-credit-card"></i> Checkout
-        </a>
-    </div>
+                </div>
+            </div>
+        </div>
     {% else %}
     <div class="alert alert-info mt-4">
         <i class="fas fa-info-circle"></i> Your cart is empty.
     </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkoutForm = document.getElementById('checkoutForm');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function(e) {
+            // Disable button to prevent double submission
+            checkoutBtn.disabled = true;
+            checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            // Show loading message
+            const loadingAlert = document.createElement('div');
+            loadingAlert.className = 'alert alert-info alert-dismissible fade show';
+            loadingAlert.innerHTML = `
+                <i class="fas fa-spinner fa-spin"></i> Processing your payment and generating invoice...
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            checkoutForm.parentNode.insertBefore(loadingAlert, checkoutForm);
+        });
+    }
+});
+</script>
 {% endblock %} 

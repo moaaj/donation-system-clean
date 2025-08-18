@@ -20,10 +20,18 @@
                     <!-- Debug Information -->
                     {% if available_assets %}
                         <div class="alert alert-info">
-                            <h5>Available Assets:</h5>
+                            <h5>Available Waqaf Assets:</h5>
                             <ul>
                                 {% for asset in available_assets %}
-                                    <li data-asset-id="{{ asset.id }}">{{ asset.name }} - {{ asset.slots_available }} slots available (RM{{ asset.slot_price }} per slot)</li>
+                                    <li data-asset-id="{{ asset.id }}">
+                                        <strong>{{ asset.name }}</strong><br>
+                                        <small class="text-muted">
+                                            Target Amount: RM{{ asset.target_amount|floatformat:2 }}<br>
+                                            Total Slots: {{ asset.total_slots }}<br>
+                                            Available Slots: {{ asset.slots_available }}<br>
+                                            <strong>Price per Slot: RM{{ asset.slot_price|floatformat:2 }}</strong>
+                                        </small>
+                                    </li>
                                 {% endfor %}
                             </ul>
                         </div>
@@ -117,12 +125,42 @@
                                         </div>
                                     {% endif %}
                                 </div>
+                                
+                                <!-- Payment Schedule Fields (shown only for recurring payments) -->
+                                <div id="payment-schedule-fields" class="col-md-12" style="display: none;">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="{{ contribution_form.payment_schedule.id_for_label }}" class="form-label">Payment Schedule</label>
+                                            {{ contribution_form.payment_schedule }}
+                                            {% if contribution_form.payment_schedule.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ contribution_form.payment_schedule.errors }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="{{ contribution_form.total_payments.id_for_label }}" class="form-label">Total Payments</label>
+                                            {{ contribution_form.total_payments }}
+                                            {% if contribution_form.total_payments.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ contribution_form.total_payments.errors }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="form-check mt-2">
+                                        {{ contribution_form.auto_generate_payments }}
+                                        <label class="form-check-label" for="{{ contribution_form.auto_generate_payments.id_for_label }}">
+                                            Auto-generate payment schedule
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
-                            Each slot costs RM50. The total amount will be calculated automatically based on the number of slots selected.
+                            <strong>Auto-calculated Pricing:</strong> Slot prices are automatically calculated based on the target amount and total slots for each asset. The total amount will be calculated automatically based on the number of slots you select.
                         </div>
 
                         <div class="text-center mt-4">
@@ -155,6 +193,13 @@
             radio.parentElement.classList.add('form-check');
         });
 
+        // Add Bootstrap classes to checkbox
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.classList.remove('form-control');
+            checkbox.classList.add('form-check-input');
+        });
+
         // Form validation
         const form = document.querySelector('form');
         form.addEventListener('submit', function(event) {
@@ -165,6 +210,27 @@
             form.classList.add('was-validated');
         });
 
+        // Payment type change handler
+        const paymentTypeRadios = document.querySelectorAll('input[name="payment_type"]');
+        const paymentScheduleFields = document.getElementById('payment-schedule-fields');
+        
+        function togglePaymentScheduleFields() {
+            const selectedPaymentType = document.querySelector('input[name="payment_type"]:checked');
+            if (selectedPaymentType && selectedPaymentType.value === 'RECURRING') {
+                paymentScheduleFields.style.display = 'block';
+            } else {
+                paymentScheduleFields.style.display = 'none';
+            }
+        }
+        
+        // Add event listeners to payment type radios
+        paymentTypeRadios.forEach(radio => {
+            radio.addEventListener('change', togglePaymentScheduleFields);
+        });
+        
+        // Initial toggle
+        togglePaymentScheduleFields();
+
         // Asset selection handler
         const assetSelect = document.querySelector('#id_asset');
         const slotsInput = document.querySelector('#id_number_of_slots');
@@ -174,9 +240,10 @@
             const availableAssets = {};
             document.querySelectorAll('.alert-info li').forEach(li => {
                 const text = li.textContent;
-                const match = text.match(/(\d+) slots available/);
+                // Look for "Available Slots: X" pattern
+                const match = text.match(/Available Slots:\s*(\d+)/);
                 if (match) {
-                    const assetId = li.closest('li').dataset.assetId;
+                    const assetId = li.dataset.assetId;
                     availableAssets[assetId] = parseInt(match[1]);
                 }
             });

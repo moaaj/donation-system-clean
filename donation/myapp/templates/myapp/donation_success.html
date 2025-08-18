@@ -23,10 +23,10 @@
                     </div>
                     
                     <div class="d-grid gap-2 col-md-6 mx-auto mt-4">
-                        <a href="{% url 'donation_receipt' donation.id %}" class="btn btn-success">
+                        <a href="{% url 'myapp:donation_receipt' donation.id %}" class="btn btn-success">
                             <i class="fas fa-file-pdf me-2"></i>Download Receipt
                         </a>
-                        <a href="{% url 'donation_event_detail' donation.event.id %}" class="btn btn-primary">
+                        <a href="{% url 'myapp:donation_event_detail' donation.event.id %}" class="btn btn-primary">
                             Back to Event
                         </a>
                         <a href="/" class="btn btn-outline-secondary">

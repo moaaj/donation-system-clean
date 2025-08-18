@@ -1,0 +1,434 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Donation Cart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .cart-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .cart-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .cart-header h1 {
+        margin: 0;
+        font-size: 2.5em;
+        font-weight: bold;
+    }
+    
+    .cart-summary {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 20px;
+    }
+    
+    .summary-item {
+        text-align: center;
+    }
+    
+    .summary-item .value {
+        font-size: 2em;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .summary-item .label {
+        font-size: 0.9em;
+        opacity: 0.9;
+    }
+    
+    .cart-item {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+        overflow: hidden;
+        transition: transform 0.2s;
+    }
+    
+    .cart-item:hover {
+        transform: translateY(-2px);
+    }
+    
+    .cart-item-header {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 20px;
+    }
+    
+    .cart-item-header h3 {
+        margin: 0 0 10px 0;
+        font-size: 1.3em;
+    }
+    
+    .event-meta {
+        display: flex;
+        gap: 20px;
+        font-size: 0.9em;
+        opacity: 0.9;
+    }
+    
+    .cart-item-content {
+        padding: 25px;
+    }
+    
+    .progress-section {
+        margin-bottom: 20px;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 15px;
+        background: #e1e5e9;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 10px 0;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4CAF50, #45a049);
+        transition: width 0.3s ease;
+        border-radius: 10px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .form-group input, .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+    
+    .form-group input:focus, .form-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    
+    .btn {
+        padding: 12px 25px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, #f44336, #d32f2f);
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+    }
+    
+    .btn-warning {
+        background: linear-gradient(135deg, #ff9800, #f57c00);
+        color: white;
+    }
+    
+    .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+    }
+    
+    .cart-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .cart-footer {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        padding: 30px;
+        margin-top: 30px;
+    }
+    
+    .cart-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e1e5e9;
+    }
+    
+    .total-label {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .total-amount {
+        font-size: 2em;
+        font-weight: bold;
+        color: #667eea;
+    }
+    
+    .footer-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: space-between;
+    }
+    
+    .empty-cart {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+    
+    .empty-cart i {
+        font-size: 4em;
+        color: #ddd;
+        margin-bottom: 20px;
+    }
+    
+    .empty-cart h3 {
+        margin-bottom: 10px;
+        color: #333;
+    }
+    
+    .empty-cart p {
+        margin-bottom: 30px;
+        font-size: 1.1em;
+    }
+    
+    .amount-display {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #667eea;
+        margin: 10px 0;
+    }
+    
+    .message-display {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+        margin-top: 10px;
+    }
+    
+    .message-display:empty {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cart-container">
+    <div class="cart-header">
+        <h1>🛒 Donation Cart</h1>
+        <div class="cart-summary">
+            <div class="summary-item">
+                <span class="value">{{ total_items }}</span>
+                <span class="label">Events</span>
+            </div>
+            <div class="summary-item">
+                <span class="value">${{ total_amount|floatformat:2 }}</span>
+                <span class="label">Total Amount</span>
+            </div>
+        </div>
+    </div>
+    
+    {% if cart_items %}
+        {% for item in cart_items %}
+        <div class="cart-item">
+            <div class="cart-item-header">
+                <h3>{{ item.event.title }}</h3>
+                <div class="event-meta">
+                    <span>📅 {{ item.event.start_date|date:"M d, Y" }} - {{ item.event.end_date|date:"M d, Y" }}</span>
+                    <span>💰 Target: ${{ item.event.target_amount|floatformat:2 }}</span>
+                    <span>📊 {{ item.get_progress_percentage|floatformat:1 }}% Complete</span>
+                </div>
+            </div>
+            
+            <div class="cart-item-content">
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ item.get_progress_percentage|floatformat:1 }}%"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                        <span>Raised: ${{ item.event.current_amount|floatformat:2 }}</span>
+                        <span>{{ item.get_progress_percentage|floatformat:1 }}% of target</span>
+                        <span>Target: ${{ item.event.target_amount|floatformat:2 }}</span>
+                    </div>
+                </div>
+                
+                <div class="amount-display">
+                    Your Donation: ${{ item.amount|floatformat:2 }}
+                </div>
+                
+                {% if item.message %}
+                <div class="message-display">
+                    <strong>Your Message:</strong> {{ item.message }}
+                </div>
+                {% endif %}
+                
+                <form method="post" action="{% url 'update_cart_item' item.id %}" class="form-group">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="amount_{{ item.id }}">Donation Amount ($)</label>
+                            <input type="number" name="amount" id="amount_{{ item.id }}" 
+                                   value="{{ item.amount|floatformat:2 }}" step="0.01" min="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="message_{{ item.id }}">Message (Optional)</label>
+                            <textarea name="message" id="message_{{ item.id }}" rows="3" 
+                                      placeholder="Leave a message for this cause...">{{ item.message }}</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="cart-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update
+                        </button>
+                        <a href="{% url 'remove_from_cart' item.id %}" class="btn btn-danger" 
+                           onclick="return confirm('Are you sure you want to remove this item from your cart?')">
+                            <i class="fas fa-trash"></i> Remove
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span class="total-label">Total Donation Amount:</span>
+                <span class="total-amount">${{ total_amount|floatformat:2 }}</span>
+            </div>
+            
+            <div class="footer-actions">
+                <div>
+                    <form method="post" action="{% url 'clear_cart' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning" 
+                                onclick="return confirm('Are you sure you want to clear your entire cart?')">
+                            <i class="fas fa-trash-alt"></i> Clear Cart
+                        </button>
+                    </form>
+                    <a href="{% url 'donation_events' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add More Events
+                    </a>
+                </div>
+                <a href="{% url 'checkout_cart' %}" class="btn btn-success">
+                    <i class="fas fa-credit-card"></i> Proceed to Checkout
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-cart">
+            <i class="fas fa-shopping-cart"></i>
+            <h3>Your cart is empty</h3>
+            <p>Start making a difference by adding donation events to your cart!</p>
+            <a href="{% url 'donation_events' %}" class="btn btn-primary">
+                <i class="fas fa-search"></i> Browse Events
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// Auto-update cart items with AJAX
+document.addEventListener('DOMContentLoaded', function() {
+    const updateForms = document.querySelectorAll('form[action*="update_cart_item"]');
+    
+    updateForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const itemId = form.action.split('/').slice(-2, -1)[0];
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the amount display
+                    const amountDisplay = form.querySelector('.amount-display');
+                    const amountInput = form.querySelector('input[name="amount"]');
+                    amountDisplay.textContent = `Your Donation: $${parseFloat(amountInput.value).toFixed(2)}`;
+                    
+                    // Show success message
+                    alert(data.message);
+                    
+                    // Update cart total if available
+                    if (data.cart_total !== undefined) {
+                        const totalAmount = document.querySelector('.total-amount');
+                        if (totalAmount) {
+                            totalAmount.textContent = `$${data.cart_total.toFixed(2)}`;
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating the cart item.');
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

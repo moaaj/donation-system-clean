@@ -251,17 +251,24 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
+<script type="text/javascript">
+// Django template variables - processed server-side
+var monthlyLabels = {{ monthly_labels|safe }};
+var monthlyData = {{ monthly_data|safe }};
+var categoryLabels = {{ category_labels|safe }};
+var categoryData = {{ category_data|safe }};
+</script>
+<script type="text/javascript">
 document.addEventListener('DOMContentLoaded', function() {
     // Monthly Trend Chart
     const monthlyTrendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
     new Chart(monthlyTrendCtx, {
         type: 'line',
         data: {
-            labels: {{ monthly_labels|safe }},
+            labels: monthlyLabels,
             datasets: [{
                 label: 'Collections',
-                data: {{ monthly_data|safe }},
+                data: monthlyData,
                 borderColor: 'rgb(75, 192, 192)',
                 backgroundColor: 'rgba(75, 192, 192, 0.1)',
                 tension: 0.4,
@@ -297,9 +304,9 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(categoryDistributionCtx, {
         type: 'doughnut',
         data: {
-            labels: {{ category_labels|safe }},
+            labels: categoryLabels,
             datasets: [{
-                data: {{ category_data|safe }},
+                data: categoryData,
                 backgroundColor: [
                     'rgb(255, 99, 132)',
                     'rgb(54, 162, 235)',

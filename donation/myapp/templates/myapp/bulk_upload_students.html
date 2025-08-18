@@ -32,7 +32,7 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-upload"></i> Upload Students
                             </button>
-                            <a href="{% url 'student_list' %}" class="btn btn-secondary">
+                            <a href="{% url 'myapp:student_list' %}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Back to Student List
                             </a>
                         </div>
@@ -40,7 +40,7 @@
 
                     <div class="mt-4">
                         <h5>Download Template:</h5>
-                        <a href="{% url 'download_student_template' %}" class="btn btn-success">
+                        <a href="{% url 'myapp:download_student_template' %}" class="btn btn-success">
                             <i class="fas fa-download"></i> Download Excel Template
                         </a>
                     </div>

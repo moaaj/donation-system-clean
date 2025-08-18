@@ -9,7 +9,7 @@
                     <h2 class="text-center mb-0">Edit Donation Event</h2>
                 </div>
                 <div class="card-body">
-                    <form method="post" class="needs-validation" novalidate>
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
                         {% csrf_token %}
                         <div class="mb-3">
                             <label for="{{ form.title.id_for_label }}" class="form-label">Event Title</label>
@@ -81,6 +81,84 @@
                             <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
                                 Active
                             </label>
+                        </div>
+
+                        <!-- Current Files Display -->
+                        {% if event.picture or event.e_poster or event.formal_letter %}
+                        <div class="mb-4">
+                            <h5>Current Files</h5>
+                            <div class="row">
+                                {% if event.picture %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card">
+                                        <img src="{{ event.picture.url }}" class="card-img-top" alt="Current Picture" style="height: 150px; object-fit: cover;">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Current Picture</h6>
+                                            <a href="{{ event.picture.url }}" class="btn btn-sm btn-outline-info" target="_blank">View</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if event.e_poster %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card">
+                                        <img src="{{ event.e_poster.url }}" class="card-img-top" alt="Current E-Poster" style="height: 150px; object-fit: cover;">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Current E-Poster</h6>
+                                            <a href="{{ event.e_poster.url }}" class="btn btn-sm btn-outline-info" target="_blank">View</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if event.formal_letter %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card">
+                                        <div class="card-body text-center" style="height: 150px; display: flex; flex-direction: column; justify-content: center;">
+                                            <i class="fas fa-file-pdf fa-2x text-muted mb-2"></i>
+                                            <h6 class="card-title">Current Letter</h6>
+                                            <a href="{{ event.formal_letter.url }}" class="btn btn-sm btn-outline-info" target="_blank">Download</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- File Upload Fields -->
+                        <div class="mb-3">
+                            <label for="{{ form.picture.id_for_label }}" class="form-label">Event Picture</label>
+                            {{ form.picture }}
+                            <div class="form-text">Upload a new image to replace the current one (JPG, PNG, GIF)</div>
+                            {% if form.picture.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.picture.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.formal_letter.id_for_label }}" class="form-label">Formal Letter</label>
+                            {{ form.formal_letter }}
+                            <div class="form-text">Upload a new document to replace the current one (PDF, DOC, DOCX)</div>
+                            {% if form.formal_letter.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.formal_letter.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.e_poster.id_for_label }}" class="form-label">E-Poster</label>
+                            {{ form.e_poster }}
+                            <div class="form-text">Upload a new e-poster to replace the current one (JPG, PNG, GIF)</div>
+                            {% if form.e_poster.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.e_poster.errors }}
+                                </div>
+                            {% endif %}
                         </div>
 
                         <div class="text-center">

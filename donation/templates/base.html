@@ -116,6 +116,25 @@
                     </li>
                     {% if user.is_authenticated %}
                     <li class="nav-item">
+                        <a class="nav-link" href="{% url 'view_cart' %}">
+                            <i class="fas fa-shopping-cart"></i> Cart
+                            <span id="nav-cart-count" class="badge bg-warning text-dark" style="display: none;">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'waqaf:view_waqaf_cart' %}">
+                            <i class="fas fa-mosque"></i> Waqaf Cart
+                            <span id="nav-waqaf-cart-count" class="badge bg-info text-dark" style="display: none;">0</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'donation_history' %}">
+                            <i class="fas fa-history"></i> History
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'get_donor_messages' %}">
                             Messages
                             <span id="message-count" class="badge bg-danger" style="display: none;">0</span>
@@ -200,11 +219,69 @@
             });
         }
 
+        // Update cart count badge
+        function updateCartCount() {
+                               fetch('{% url "get_cart_count" %}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const count = data.cart_count || 0;
+                const badge = document.getElementById('nav-cart-count');
+                if (badge) {
+                    badge.textContent = count;
+                    badge.style.display = count > 0 ? 'inline' : 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching cart count:', error);
+                // Hide the badge on error
+                const badge = document.getElementById('nav-cart-count');
+                if (badge) {
+                    badge.style.display = 'none';
+                }
+            });
+        }
+
+        // Update waqaf cart count badge
+        function updateWaqafCartCount() {
+            fetch('{% url "waqaf:get_waqaf_cart_count" %}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const count = data.count || 0;
+                const badge = document.getElementById('nav-waqaf-cart-count');
+                if (badge) {
+                    badge.textContent = count;
+                    badge.style.display = count > 0 ? 'inline' : 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching waqaf cart count:', error);
+                // Hide the badge on error
+                const badge = document.getElementById('nav-waqaf-cart-count');
+                if (badge) {
+                    badge.style.display = 'none';
+                }
+            });
+        }
+
         // Update count every minute
         setInterval(updateMessageCount, 60000);
+        setInterval(updateCartCount, 60000);
+        setInterval(updateWaqafCartCount, 60000);
         
         // Initial update
-        document.addEventListener('DOMContentLoaded', updateMessageCount);
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMessageCount();
+            updateCartCount();
+            updateWaqafCartCount();
+        });
     </script>
     {% block extra_js %}{% endblock %}
 </body>

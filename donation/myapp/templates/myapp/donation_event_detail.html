@@ -29,9 +29,51 @@
                         <span class="badge bg-info">
                             {{ event.days_remaining }} days remaining
                         </span>
-                        <a href="{% url 'make_donation' event.id %}" class="btn btn-primary">
+                        <a href="{% url 'myapp:make_donation' event.id %}" class="btn btn-primary">
                             Donate Now
                         </a>
+                    </div>
+                    
+                    <!-- Event Files Section -->
+                    <div class="mt-4">
+                        <h5>Event Files</h5>
+                        <div class="row">
+                            {% if event.picture %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <img src="{{ event.picture.url }}" class="card-img-top" alt="Event Picture" style="height: 200px; object-fit: cover;">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Event Picture</h6>
+                                        <a href="{{ event.picture.url }}" class="btn btn-sm btn-outline-primary" target="_blank">View Full Size</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if event.e_poster %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <img src="{{ event.e_poster.url }}" class="card-img-top" alt="E-Poster" style="height: 200px; object-fit: cover;">
+                                    <div class="card-body">
+                                        <h6 class="card-title">E-Poster</h6>
+                                        <a href="{{ event.e_poster.url }}" class="btn btn-sm btn-outline-primary" target="_blank">View Full Size</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if event.formal_letter %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body text-center" style="height: 200px; display: flex; flex-direction: column; justify-content: center;">
+                                        <i class="fas fa-file-pdf fa-3x text-muted mb-3"></i>
+                                        <h6 class="card-title">Formal Letter</h6>
+                                        <a href="{{ event.formal_letter.url }}" class="btn btn-sm btn-outline-primary" target="_blank">Download</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>

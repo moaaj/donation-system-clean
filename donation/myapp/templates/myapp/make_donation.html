@@ -34,7 +34,7 @@
                         {% endfor %}
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Proceed to Payment</button>
-                            <a href="{% url 'donation_event_detail' event.id %}" class="btn btn-secondary">Cancel</a>
+                            <a href="{% url 'myapp:donation_event_detail' event.id %}" class="btn btn-secondary">Cancel</a>
                         </div>
                     </form>
                 </div>

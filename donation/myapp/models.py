@@ -24,10 +24,21 @@ PAYMENT_STATUS = [
 ]
 
 class Student(models.Model):
+    LEVEL_CHOICES = [
+        ('year', 'Year'),
+        ('form', 'Form'),
+        ('standard', 'Standard'),
+        ('others', 'Others'),
+    ]
+    
     student_id = models.CharField(max_length=20, unique=True)
     nric = models.CharField(max_length=12, unique=True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
+    class_name = models.CharField(max_length=50, blank=True, null=True, help_text="Student's class")
+    program = models.CharField(max_length=100, blank=True, null=True, help_text="Student's program")
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES, blank=True, null=True, help_text="Student's level (year/form/standard/others)")
+    level_custom = models.CharField(max_length=50, blank=True, null=True, help_text="Custom level value when 'others' is selected")
     year_batch = models.IntegerField()  # e.g., 2024
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -35,6 +46,12 @@ class Student(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.student_id})"
+    
+    def get_level_display_value(self):
+        """Return the display value for level, including custom value if 'others' is selected"""
+        if self.level == 'others' and self.level_custom:
+            return self.level_custom
+        return self.get_level_display()
 
 class Parent(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -49,30 +66,129 @@ class Parent(models.Model):
         return f"{self.user.get_full_name()}"
 
 class FeeCategory(models.Model):
+    CATEGORY_TYPES = [
+        ('general', 'General'),
+        ('individual', 'Individual Student'),
+    ]
+    
     name = models.CharField(max_length=100)
     description = models.TextField()
+    category_type = models.CharField(max_length=20, choices=CATEGORY_TYPES, default='general', help_text="General categories apply to all students, Individual categories are for specific students")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.get_category_type_display()})"
+
+class IndividualStudentFee(models.Model):
+    """Model for individual student-specific fees like overtime or demerit penalties"""
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='individual_fees')
+    category = models.ForeignKey(FeeCategory, on_delete=models.CASCADE, limit_choices_to={'category_type': 'individual'})
+    name = models.CharField(max_length=100, help_text="Name of the fee (e.g., Overtime Fee, Demerit Penalty)")
+    description = models.TextField(help_text="Description of why this fee was applied")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    due_date = models.DateField()
+    is_paid = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_individual_fees')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Individual Student Fee'
+        verbose_name_plural = 'Individual Student Fees'
+
+    def __str__(self):
+        return f"{self.student.first_name} {self.student.last_name} - {self.name} (RM {self.amount})"
+
+    def is_overdue(self):
+        """Check if the fee is overdue"""
+        from django.utils import timezone
+        return self.due_date < timezone.now().date() and not self.is_paid
+
+    def get_status_display(self):
+        """Get the status of the fee"""
+        if self.is_paid:
+            return "Paid"
+        elif self.is_overdue():
+            return "Overdue"
+        else:
+            return "Pending"
 
 class FeeStructure(models.Model):
     category = models.ForeignKey(FeeCategory, on_delete=models.CASCADE)
     form = models.CharField(max_length=10)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     frequency = models.CharField(max_length=20, choices=[
         ('monthly', 'Monthly'),
         ('termly', 'Termly'),
         ('yearly', 'Yearly')
     ])
+    # New fields for flexible monthly payments
+    monthly_duration = models.IntegerField(
+        choices=[(10, '10 months'), (11, '11 months'), (12, '12 months')],
+        null=True, 
+        blank=True,
+        help_text="Number of months for monthly payment plan (only for monthly frequency)"
+    )
+    total_amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Total amount to be paid over the monthly duration"
+    )
+    auto_generate_payments = models.BooleanField(
+        default=False,
+        help_text="Automatically generate monthly payment records for students"
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        if self.frequency == 'monthly' and self.monthly_duration:
+            return f"{self.category.name} - {self.form} ({self.frequency}, {self.monthly_duration} months)"
         return f"{self.category.name} - {self.form} ({self.frequency})"
+    
+    def get_monthly_amount(self):
+        """Calculate monthly amount based on total amount and duration"""
+        if self.frequency == 'monthly' and self.total_amount and self.monthly_duration:
+            from decimal import Decimal, ROUND_HALF_UP
+            monthly_amount = (self.total_amount / self.monthly_duration).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            return monthly_amount
+        return self.amount or 0
+    
+    def generate_monthly_payments_for_student(self, student, start_date=None):
+        """Generate monthly payment records for a specific student"""
+        if not self.auto_generate_payments or self.frequency != 'monthly':
+            return []
+        
+        if not start_date:
+            from django.utils import timezone
+            start_date = timezone.now().date()
+        
+        payments = []
+        monthly_amount = self.get_monthly_amount()
+        
+        for month in range(self.monthly_duration):
+            from datetime import timedelta
+            due_date = start_date + timedelta(days=30 * month)
+            
+            # Create FeeStatus record
+            fee_status = FeeStatus.objects.create(
+                student=student,
+                fee_structure=self,
+                amount=monthly_amount,
+                due_date=due_date,
+                status='pending'
+            )
+            
+            payments.append(fee_status)
+        
+        return payments
 
 class Payment(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='payments')
@@ -96,6 +212,77 @@ class PaymentReceipt(models.Model):
 
     def __str__(self):
         return f"Receipt for {self.payment}"
+
+class Invoice(models.Model):
+    INVOICE_STATUS = [
+        ('draft', 'Draft'),
+        ('sent', 'Sent'),
+        ('paid', 'Paid'),
+        ('overdue', 'Overdue'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    invoice_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='invoices')
+    payment = models.OneToOneField(Payment, on_delete=models.CASCADE, related_name='invoice')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    issue_date = models.DateField(auto_now_add=True)
+    due_date = models.DateField()
+    status = models.CharField(max_length=20, choices=INVOICE_STATUS, default='draft')
+    notes = models.TextField(blank=True, null=True)
+    terms_conditions = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Invoice #{self.invoice_number} - {self.student}"
+    
+    def save(self, *args, **kwargs):
+        if not self.invoice_number:
+            # Generate invoice number
+            last_invoice = Invoice.objects.order_by('-id').first()
+            if last_invoice:
+                last_number = int(last_invoice.invoice_number.split('-')[1]) if '-' in last_invoice.invoice_number else 0
+                self.invoice_number = f"INV-{last_number + 1:06d}"
+            else:
+                self.invoice_number = "INV-000001"
+        
+        # Calculate total amount - ensure both are Decimal
+        from decimal import Decimal
+        if isinstance(self.tax_amount, float):
+            self.tax_amount = Decimal(str(self.tax_amount))
+        if isinstance(self.amount, float):
+            self.amount = Decimal(str(self.amount))
+        self.total_amount = self.amount + self.tax_amount
+        
+        super().save(*args, **kwargs)
+    
+    def get_status_display_color(self):
+        """Return Bootstrap color class for status"""
+        status_colors = {
+            'draft': 'secondary',
+            'sent': 'info',
+            'paid': 'success',
+            'overdue': 'danger',
+            'cancelled': 'warning',
+        }
+        return status_colors.get(self.status, 'secondary')
+    
+    def is_overdue(self):
+        """Check if invoice is overdue"""
+        return self.status == 'sent' and self.due_date < timezone.now().date()
+    
+    def mark_as_paid(self):
+        """Mark invoice as paid"""
+        self.status = 'paid'
+        self.save()
+    
+    def send_invoice(self):
+        """Mark invoice as sent"""
+        self.status = 'sent'
+        self.save()
 
 class FeeDiscount(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
@@ -169,6 +356,11 @@ class DonationEvent(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     category = models.ForeignKey(DonationCategory, on_delete=models.CASCADE, related_name='events')
     qr_code = models.ImageField(upload_to='event_qrcodes/', blank=True, null=True)
+    
+    # File upload fields for donation event
+    picture = models.ImageField(upload_to='donation_events/pictures/', blank=True, null=True, help_text="Upload a picture for the donation event")
+    formal_letter = models.FileField(upload_to='donation_events/letters/', blank=True, null=True, help_text="Upload a formal letter document (PDF, DOC, etc.)")
+    e_poster = models.ImageField(upload_to='donation_events/posters/', blank=True, null=True, help_text="Upload an e-poster for the donation event")
     
     # AI-related fields
     sentiment_score = models.FloatField(null=True, blank=True)

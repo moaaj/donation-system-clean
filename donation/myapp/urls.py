@@ -49,6 +49,13 @@ urlpatterns = [
     path('categories/<int:category_id>/edit/', views.edit_fee_category, name='edit_fee_category'),
     path('categories/<int:category_id>/delete/', views.delete_fee_category, name='delete_fee_category'),
     
+    # Individual Student Fee URLs
+    path('individual-fees/', views.individual_student_fees, name='individual_student_fees'),
+    path('individual-fees/add/', views.add_individual_student_fee, name='add_individual_student_fee'),
+    path('individual-fees/<int:fee_id>/edit/', views.edit_individual_student_fee, name='edit_individual_student_fee'),
+    path('individual-fees/<int:fee_id>/delete/', views.delete_individual_student_fee, name='delete_individual_student_fee'),
+    path('individual-fees/<int:fee_id>/mark-paid/', views.mark_fee_as_paid, name='mark_fee_as_paid'),
+    
     # Pending Fees URLs
     path('pending-fees/', views.pending_fees, name='pending_fees'),
     path('pending-fees/add/', views.add_fee_status, name='add_fee_status'),
@@ -64,6 +71,10 @@ urlpatterns = [
     # Report URLs
     path('reports/', views.fee_reports, name='fee_reports'),
     path('reports/export/', views.export_fee_report, name='export_fee_report'),
+    
+    # Analytics URLs
+    path('analytics/', views.payment_analytics_dashboard, name='payment_analytics_dashboard'),
+    path('analytics/export/', views.payment_analytics_export, name='payment_analytics_export'),
     
     # AI Analytics URLs
     path('ai-analytics/', views.ai_fee_analytics, name='ai_fee_analytics'),
@@ -91,6 +102,7 @@ urlpatterns = [
     # --- Merged from urls_ubac.py ---
     # ADMIN-ONLY URLS
     path('admin/dashboard/', views_ubac.admin_dashboard, name='admin_dashboard'),
+    path('moaaj/dashboard/', views_ubac.moaaj_dashboard, name='moaaj_dashboard'),
     path('admin/students/', views_ubac.student_management, name='student_management'),
     path('admin/fee-structures/', views_ubac.fee_structure_management, name='fee_structure_management'),
     path('admin/payment-reports/', views_ubac.payment_reports, name='payment_reports'),
@@ -104,6 +116,8 @@ urlpatterns = [
     path('student/checkout-cart/', views_ubac.checkout_cart, name='checkout_cart'),
     path('student/cart-receipt/', views_ubac.cart_receipt, name='cart_receipt'),
     path('student/cart-receipt-pdf/', views_ubac.cart_receipt_pdf, name='cart_receipt_pdf'),
+    path('student/cart-invoice/', views_ubac.cart_invoice, name='cart_invoice'),
+    path('student/cart-invoice-pdf/', views_ubac.cart_invoice_pdf, name='cart_invoice_pdf'),
     # ROLE-BASED URLS
     path('payment/<int:payment_id>/', views_ubac.payment_detail, name='payment_detail'),
     path('student/<int:student_id>/', views_ubac.student_detail, name='student_detail'),

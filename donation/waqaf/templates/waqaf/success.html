@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Waqaf Contribution Success{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card text-center">
+                <div class="card-body py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h2 class="card-title text-success mb-3">Thank You!</h2>
+                    <h4 class="card-subtitle mb-4">Your Waqaf Contribution Has Been Submitted</h4>
+                    
+                    <p class="card-text mb-4">
+                        Your waqaf contribution has been successfully submitted and is now being processed. 
+                        You will receive a confirmation once the payment is completed.
+                    </p>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Next Steps:</strong>
+                        <ul class="mb-0 mt-2 text-start">
+                            <li>Your contribution will be reviewed by our team</li>
+                            <li>You will receive payment instructions via email</li>
+                            <li>Once payment is confirmed, you'll receive a certificate</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex justify-content-center gap-3 mt-4">
+                        <a href="{% url 'waqaf:waqaf_dashboard' %}" class="btn btn-primary">
+                            <i class="fas fa-home"></i> Back to Dashboard
+                        </a>
+                        <a href="{% url 'waqaf:view_waqaf_cart' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-shopping-cart"></i> View Cart
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

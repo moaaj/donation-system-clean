@@ -1,0 +1,149 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrahead %}{{ block.super }}
+<script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+{{ form.media }}
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}">
+<style>
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    .stat-card {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .stat-number {
+        font-size: 2em;
+        font-weight: bold;
+        color: #007cba;
+    }
+    .stat-label {
+        color: #666;
+        margin-top: 5px;
+    }
+    .warning-box {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 20px 0;
+    }
+    .success-box {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 20px 0;
+    }
+    .btn-generate {
+        background: #007cba;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .btn-generate:hover {
+        background: #005a87;
+    }
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin-left: 10px;
+        transition: background 0.3s;
+    }
+    .btn-cancel:hover {
+        background: #545b62;
+        color: white;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url 'admin:waqaf_contribution_changelist' %}">Contributions</a>
+&rsaquo; Bulk Generate Amounts
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Bulk Generate Contribution Amounts</h1>
+    
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_contributions }}</div>
+            <div class="stat-label">Total Contributions</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ contributions_with_amount }}</div>
+            <div class="stat-label">With Amount</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ contributions_without_amount }}</div>
+            <div class="stat-label">Without Amount</div>
+        </div>
+    </div>
+    
+    {% if contributions_without_amount > 0 %}
+        <div class="warning-box">
+            <h3><i class="fas fa-exclamation-triangle"></i> Action Required</h3>
+            <p>There are <strong>{{ contributions_without_amount }}</strong> contributions that need their amounts calculated.</p>
+            <p>This will automatically calculate the amount based on the formula: <strong>Number of Slots × Asset Slot Price</strong></p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn-generate">
+                <i class="fas fa-calculator"></i> Generate Amounts for {{ contributions_without_amount }} Contributions
+            </button>
+            <a href="{% url 'admin:waqaf_contribution_changelist' %}" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </form>
+    {% else %}
+        <div class="success-box">
+            <h3><i class="fas fa-check-circle"></i> All Set!</h3>
+            <p>All contributions already have their amounts calculated correctly.</p>
+            <p>No action is needed at this time.</p>
+        </div>
+        
+        <a href="{% url 'admin:waqaf_contribution_changelist' %}" class="btn-cancel">
+            <i class="fas fa-arrow-left"></i> Back to Contributions
+        </a>
+    {% endif %}
+    
+    <div style="margin-top: 30px;">
+        <h3>How it works:</h3>
+        <ul>
+            <li>The system will find all contributions with zero amounts</li>
+            <li>For each contribution, it will calculate: <code>number_of_slots × asset.slot_price</code></li>
+            <li>The calculated amount will be saved to the contribution record</li>
+            <li>This process is safe and can be run multiple times</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

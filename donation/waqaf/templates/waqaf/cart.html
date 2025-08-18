@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Waqaf Cart{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-shopping-cart text-primary"></i>
+                Waqaf Cart
+            </h2>
+            
+            {% if cart_items %}
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Asset</th>
+                                        <th>Slots</th>
+                                        <th>Price per Slot</th>
+                                        <th>Total Amount</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in cart_items %}
+                                    <tr data-item-id="{{ item.id }}">
+                                        <td>
+                                            <div>
+                                                <h6 class="mb-1">{{ item.asset.name }}</h6>
+                                                <small class="text-muted">{{ item.asset.description|truncatewords:20 }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="input-group" style="width: 120px;">
+                                                <button class="btn btn-outline-secondary btn-sm decrease-quantity" type="button">-</button>
+                                                <input type="number" class="form-control form-control-sm text-center quantity-input" 
+                                                       value="{{ item.number_of_slots }}" min="1" max="{{ item.asset.slots_available }}">
+                                                <button class="btn btn-outline-secondary btn-sm increase-quantity" type="button">+</button>
+                                            </div>
+                                        </td>
+                                        <td>RM {{ item.slot_price|floatformat:2 }}</td>
+                                        <td class="item-total">RM {{ item.total_amount|floatformat:2 }}</td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm remove-item">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <button class="btn btn-outline-danger" id="clear-cart">
+                                    <i class="fas fa-trash"></i> Clear Cart
+                                </button>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Cart Summary</h5>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Total Slots:</span>
+                                            <span id="cart-total-slots">{{ cart.total_slots }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <strong>Total Amount:</strong>
+                                            <strong id="cart-total-amount">RM {{ cart.total_amount|floatformat:2 }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="{% url 'waqaf:checkout_waqaf_cart' %}" class="btn btn-primary btn-lg mt-3">
+                                    <i class="fas fa-credit-card"></i> Proceed to Checkout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">Your cart is empty</h4>
+                    <p class="text-muted">Add some waqaf assets to your cart to get started.</p>
+                    <a href="{% url 'waqaf:waqaf_dashboard' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Browse Waqaf Assets
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update quantity
+    function updateQuantity(itemId, newQuantity) {
+        fetch(`{% url 'waqaf:update_waqaf_cart_item' 0 %}`.replace('0', itemId), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `quantity=${newQuantity}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the item total
+                const row = document.querySelector(`[data-item-id="${itemId}"]`);
+                const totalCell = row.querySelector('.item-total');
+                totalCell.textContent = `RM ${parseFloat(data.total_amount).toFixed(2)}`;
+                
+                // Update cart totals
+                updateCartTotals();
+                
+                // Show success message
+                showMessage(data.message, 'success');
+            } else {
+                showMessage(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('An error occurred while updating the cart', 'error');
+        });
+    }
+    
+    // Remove item
+    function removeItem(itemId) {
+        fetch(`{% url 'waqaf:remove_from_waqaf_cart' 0 %}`.replace('0', itemId), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const row = document.querySelector(`[data-item-id="${itemId}"]`);
+                row.remove();
+                updateCartTotals();
+                showMessage(data.message, 'success');
+                
+                // If no items left, reload page to show empty cart message
+                if (document.querySelectorAll('tbody tr').length === 0) {
+                    location.reload();
+                }
+            } else {
+                showMessage(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('An error occurred while removing the item', 'error');
+        });
+    }
+    
+    // Clear cart
+    function clearCart() {
+        if (confirm('Are you sure you want to clear your cart?')) {
+            fetch('{% url "waqaf:clear_waqaf_cart" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('An error occurred while clearing the cart', 'error');
+            });
+        }
+    }
+    
+    // Update cart totals
+    function updateCartTotals() {
+        let totalSlots = 0;
+        let totalAmount = 0;
+        
+        document.querySelectorAll('tbody tr').forEach(row => {
+            const quantity = parseInt(row.querySelector('.quantity-input').value);
+            const totalText = row.querySelector('.item-total').textContent;
+            const amount = parseFloat(totalText.replace('RM ', ''));
+            
+            totalSlots += quantity;
+            totalAmount += amount;
+        });
+        
+        document.getElementById('cart-total-slots').textContent = totalSlots;
+        document.getElementById('cart-total-amount').textContent = `RM ${totalAmount.toFixed(2)}`;
+    }
+    
+    // Show message
+    function showMessage(message, type) {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const alert = document.createElement('div');
+        alert.className = `alert ${alertClass} alert-dismissible fade show`;
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.querySelector('.container').insertBefore(alert, document.querySelector('.row'));
+        
+        // Auto-dismiss after 3 seconds
+        setTimeout(() => {
+            alert.remove();
+        }, 3000);
+    }
+    
+    // Event listeners
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('decrease-quantity')) {
+            const input = e.target.nextElementSibling;
+            const newQuantity = Math.max(1, parseInt(input.value) - 1);
+            input.value = newQuantity;
+            updateQuantity(input.closest('tr').dataset.itemId, newQuantity);
+        }
+        
+        if (e.target.classList.contains('increase-quantity')) {
+            const input = e.target.previousElementSibling;
+            const newQuantity = parseInt(input.value) + 1;
+            input.value = newQuantity;
+            updateQuantity(input.closest('tr').dataset.itemId, newQuantity);
+        }
+        
+        if (e.target.classList.contains('remove-item')) {
+            const itemId = e.target.closest('tr').dataset.itemId;
+            removeItem(itemId);
+        }
+        
+        if (e.target.id === 'clear-cart') {
+            clearCart();
+        }
+    });
+    
+    // Quantity input change
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('quantity-input')) {
+            const newQuantity = parseInt(e.target.value);
+            if (newQuantity > 0) {
+                updateQuantity(e.target.closest('tr').dataset.itemId, newQuantity);
+            }
+        }
+    });
+});
+</script>
+
+{% csrf_token %}
+{% endblock %}

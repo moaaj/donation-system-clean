@@ -1,256 +1,284 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-lg">
-                <div class="card-header bg-gradient-primary text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h2 class="text-center mb-0">
-                            <i class="fas fa-heart me-2"></i>Make a Donation
-                        </h2>
-                        <div>
-                            {% if user.is_superuser or user.is_staff %}
-                            <a href="{% url 'add_donation_event' %}" class="btn btn-light me-2">
-                                <i class="fas fa-plus"></i> Create Event
-                            </a>
-                            {% endif %}
-                            <a href="{% url 'donation_events' %}" class="btn btn-outline-light">
-                                <i class="fas fa-calendar-alt"></i> View Events
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body p-4">
-                    <div class="text-center mb-4">
-                        <p class="lead text-muted">Your generosity can make a real difference. Every contribution counts!</p>
-                    </div>
-                    <form method="post" class="needs-validation" novalidate>
-                        {% csrf_token %}
-                        <div class="mb-4">
-                            <label for="{{ form.event.id_for_label }}" class="form-label">Select Event</label>
-                            {{ form.event }}
-                            {% if form.event.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.event.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="mb-4">
-                            <label for="{{ form.donor_name.id_for_label }}" class="form-label">Your Name</label>
-                            {{ form.donor_name }}
-                            {% if form.donor_name.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.donor_name.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
+{% block title %}Donate - Make a Difference{% endblock %}
 
-                        <div class="mb-4">
-                            <label for="{{ form.donor_email.id_for_label }}" class="form-label">Your Email</label>
-                            {{ form.donor_email }}
-                            {% if form.donor_email.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.donor_email.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="{{ form.amount.id_for_label }}" class="form-label">Donation Amount</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                {{ form.amount }}
-                            </div>
-                            {% if form.amount.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.amount.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="{{ form.payment_method.id_for_label }}" class="form-label">Payment Method</label>
-                            {{ form.payment_method }}
-                            {% if form.payment_method.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.payment_method.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="{{ form.message.id_for_label }}" class="form-label">
-                                <i class="fas fa-comment-alt me-2"></i>Message (Optional)
-                            </label>
-                            <div class="message-container">
-                                {{ form.message }}
-                                <div class="message-counter">
-                                    <span class="current-count">0</span>/<span class="max-count">200</span>
-                                </div>
-                            </div>
-                            {% if form.message.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.message.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="text-center">
-                            <button type="submit" class="btn btn-primary btn-lg px-5">
-                                <i class="fas fa-heart me-2"></i>Donate Now
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Chatbot Interface -->
-<div class="chat-widget" id="chatWidget">
-    <div class="chat-header" onclick="toggleChat()">
-        <h3>AI Assistant</h3>
-        <span class="toggle-icon">▼</span>
-    </div>
-    <div class="chat-body" id="chatBody">
-        <div class="message bot-message">
-            Hello! I'm your AI assistant. I can help you with:
-            <ul>
-                <li>Donations and fundraising</li>
-                <li>School fees and payments</li>
-                <li>School events and activities</li>
-            </ul>
-            How can I assist you today?
-        </div>
-        <div class="suggestions">
-            <button onclick="sendSuggestion('Tell me about current donation events')">Current Events</button>
-            <button onclick="sendSuggestion('How do I check my school fees?')">Check Fees</button>
-            <button onclick="sendSuggestion('What events are coming up?')">Upcoming Events</button>
-        </div>
-    </div>
-    <div class="chat-input">
-        <input type="text" id="messageInput" placeholder="Type your message...">
-        <button onclick="sendMessage()">Send</button>
-    </div>
-</div>
-
+{% block extra_css %}
 <style>
-    .card {
+    .donation-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .donation-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px;
         border-radius: 20px;
-        border: none;
+        text-align: center;
+        margin-bottom: 40px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    
+    .donation-header h1 {
+        margin: 0 0 20px 0;
+        font-size: 3em;
+        font-weight: bold;
+    }
+    
+    .donation-header p {
+        font-size: 1.2em;
+        opacity: 0.9;
+        margin: 0;
+    }
+    
+    .events-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .event-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         overflow: hidden;
-    }
-    
-    .card-header {
-        border-radius: 20px 20px 0 0 !important;
-        background: linear-gradient(135deg, #3498db, #2980b9);
-        padding: 1.5rem;
-    }
-    
-    .form-control {
-        border-radius: 12px;
-        padding: 12px;
-        border: 2px solid #e9ecef;
         transition: all 0.3s ease;
+        position: relative;
     }
     
-    .form-control:focus {
-        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
-        border-color: #3498db;
+    .event-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
     }
-
-    .input-group-text {
-        border-radius: 12px 0 0 12px;
-        background-color: #f8f9fa;
-        border: 2px solid #e9ecef;
-        border-right: none;
+    
+    .event-header {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 25px;
+        position: relative;
     }
-
-    .input-group .form-control {
-        border-radius: 0 12px 12px 0;
+    
+    .event-header h3 {
+        margin: 0 0 15px 0;
+        font-size: 1.4em;
+        font-weight: bold;
+    }
+    
+    .event-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        font-size: 0.9em;
+        opacity: 0.9;
+    }
+    
+    .event-content {
+        padding: 30px;
+    }
+    
+    .event-description {
+        color: #666;
+        margin-bottom: 20px;
+        line-height: 1.6;
+    }
+    
+    .progress-section {
+        margin-bottom: 25px;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 12px;
+        background: #e1e5e9;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 15px 0;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4CAF50, #45a049);
+        transition: width 0.3s ease;
+        border-radius: 10px;
+    }
+    
+    .progress-stats {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9em;
+        color: #666;
+        margin-top: 10px;
+    }
+    
+    .donation-form {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 15px;
+        margin-top: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .form-group input, .form-group textarea, .form-group select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e1e5e9;
+        border-radius: 10px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    
+    .btn {
+        padding: 12px 25px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        font-size: 14px;
     }
     
     .btn-primary {
-        background: linear-gradient(135deg, #3498db, #2980b9);
-        border: none;
-        padding: 12px 30px;
-        border-radius: 30px;
-        transition: all 0.3s ease;
-        font-weight: 600;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
     }
     
     .btn-primary:hover {
-        background: linear-gradient(135deg, #2980b9, #3498db);
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
     }
-
-    .btn-light {
-        background-color: #ffffff;
-        border: none;
-        padding: 8px 20px;
+    
+    .btn-success {
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+    }
+    
+    .btn-warning {
+        background: linear-gradient(135deg, #ff9800, #f57c00);
+        color: white;
+    }
+    
+    .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 152, 0, 0.4);
+    }
+    
+    .btn-outline {
+        background: transparent;
+        border: 2px solid #667eea;
+        color: #667eea;
+    }
+    
+    .btn-outline:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .cart-summary {
+        background: white;
         border-radius: 20px;
-        transition: all 0.3s ease;
-        font-weight: 500;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 30px;
+        margin-top: 30px;
+        text-align: center;
     }
-
-    .btn-light:hover {
-        background-color: #f8f9fa;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    
+    .cart-summary h3 {
+        color: #333;
+        margin-bottom: 20px;
     }
-
-    .form-label {
-        font-weight: 500;
-        color: #2c3e50;
-        margin-bottom: 0.5rem;
+    
+    .cart-stats {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 25px;
     }
-
-    .lead {
-        color: #6c757d;
-        font-size: 1.1rem;
+    
+    .stat-item {
+        text-align: center;
     }
-
-    .invalid-feedback {
-        font-size: 0.875rem;
-        color: #dc3545;
-        margin-top: 0.25rem;
+    
+    .stat-value {
+        font-size: 2em;
+        font-weight: bold;
+        color: #667eea;
+        display: block;
     }
-
-    /* Custom select styling */
-    select.form-control {
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%232c3e50' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 1rem center;
-        padding-right: 2.5rem;
+    
+    .stat-label {
+        color: #666;
+        font-size: 0.9em;
     }
-
-    /* Message textarea styling */
-    .message-container {
-        position: relative;
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
     }
-
-    textarea.form-control {
-        height: 100px;
-        resize: none;
-        font-size: 0.95rem;
-        line-height: 1.5;
-        padding: 12px 15px;
-        background-color: #f8f9fa;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
+    
+    .empty-state i {
+        font-size: 4em;
+        color: #ddd;
+        margin-bottom: 20px;
     }
-
-    textarea.form-control:focus {
-        background-color: #fff;
-        border-color: #3498db;
-        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
+    
+    .empty-state h3 {
+        margin-bottom: 10px;
+        color: #333;
     }
-
+    
+    .empty-state p {
+        margin-bottom: 30px;
+        font-size: 1.1em;
+    }
+    
+    .admin-actions {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .admin-actions .btn {
+        padding: 8px 15px;
+        font-size: 12px;
+    }
+    
     .message-counter {
         position: absolute;
         bottom: 10px;
@@ -261,223 +289,426 @@
         padding: 2px 8px;
         border-radius: 10px;
     }
-
-    .message-counter .current-count {
-        color: #3498db;
-        font-weight: 600;
+    
+    .message-container {
+        position: relative;
     }
-
-    /* Chat Widget Styles */
-    .chat-widget {
+    
+    .notification {
         position: fixed;
-        bottom: 20px;
+        top: 20px;
         right: 20px;
-        width: 350px;
-        background: white;
+        padding: 15px 20px;
         border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        z-index: 1000;
-    }
-    
-    .chat-header {
-        background: #4CAF50;
         color: white;
-        padding: 10px 15px;
-        border-radius: 10px 10px 0 0;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        font-weight: 600;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
     }
     
-    .chat-body {
-        height: 400px;
-        overflow-y: auto;
-        padding: 15px;
-        display: none;
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
     }
     
-    .message {
-        margin-bottom: 10px;
-        padding: 10px;
-        border-radius: 5px;
-        max-width: 80%;
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
     }
-    
-    .bot-message {
-        background: #f0f0f0;
-        margin-right: auto;
-    }
-    
-    .user-message {
-        background: #4CAF50;
-        color: white;
-        margin-left: auto;
-    }
-    
-    .suggestions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-        margin-top: 10px;
-    }
-    
-    .suggestions button {
-        background: #e0e0e0;
-        border: none;
-        padding: 5px 10px;
-        border-radius: 15px;
-        cursor: pointer;
-        font-size: 0.9em;
-        transition: background 0.3s;
-    }
-    
-    .suggestions button:hover {
-        background: #d0d0d0;
-    }
-    
-    .chat-input {
-        padding: 10px;
-        border-top: 1px solid #eee;
-        display: none;
-    }
-    
-    .chat-input input {
-        width: 80%;
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        margin-right: 5px;
-    }
-    
-    .chat-input button {
-        padding: 8px 15px;
-        background: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    
-    .chat-input button:hover {
-        background: #45a049;
-    }
+
+
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="donation-container">
+    <div class="donation-header">
+        <h1>💝 Make a Difference</h1>
+        <p>Choose from our current donation events and contribute to meaningful causes</p>
+        {% if user.is_superuser or user.is_staff %}
+        <div class="admin-actions">
+            <a href="{% url 'add_donation_event' %}" class="btn btn-outline">
+                <i class="fas fa-plus"></i> Create Event
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if donation_events %}
+    <div class="events-grid">
+        {% for event in donation_events %}
+        <div class="event-card">
+            <div class="event-header">
+                <h3>{{ event.title }}</h3>
+                <div class="event-meta">
+                    <span>📅 {{ event.start_date|date:"M d, Y" }} - {{ event.end_date|date:"M d, Y" }}</span>
+                    <span>💰 Target: ${{ event.target_amount|floatformat:2 }}</span>
+                </div>
+            </div>
+            
+            <div class="event-content">
+                <div class="event-description">
+                    {{ event.description|truncatewords:30 }}
+                </div>
+                
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ event.get_progress_percentage|floatformat:1 }}%"></div>
+                    </div>
+                    <div class="progress-stats">
+                        <span>Raised: ${{ event.current_amount|floatformat:2 }}</span>
+                        <span>{{ event.get_progress_percentage|floatformat:1 }}% Complete</span>
+                        <span>Target: ${{ event.target_amount|floatformat:2 }}</span>
+                    </div>
+                </div>
+                
+                <div class="donation-form">
+                    <form method="post" class="donation-form-inline" data-event-id="{{ event.id }}">
+                        {% csrf_token %}
+                        <input type="hidden" name="event" value="{{ event.id }}">
+                        <input type="hidden" name="donor_name" value="{{ user.get_full_name|default:user.username }}">
+                        <input type="hidden" name="donor_email" value="{{ user.email }}">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="amount_{{ event.id }}">Donation Amount ($)</label>
+                                <input type="number" name="amount" id="amount_{{ event.id }}" 
+                                       step="0.01" min="0.01" required placeholder="Enter amount">
+                            </div>
+                            <div class="form-group">
+                                <label for="payment_method_{{ event.id }}">Payment Method</label>
+                                <select name="payment_method" id="payment_method_{{ event.id }}" required>
+                                    <option value="">Select payment method</option>
+                                    <option value="credit_card">Credit Card</option>
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                    <option value="paypal">PayPal</option>
+                                    <option value="cash">Cash</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message_{{ event.id }}">Message (Optional)</label>
+                            <div class="message-container">
+                                <textarea name="message" id="message_{{ event.id }}" rows="3" 
+                                          placeholder="Leave a message for this cause..."></textarea>
+                                <div class="message-counter">
+                                    <span class="current-count">0</span>/<span class="max-count">200</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-heart"></i> Donate Now
+                            </button>
+                            {% if user.is_authenticated %}
+                            <button type="button" class="btn btn-success" onclick="addToCart({{ event.id }})">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                            {% else %}
+                            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-success">
+                                <i class="fas fa-sign-in-alt"></i> Login to Add to Cart
+                            </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+
+
+    <div class="cart-summary">
+        <h3>🛒 Your Cart Summary</h3>
+        {% if user.is_authenticated %}
+        <div class="cart-stats">
+            <div class="stat-item">
+                <span class="stat-value" id="cart-count">0</span>
+                <span class="stat-label">Events in Cart</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="cart-total">$0.00</span>
+                <span class="stat-label">Total Amount</span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 15px; justify-content: center;">
+            <a href="{% url 'view_cart' %}" class="btn btn-warning">
+                <i class="fas fa-shopping-cart"></i> View Cart
+            </a>
+            <a href="{% url 'donation_events' %}" class="btn btn-outline">
+                <i class="fas fa-calendar-alt"></i> All Events
+            </a>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 20px;">
+            <p style="color: #666; margin-bottom: 20px;">Please log in to use the cart functionality</p>
+            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-calendar-times"></i>
+        <h3>No donation events available</h3>
+        <p>Check back later for new donation opportunities!</p>
+        {% if user.is_superuser or user.is_staff %}
+        <a href="{% url 'add_donation_event' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create First Event
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const messageTextarea = document.querySelector('textarea[name="message"]');
-    const currentCount = document.querySelector('.current-count');
-    const maxCount = 200;
-
-    messageTextarea.addEventListener('input', function() {
-        const currentLength = this.value.length;
-        currentCount.textContent = currentLength;
+    // Initialize message counters
+    const messageTextareas = document.querySelectorAll('textarea[name="message"]');
+    messageTextareas.forEach(textarea => {
+        const counter = textarea.parentElement.querySelector('.current-count');
+        const maxCount = 200;
         
-        if (currentLength > maxCount) {
-            this.value = this.value.substring(0, maxCount);
-            currentCount.textContent = maxCount;
-        }
+        textarea.addEventListener('input', function() {
+            const currentLength = this.value.length;
+            counter.textContent = currentLength;
+            
+            if (currentLength > maxCount) {
+                this.value = this.value.substring(0, maxCount);
+                counter.textContent = maxCount;
+            }
+        });
+    });
+    
+    // Load cart count on page load
+    loadCartCount();
+    
+    // Handle form submissions
+    const donationForms = document.querySelectorAll('.donation-form-inline');
+    donationForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleDonationSubmit(this);
+        });
     });
 });
 
-function toggleChat() {
-    const chatBody = document.getElementById('chatBody');
-    const chatInput = document.querySelector('.chat-input');
-    const toggleIcon = document.querySelector('.toggle-icon');
-    
-    if (chatBody.style.display === 'none' || !chatBody.style.display) {
-        chatBody.style.display = 'block';
-        chatInput.style.display = 'flex';
-        toggleIcon.textContent = '▲';
-    } else {
-        chatBody.style.display = 'none';
-        chatInput.style.display = 'none';
-        toggleIcon.textContent = '▼';
-    }
-}
-
-function sendMessage() {
-    const input = document.getElementById('messageInput');
-    const message = input.value.trim();
-    
-    if (message) {
-        addMessage(message, 'user');
-        input.value = '';
-        
-        // Send message to server
-        fetch('/donation2/chat/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: `message=${encodeURIComponent(message)}`
-        })
+function loadCartCount() {
+    fetch('/donation/api/cart/count/')
         .then(response => response.json())
         .then(data => {
-            addMessage(data.message, 'bot');
-            if (data.suggestions) {
-                addSuggestions(data.suggestions);
+            const cartCountElement = document.getElementById('cart-count');
+            const cartTotalElement = document.getElementById('cart-total');
+            if (cartCountElement) {
+                cartCountElement.textContent = data.cart_count;
+            }
+            if (cartTotalElement && data.cart_total) {
+                cartTotalElement.textContent = `$${parseFloat(data.cart_total).toFixed(2)}`;
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+            console.error('Error loading cart count:', error);
         });
+}
+
+function handleDonationSubmit(form) {
+    const formData = new FormData(form);
+    const eventId = form.getAttribute('data-event-id');
+    
+    // Validate form
+    const amount = formData.get('amount');
+    const paymentMethod = formData.get('payment_method');
+    
+    if (!amount || parseFloat(amount) <= 0) {
+        showNotification('Please enter a valid donation amount.', 'error');
+        return;
     }
-}
-
-function sendSuggestion(suggestion) {
-    document.getElementById('messageInput').value = suggestion;
-    sendMessage();
-}
-
-function addMessage(message, type) {
-    const chatBody = document.getElementById('chatBody');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${type}-message`;
-    messageDiv.textContent = message;
-    chatBody.appendChild(messageDiv);
-    chatBody.scrollTop = chatBody.scrollHeight;
-}
-
-function addSuggestions(suggestions) {
-    const chatBody = document.getElementById('chatBody');
-    const suggestionsDiv = document.createElement('div');
-    suggestionsDiv.className = 'suggestions';
     
-    suggestions.forEach(suggestion => {
-        const button = document.createElement('button');
-        button.textContent = suggestion;
-        button.onclick = () => sendSuggestion(suggestion);
-        suggestionsDiv.appendChild(button);
+    if (!paymentMethod) {
+        showNotification('Please select a payment method.', 'error');
+        return;
+    }
+    
+    // Submit donation
+    fetch('/donation/donate/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Thank you for your donation!', 'success');
+            form.reset();
+            // Reset message counter
+            const counter = form.querySelector('.current-count');
+            if (counter) counter.textContent = '0';
+        } else {
+            showNotification(data.message || 'Error processing donation.', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error processing donation.', 'error');
     });
-    
-    chatBody.appendChild(suggestionsDiv);
-    chatBody.scrollTop = chatBody.scrollHeight;
 }
 
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
+function addToCart(eventId) {
+    console.log('addToCart called with eventId:', eventId);
+    
+    // Try multiple selectors to find the form
+    let form = document.querySelector(`form[data-event-id="${eventId}"]`);
+    if (!form) {
+        // Try alternative selector
+        form = document.querySelector(`form[data-event-id='${eventId}']`);
+    }
+    if (!form) {
+        // Try finding by event ID in hidden input
+        const hiddenInput = document.querySelector(`input[name="event"][value="${eventId}"]`);
+        if (hiddenInput) {
+            form = hiddenInput.closest('form');
         }
     }
-    return cookieValue;
+    
+    console.log('Form found:', form);
+    
+    if (!form) {
+        showNotification('Form not found. Please refresh the page and try again.', 'error');
+        return;
+    }
+    
+    const formData = new FormData(form);
+    
+    // Get amount
+    const amount = formData.get('amount');
+    console.log('Amount:', amount);
+    
+    if (!amount || parseFloat(amount) <= 0) {
+        showNotification('Please enter a valid donation amount.', 'error');
+        return;
+    }
+    
+    // Get message
+    const message = formData.get('message') || '';
+    console.log('Message:', message);
+    
+    // Create data for cart
+    const cartData = new FormData();
+    cartData.append('amount', amount);
+    cartData.append('message', message);
+    
+    // Debug: Log the form data
+    console.log('Form data being sent:');
+    for (let [key, value] of cartData.entries()) {
+        console.log(key + ': ' + value);
+    }
+    
+    // Send to cart
+    const url = `/donation/cart/add/${eventId}/`;
+    console.log('Sending request to:', url);
+    console.log('CSRF Token:', getCookie('csrftoken'));
+    
+    fetch(url, {
+        method: 'POST',
+        body: cartData,
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        if (!response.ok) {
+            if (response.status === 404) {
+                throw new Error('URL not found. Please check if you are logged in.');
+            } else if (response.status === 403) {
+                throw new Error('Access denied. Please check your authentication.');
+            } else {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        }
+        
+        // Try to get response text first for debugging
+        return response.text().then(text => {
+            console.log('Response text:', text);
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error('Failed to parse JSON:', e);
+                throw new Error('Invalid response format');
+            }
+        });
+    })
+    .then(data => {
+        if (data.success) {
+            showNotification('Success! Item added to cart.', 'success');
+            loadCartCount(); // Refresh cart count
+        } else {
+            showNotification(data.message || 'Error adding item to cart.', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification(error.message || 'Error adding item to cart.', 'error');
+    });
 }
 
-// Handle Enter key in input
-document.getElementById('messageInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        sendMessage();
-    }
-});
+function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 600;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        ${type === 'success' ? 'background: linear-gradient(135deg, #28a745, #20c997);' : 'background: linear-gradient(135deg, #dc3545, #c82333);'}
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+
 </script>
 {% endblock %}

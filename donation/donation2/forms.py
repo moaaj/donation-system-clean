@@ -38,7 +38,7 @@ class DonationCategoryForm(forms.ModelForm):
 class DonationEventForm(forms.ModelForm):
     class Meta:
         model = DonationEvent
-        fields = ['title', 'description', 'category', 'start_date', 'end_date', 'target_amount', 'is_active']
+        fields = ['title', 'description', 'category', 'start_date', 'end_date', 'target_amount', 'is_active', 'picture', 'formal_letter', 'e_poster']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
@@ -47,4 +47,7 @@ class DonationEventForm(forms.ModelForm):
             'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'target_amount': forms.NumberInput(attrs={'class': 'form-control'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'picture': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'formal_letter': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.doc,.docx'}),
+            'e_poster': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
         }

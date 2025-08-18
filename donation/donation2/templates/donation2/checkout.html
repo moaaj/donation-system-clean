@@ -1,0 +1,425 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - Donation Cart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkout-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .checkout-header {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .checkout-header h1 {
+        margin: 0;
+        font-size: 2.5em;
+        font-weight: bold;
+    }
+    
+    .checkout-summary {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 20px;
+    }
+    
+    .summary-item {
+        text-align: center;
+    }
+    
+    .summary-item .value {
+        font-size: 2em;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .summary-item .label {
+        font-size: 0.9em;
+        opacity: 0.9;
+    }
+    
+    .checkout-content {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+    }
+    
+    .cart-review {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        padding: 25px;
+    }
+    
+    .cart-review h3 {
+        margin-bottom: 20px;
+        color: #333;
+        border-bottom: 2px solid #e1e5e9;
+        padding-bottom: 10px;
+    }
+    
+    .cart-item {
+        border: 1px solid #e1e5e9;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        background: #f8f9fa;
+    }
+    
+    .cart-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .event-title {
+        font-weight: bold;
+        color: #333;
+        font-size: 1.1em;
+    }
+    
+    .event-amount {
+        font-weight: bold;
+        color: #4CAF50;
+        font-size: 1.2em;
+    }
+    
+    .event-message {
+        color: #666;
+        font-style: italic;
+        margin-top: 5px;
+    }
+    
+    .event-message:empty {
+        display: none;
+    }
+    
+    .donor-form {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        padding: 25px;
+        height: fit-content;
+    }
+    
+    .donor-form h3 {
+        margin-bottom: 20px;
+        color: #333;
+        border-bottom: 2px solid #e1e5e9;
+        padding-bottom: 10px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+    
+    .form-group input:focus, .form-group select:focus {
+        outline: none;
+        border-color: #4CAF50;
+    }
+    
+    .form-group .help-text {
+        font-size: 0.9em;
+        color: #666;
+        margin-top: 5px;
+    }
+    
+    .total-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+    
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .total-row:last-child {
+        margin-bottom: 0;
+        border-top: 2px solid #e1e5e9;
+        padding-top: 10px;
+        font-weight: bold;
+        font-size: 1.2em;
+        color: #4CAF50;
+    }
+    
+    .btn {
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        font-size: 1.1em;
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+        margin-top: 10px;
+    }
+    
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+    
+    .payment-methods {
+        margin-top: 20px;
+    }
+    
+    .payment-method {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: border-color 0.3s;
+    }
+    
+    .payment-method:hover {
+        border-color: #4CAF50;
+    }
+    
+    .payment-method input[type="radio"] {
+        margin-right: 10px;
+    }
+    
+    .payment-method label {
+        margin: 0;
+        cursor: pointer;
+        flex: 1;
+    }
+    
+    .payment-icon {
+        font-size: 1.5em;
+        margin-right: 10px;
+    }
+    
+    .security-notice {
+        background: #e8f5e8;
+        border: 1px solid #4CAF50;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 20px;
+        text-align: center;
+    }
+    
+    .security-notice i {
+        color: #4CAF50;
+        margin-right: 5px;
+    }
+    
+    @media (max-width: 768px) {
+        .checkout-content {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+    <div class="checkout-header">
+        <h1>💳 Checkout</h1>
+        <div class="checkout-summary">
+            <div class="summary-item">
+                <span class="value">{{ total_items }}</span>
+                <span class="label">Events</span>
+            </div>
+            <div class="summary-item">
+                <span class="value">${{ total_amount|floatformat:2 }}</span>
+                <span class="label">Total Amount</span>
+            </div>
+        </div>
+    </div>
+    
+    <form method="post" class="checkout-content">
+        {% csrf_token %}
+        
+        <div class="cart-review">
+            <h3>📋 Review Your Donations</h3>
+            {% for item in cart_items %}
+            <div class="cart-item">
+                <div class="cart-item-header">
+                    <span class="event-title">{{ item.event.title }}</span>
+                    <span class="event-amount">${{ item.amount|floatformat:2 }}</span>
+                </div>
+                <div class="event-message">
+                    {% if item.message %}
+                        "{{ item.message }}"
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="donor-form">
+            <h3>👤 Donor Information</h3>
+            
+            <div class="form-group">
+                <label for="donor_name">Full Name *</label>
+                <input type="text" name="donor_name" id="donor_name" 
+                       value="{{ user.get_full_name|default:user.username }}" required>
+                <div class="help-text">Enter your full name as it should appear on the donation receipt</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="donor_email">Email Address *</label>
+                <input type="email" name="donor_email" id="donor_email" 
+                       value="{{ user.email }}" required>
+                <div class="help-text">We'll send your donation receipt to this email</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="payment_method">Payment Method *</label>
+                <div class="payment-methods">
+                    <div class="payment-method">
+                        <input type="radio" name="payment_method" id="cash" value="cash" required>
+                        <label for="cash">
+                            <i class="fas fa-money-bill-wave payment-icon"></i>
+                            Cash Payment
+                        </label>
+                    </div>
+                    <div class="payment-method">
+                        <input type="radio" name="payment_method" id="bank_transfer" value="bank_transfer">
+                        <label for="bank_transfer">
+                            <i class="fas fa-university payment-icon"></i>
+                            Bank Transfer
+                        </label>
+                    </div>
+                    <div class="payment-method">
+                        <input type="radio" name="payment_method" id="online" value="online">
+                        <label for="online">
+                            <i class="fas fa-credit-card payment-icon"></i>
+                            Online Payment
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="total-section">
+                <div class="total-row">
+                    <span>Number of Events:</span>
+                    <span>{{ total_items }}</span>
+                </div>
+                <div class="total-row">
+                    <span>Total Donation Amount:</span>
+                    <span>${{ total_amount|floatformat:2 }}</span>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-heart"></i> Complete Donations
+            </button>
+            
+            <a href="{% url 'view_cart' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Cart
+            </a>
+            
+            <div class="security-notice">
+                <i class="fas fa-shield-alt"></i>
+                <strong>Secure Donation:</strong> Your information is protected and will only be used for donation processing.
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-fill form with user data if available
+    const user = {
+        name: '{{ user.get_full_name|default:user.username }}',
+        email: '{{ user.email }}'
+    };
+    
+    if (user.name && !document.getElementById('donor_name').value) {
+        document.getElementById('donor_name').value = user.name;
+    }
+    
+    if (user.email && !document.getElementById('donor_email').value) {
+        document.getElementById('donor_email').value = user.email;
+    }
+    
+    // Form validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const donorName = document.getElementById('donor_name').value.trim();
+        const donorEmail = document.getElementById('donor_email').value.trim();
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
+        
+        if (!donorName) {
+            e.preventDefault();
+            alert('Please enter your full name.');
+            document.getElementById('donor_name').focus();
+            return;
+        }
+        
+        if (!donorEmail) {
+            e.preventDefault();
+            alert('Please enter your email address.');
+            document.getElementById('donor_email').focus();
+            return;
+        }
+        
+        if (!paymentMethod) {
+            e.preventDefault();
+            alert('Please select a payment method.');
+            return;
+        }
+        
+        // Show confirmation dialog
+        if (!confirm(`Are you sure you want to donate $${parseFloat('{{ total_amount }}').toFixed(2)} across {{ total_items }} events?`)) {
+            e.preventDefault();
+            return;
+        }
+    });
+});
+</script>
+{% endblock %}

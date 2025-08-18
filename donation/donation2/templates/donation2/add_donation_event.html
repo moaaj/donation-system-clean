@@ -9,7 +9,7 @@
                     <h2 class="text-center mb-0">Create Donation Event</h2>
                 </div>
                 <div class="card-body">
-                    <form method="post" class="needs-validation" novalidate>
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
                         {% csrf_token %}
                         <div class="mb-3">
                             <label for="{{ form.title.id_for_label }}" class="form-label">Event Title</label>
@@ -81,6 +81,40 @@
                             <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
                                 Active
                             </label>
+                        </div>
+
+                        <!-- File Upload Fields -->
+                        <div class="mb-3">
+                            <label for="{{ form.picture.id_for_label }}" class="form-label">Event Picture</label>
+                            {{ form.picture }}
+                            <div class="form-text">Upload an image for the donation event (JPG, PNG, GIF)</div>
+                            {% if form.picture.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.picture.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.formal_letter.id_for_label }}" class="form-label">Formal Letter</label>
+                            {{ form.formal_letter }}
+                            <div class="form-text">Upload a formal letter document (PDF, DOC, DOCX)</div>
+                            {% if form.formal_letter.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.formal_letter.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.e_poster.id_for_label }}" class="form-label">E-Poster</label>
+                            {{ form.e_poster }}
+                            <div class="form-text">Upload an e-poster image for the donation event (JPG, PNG, GIF)</div>
+                            {% if form.e_poster.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.e_poster.errors }}
+                                </div>
+                            {% endif %}
                         </div>
 
                         <div class="text-center">

@@ -48,8 +48,13 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{% url 'myapp:admin_dashboard' %}">
-                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                                <i class="fas fa-tachometer-alt"></i> Admin Dashboard
                             </a></li>
+                            {% if user.username == 'moaaj' %}
+                            <li><a class="dropdown-item" href="{% url 'myapp:moaaj_dashboard' %}">
+                                <i class="fas fa-user-shield"></i> Moaaj's Dashboard
+                            </a></li>
+                            {% endif %}
                             <li><a class="dropdown-item" href="{% url 'myapp:student_management' %}">
                                 <i class="fas fa-users"></i> Student Management
                             </a></li>
@@ -110,20 +115,7 @@
 
     <!-- Main Content -->
     <main class="container mt-4">
-        <!-- Role-Based Welcome Message -->
-        {% if user.is_authenticated %}
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i>
-            Welcome, <strong>{{ user.get_full_name|default:user.username }}</strong>!
-            {% if is_admin %}
-                You are logged in as an <strong>Administrator</strong>. You have access to all system features.
-            {% elif is_student %}
-                You are logged in as a <strong>Student</strong>. You can view your payments and make new payments.
-            {% else %}
-                You are logged in but your role is not set. Please contact an administrator.
-            {% endif %}
-        </div>
-        {% endif %}
+        {# Removed role-based welcome/info message #}
 
         <!-- Messages -->
         {% if messages %}

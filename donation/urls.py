@@ -8,4 +8,5 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
     path('admin/create-donation-event/', views.create_donation_event, name='create_donation_event'),
+    path('donation2/', include('donation2.urls')),
 ] 

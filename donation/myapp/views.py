@@ -6,7 +6,7 @@ from .models import (
     Student, Parent, FeeCategory, FeeStructure, Payment,
     PaymentReceipt, FeeDiscount, PaymentReminder, SchoolBankAccount,
     DonationCategory, DonationEvent, Donation, EmailPreferences, FeeStatus,
-    FeeWaiver, FeeSettings, AcademicTerm
+    FeeWaiver, FeeSettings, AcademicTerm, IndividualStudentFee
 )
 from .serializers import PaymentSerializer
 import requests
@@ -22,7 +22,8 @@ from django.http import JsonResponse, HttpResponse
 from .forms import (
     StudentForm, ParentForm, FeeCategoryForm, FeeStructureForm,
     PaymentForm, FeeDiscountForm, SchoolBankAccountForm, PaymentSearchForm,
-    DonationCategoryForm, DonationEventForm, DonationForm, FeeWaiverForm
+    DonationCategoryForm, DonationEventForm, DonationForm, FeeWaiverForm,
+    IndividualStudentFeeForm
 )
 from django.core.files.storage import default_storage
 import qrcode
@@ -228,15 +229,58 @@ def home(request):
 def school_fees(request):
     if hasattr(request.user, 'myapp_profile') and request.user.myapp_profile.role == 'student':
         student = request.user.myapp_profile.student
-        available_fees = FeeStructure.objects.filter(is_active=True)
+        
+        # Get all fee statuses for this student to show payment status
+        fee_statuses = FeeStatus.objects.filter(student=student).select_related('fee_structure')
+        print(f"DEBUG: views.school_fees - Student {student.first_name} has {len(fee_statuses)} fee statuses")
+        print(f"DEBUG: Fee statuses: {[(fs.fee_structure.category.name, fs.status) for fs in fee_statuses[:3]]}")
+        
+        # Show all active fee structures for students
+        # If a fee has FeeStatus records, only show if any are pending/overdue
+        # If a fee has no FeeStatus records, show it (it's new and needs to be assigned)
+        all_active_fees = FeeStructure.objects.filter(is_active=True)
+        
+        # Get fees that have pending/overdue status
+        pending_fee_ids = fee_statuses.filter(status__in=['pending', 'overdue']).values_list('fee_structure_id', flat=True)
+        
+        # Get fees that have no FeeStatus records (new fees)
+        fees_with_status = fee_statuses.values_list('fee_structure_id', flat=True)
+        new_fees = all_active_fees.exclude(id__in=fees_with_status)
+        
+        # Get fees that are completely paid (all FeeStatus records are 'paid')
+        paid_fee_ids = []
+        for fee in all_active_fees:
+            fee_statuses_for_fee = fee_statuses.filter(fee_structure=fee)
+            if fee_statuses_for_fee.exists() and fee_statuses_for_fee.exclude(status='paid').count() == 0:
+                # All FeeStatus records for this fee are 'paid'
+                paid_fee_ids.append(fee.id)
+        
+        # Combine pending fees and new fees, but exclude completely paid fees
+        available_fees = all_active_fees.filter(
+            id__in=list(pending_fee_ids) + list(new_fees.values_list('id', flat=True))
+        ).exclude(id__in=paid_fee_ids)
         student_payments = Payment.objects.filter(student=student).order_by('-created_at')
         total_payments = Payment.objects.filter(student=student).count()
+        
+        # Get individual student fees for this student (only unpaid fees)
+        individual_fees = []
+        try:
+            individual_fees = IndividualStudentFee.objects.filter(
+                student=student, 
+                is_active=True,
+                is_paid=False  # Only show unpaid fees
+            ).select_related('category').order_by('-created_at')
+        except:
+            individual_fees = []
+        
         context = {
             'student': student,
             'available_fees': available_fees,
+            'fee_statuses': fee_statuses,  # Add fee statuses to context
             'recent_payments': student_payments[:5],
             'view_type': 'student',
             'total_payments': total_payments,
+            'individual_fees': individual_fees,
         }
         return render(request, 'myapp/school_fees_student.html', context)
     is_tamim = request.user.username == 'tamim123'
@@ -244,57 +288,180 @@ def school_fees(request):
 
 @login_required
 def school_fees_dashboard(request):
-    # Get statistics
-    total_students = Student.objects.filter(is_active=True).count()
-    total_payments = Payment.objects.filter(status='completed').aggregate(total=Sum('amount'))['total'] or 0
-    pending_payments = Payment.objects.filter(status='pending').count()
-    
-    # Calculate collection rate
-    total_expected = Payment.objects.aggregate(total=Sum('amount'))['total'] or 0
-    collection_rate = (total_payments / total_expected * 100) if total_expected > 0 else 0
-    
-    # Get recent payments
-    recent_payments = Payment.objects.select_related('student').order_by('-payment_date')[:5]
-    
-    # Get monthly collection data for the last 6 months
+    from django.db.models import Sum, Count, Q
     from datetime import datetime, timedelta
     from django.db.models.functions import TruncMonth
+    import json
     
-    six_months_ago = datetime.now() - timedelta(days=180)
-    monthly_data = Payment.objects.filter(
-        status='completed',
-        payment_date__gte=six_months_ago
-    ).annotate(
-        month=TruncMonth('payment_date')
-    ).values('month').annotate(
-        total=Sum('amount')
-    ).order_by('month')
+    # Get filter parameters
+    filter_type = request.GET.get('filter_type', 'all')
+    filter_value = request.GET.get('filter_value', '')
+    status_filter = request.GET.get('status', 'all')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
     
-    monthly_labels = [data['month'].strftime('%b %Y') for data in monthly_data]
-    monthly_amounts = [float(data['total']) for data in monthly_data]
+    # Base queryset for payments
+    payments = Payment.objects.select_related('student', 'fee_structure__category')
     
-    # Get category distribution data
-    category_data = Payment.objects.filter(
-        status='completed'
-    ).values(
+    # Apply filters
+    if filter_type == 'student' and filter_value:
+        payments = payments.filter(student__first_name__icontains=filter_value)
+    elif filter_type == 'class' and filter_value:
+        payments = payments.filter(student__class_name__icontains=filter_value)
+    elif filter_type == 'category' and filter_value:
+        payments = payments.filter(fee_structure__category__name__icontains=filter_value)
+    
+    if status_filter == 'paid':
+        payments = payments.filter(status='completed')
+    elif status_filter == 'pending':
+        payments = payments.filter(status='pending')
+    
+    if date_from:
+        payments = payments.filter(payment_date__gte=date_from)
+    if date_to:
+        payments = payments.filter(payment_date__lte=date_to)
+    
+    # Calculate comprehensive statistics
+    total_students = Student.objects.filter(is_active=True).count()
+    total_payments_count = payments.count()
+    total_paid = payments.filter(status='completed').count()
+    pending_payments = payments.filter(status='pending').count()
+    overdue_payments = FeeStatus.objects.filter(status='overdue').count()
+    
+    total_revenue = payments.filter(status='completed').aggregate(Sum('amount'))['amount__sum'] or 0
+    pending_amount = payments.filter(status='pending').aggregate(Sum('amount'))['amount__sum'] or 0
+    
+    # Calculate rates
+    payment_rate = (total_paid / total_payments_count * 100) if total_payments_count > 0 else 0
+    collection_rate = (total_revenue / (total_revenue + pending_amount) * 100) if (total_revenue + pending_amount) > 0 else 0
+    
+    # Additional metrics
+    active_students = Student.objects.filter(is_active=True).count()
+    total_fee_structures = FeeStructure.objects.count()
+    total_categories = FeeCategory.objects.count()
+    paid_fee_statuses = FeeStatus.objects.filter(status='paid').count()
+    pending_fee_statuses = FeeStatus.objects.filter(status='pending').count()
+    overdue_fee_statuses = FeeStatus.objects.filter(status='overdue').count()
+    
+    # Get data for charts
+    # 1. Payments by Category (Pie Chart)
+    category_chart_data = payments.filter(status='completed').values(
         'fee_structure__category__name'
     ).annotate(
         total=Sum('amount')
     ).order_by('-total')
     
-    category_labels = [data['fee_structure__category__name'] for data in category_data]
-    category_amounts = [float(data['total']) for data in category_data]
+    category_chart_labels = [item['fee_structure__category__name'] or 'Individual Fee' for item in category_chart_data]
+    category_chart_values = [float(item['total']) for item in category_chart_data]
+    
+    # 2. Payments by Class (Bar Chart)
+    class_chart_data = payments.filter(status='completed').values(
+        'student__class_name'
+    ).annotate(
+        total=Sum('amount')
+    ).order_by('-total')
+    
+    class_chart_labels = [item['student__class_name'] or 'N/A' for item in class_chart_data]
+    class_chart_values = [float(item['total']) for item in class_chart_data]
+    
+    # 3. Monthly Trends (Line Chart)
+    six_months_ago = datetime.now() - timedelta(days=180)
+    monthly_data = payments.filter(
+        status='completed',
+        payment_date__gte=six_months_ago
+    ).annotate(
+        month=TruncMonth('payment_date')
+    ).values('month').annotate(
+        total=Sum('amount'),
+        count=Count('id')
+    ).order_by('month')
+    
+    monthly_labels = [data['month'].strftime('%b %Y') for data in monthly_data]
+    monthly_amounts = [float(data['total']) for data in monthly_data]
+    monthly_counts = [data['count'] for data in monthly_data]
+    
+    # 4. Status Distribution
+    status_distribution = {
+        'labels': ['Paid', 'Pending', 'Overdue'],
+        'data': [total_paid, pending_payments, overdue_payments]
+    }
+    
+    # Get filter options
+    students = Student.objects.all().order_by('first_name')
+    classes = Student.objects.values_list('class_name', flat=True).distinct().exclude(class_name__isnull=True).exclude(class_name='')
+    categories = FeeCategory.objects.all().order_by('name')
+    
+    # Recent payments
+    recent_payments = payments.order_by('-payment_date')[:10]
+    
+    # CSV Export
+    if request.GET.get('export') == 'csv':
+        from django.http import HttpResponse
+        import csv
+        
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="payment_analytics.csv"'
+        writer = csv.writer(response)
+        
+        writer.writerow(['Student', 'Class', 'Category', 'Amount', 'Status', 'Date'])
+        for payment in payments:
+            writer.writerow([
+                f"{payment.student.first_name} {payment.student.last_name}",
+                payment.student.class_name or 'N/A',
+                payment.fee_structure.category.name if payment.fee_structure and payment.fee_structure.category else 'Individual Fee',
+                payment.amount,
+                payment.status,
+                payment.payment_date
+            ])
+        return response
     
     context = {
+        # Filter parameters
+        'filter_type': filter_type,
+        'filter_value': filter_value,
+        'status_filter': status_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        
+        # Statistics
         'total_students': total_students,
-        'total_payments': total_payments,
+        'total_payments': total_payments_count,
+        'total_paid': total_paid,
         'pending_payments': pending_payments,
+        'overdue_payments': overdue_payments,
+        'total_revenue': total_revenue,
+        'active_students': active_students,
+        'total_fee_structures': total_fee_structures,
+        'total_categories': total_categories,
+        'payment_rate': payment_rate,
         'collection_rate': collection_rate,
+        'paid_fee_statuses': paid_fee_statuses,
+        'pending_fee_statuses': pending_fee_statuses,
+        'overdue_fee_statuses': overdue_fee_statuses,
+        
+        # Chart data
+        'category_chart_data': json.dumps({
+            'labels': category_chart_labels,
+            'data': category_chart_values
+        }),
+        'class_chart_data': json.dumps({
+            'labels': class_chart_labels,
+            'data': class_chart_values
+        }),
+        'monthly_chart_data': json.dumps({
+            'labels': monthly_labels,
+            'amounts': monthly_amounts,
+            'counts': monthly_counts
+        }),
+        'status_distribution': json.dumps(status_distribution),
+        
+        # Filter options
+        'students': students,
+        'classes': classes,
+        'categories': categories,
+        
+        # Recent data
         'recent_payments': recent_payments,
-        'monthly_labels': monthly_labels,
-        'monthly_data': monthly_amounts,
-        'category_labels': category_labels,
-        'category_data': category_amounts,
     }
     
     return render(request, 'myapp/school_fees_dashboard.html', context)
@@ -332,7 +499,7 @@ def add_student(request):
             student.is_active = request.POST.get('is_active') == 'on'
             student.save()
             messages.success(request, 'Student added successfully!')
-            return redirect('student_list')
+            return redirect('myapp:student_list')
     else:
         form = StudentForm()
     return render(request, 'myapp/add_student.html', {'form': form})
@@ -360,17 +527,65 @@ def fee_structure_list(request):
         due_statuses = FeeStatus.objects.filter(student=student, status__in=['pending', 'overdue'])
         if due_statuses.count() == 0:
             fee_structures = FeeStructure.objects.none()
+    
+    # Get individual student fees for the current student (if they are a student) - only unpaid fees
+    individual_fees = []
+    if is_student:
+        try:
+            student = user.myapp_profile.student
+            individual_fees = IndividualStudentFee.objects.filter(
+                student=student, 
+                is_active=True,
+                is_paid=False  # Only show unpaid fees
+            ).select_related('category').order_by('-created_at')
+        except:
+            individual_fees = []
+    
+    # Get recent individual student fees for display (only for non-student users)
+    recent_individual_fees = []
+    if not is_student:
+        try:
+            recent_individual_fees = IndividualStudentFee.objects.select_related('student', 'category').order_by('-created_at')[:5]
+        except:
+            recent_individual_fees = []
+    
     print(f"DEBUG: username={user.username}, is_student={is_student}, fee_structures_count={fee_structures.count()}")
-    return render(request, 'myapp/fee_structure_list.html', {'fee_structures': fee_structures})
+    return render(request, 'myapp/fee_structure_list.html', {
+        'fee_structures': fee_structures,
+        'recent_individual_fees': recent_individual_fees,
+        'individual_fees': individual_fees,
+        'is_tamim': is_tamim
+    })
 
 @login_required
 def add_fee_structure(request):
     if request.method == 'POST':
         form = FeeStructureForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Fee structure added successfully.')
+            fee_structure = form.save()
+            
+            # If auto_generate_payments is enabled, generate payments for all active students
+            if fee_structure.auto_generate_payments and fee_structure.frequency == 'monthly':
+                from .models import Student
+                active_students = Student.objects.filter(is_active=True)
+                generated_count = 0
+                
+                for student in active_students:
+                    payments = fee_structure.generate_monthly_payments_for_student(student)
+                    generated_count += len(payments)
+                
+                if generated_count > 0:
+                    messages.success(request, f'Fee structure added successfully. Generated {generated_count} monthly payment records for {active_students.count()} students.')
+                else:
+                    messages.success(request, 'Fee structure added successfully.')
+            else:
+                messages.success(request, 'Fee structure added successfully.')
+            
             return redirect('myapp:fee_structure_list')
+        else:
+            # Form validation failed
+            print(f"DEBUG: Form validation failed. Errors: {form.errors}")
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = FeeStructureForm()
     return render(request, 'myapp/add_fee_structure.html', {'form': form})
@@ -383,7 +598,7 @@ def edit_fee_structure(request, structure_id):
         if form.is_valid():
             form.save()
             messages.success(request, 'Fee structure updated successfully.')
-            return redirect('fee_structure_list')
+            return redirect('myapp:fee_structure_list')
     else:
         form = FeeStructureForm(instance=fee_structure)
     return render(request, 'myapp/edit_fee_structure.html', {'form': form, 'fee_structure': fee_structure})
@@ -425,7 +640,7 @@ def add_payment(request):
             payment = form.save(commit=False)
             payment.status = 'completed'  # Set status to completed
             payment.save()
-            return redirect('payment_list')
+            return redirect('myapp:payment_list')
     else:
         initial_data = {}
         category = request.GET.get('category')
@@ -449,7 +664,7 @@ def add_discount(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Discount added successfully.')
-            return redirect('student_list')
+            return redirect('myapp:student_list')
     else:
         form = FeeDiscountForm()
     return render(request, 'myapp/add_discount.html', {'form': form})
@@ -466,7 +681,7 @@ def add_bank_account(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Bank account added successfully.')
-            return redirect('bank_accounts')
+            return redirect('myapp:bank_accounts')
     else:
         form = SchoolBankAccountForm()
     return render(request, 'myapp/add_bank_account.html', {'form': form})
@@ -627,7 +842,7 @@ def donation_events(request):
 @login_required
 def add_donation_event(request):
     if request.method == 'POST':
-        form = DonationEventForm(request.POST)
+        form = DonationEventForm(request.POST, request.FILES)
         if form.is_valid():
             event = form.save(commit=False)
             event.created_by = None
@@ -762,7 +977,7 @@ def payment_receipt(request, payment_id):
         return response
     except Exception as e:
         messages.error(request, f"Error generating receipt: {str(e)}")
-        return redirect('payment_list')
+        return redirect('myapp:payment_list')
 
 @login_required
 def edit_payment(request, pk):
@@ -775,7 +990,7 @@ def edit_payment(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Payment updated successfully.')
-            return redirect('payment_list')
+            return redirect('myapp:payment_list')
     else:
         form = PaymentForm(instance=payment)
     
@@ -792,7 +1007,7 @@ def delete_payment(request, pk):
     payment = get_object_or_404(Payment, pk=pk)
     if request.method == 'POST':
         payment.delete()
-        return redirect('payment_list')
+        return redirect('myapp:payment_list')
     return render(request, 'myapp/delete_payment_confirm.html', {'payment': payment})
 
 @login_required
@@ -807,7 +1022,7 @@ def add_fee_category(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Fee category added successfully.')
-            return redirect('fee_categories')
+            return redirect('myapp:fee_categories')
     else:
         form = FeeCategoryForm()
     return render(request, 'myapp/add_fee_category.html', {'form': form})
@@ -820,7 +1035,7 @@ def edit_fee_category(request, category_id):
         if form.is_valid():
             form.save()
             messages.success(request, 'Fee category updated successfully.')
-            return redirect('fee_categories')
+            return redirect('myapp:fee_categories')
     else:
         form = FeeCategoryForm(instance=category)
     return render(request, 'myapp/edit_fee_category.html', {'form': form, 'category': category})
@@ -831,7 +1046,7 @@ def delete_fee_category(request, category_id):
     if request.method == 'POST':
         category.delete()
         messages.success(request, 'Fee category deleted successfully.')
-        return redirect('fee_categories')
+        return redirect('myapp:fee_categories')
     return render(request, 'myapp/delete_fee_category.html', {'category': category})
 
 @login_required
@@ -1375,7 +1590,7 @@ def edit_student(request, id):
             student.is_active = request.POST.get('is_active') == 'on'
             student.save()
             messages.success(request, 'Student updated successfully!')
-            return redirect('student_list')
+            return redirect('myapp:student_list')
     else:
         form = StudentForm(instance=student)
     return render(request, 'myapp/edit_student.html', {'form': form, 'student': student})
@@ -1386,7 +1601,7 @@ def delete_student(request, id):
     if request.method == 'POST':
         student.delete()
         messages.success(request, 'Student deleted successfully!')
-        return redirect('student_list')
+        return redirect('myapp:student_list')
     return render(request, 'myapp/delete_student_confirm.html', {'student': student})
 
 @login_required
@@ -1728,3 +1943,326 @@ def donation_receipt(request, donation_id):
     except Exception as e:
         messages.error(request, f"Error generating receipt: {str(e)}")
         return redirect('donation_success', donation_id=donation_id)
+
+@login_required
+def individual_student_fees(request):
+    """List all individual student fees"""
+    fees = IndividualStudentFee.objects.select_related('student', 'category').order_by('-created_at')
+    
+    # Filter by student if provided
+    student_id = request.GET.get('student')
+    if student_id:
+        fees = fees.filter(student_id=student_id)
+    
+    # Filter by status if provided
+    status = request.GET.get('status')
+    if status == 'pending':
+        fees = fees.filter(is_paid=False)
+    elif status == 'paid':
+        fees = fees.filter(is_paid=True)
+    elif status == 'overdue':
+        from django.utils import timezone
+        fees = fees.filter(is_paid=False, due_date__lt=timezone.now().date())
+    
+    context = {
+        'fees': fees,
+        'students': Student.objects.filter(is_active=True),
+    }
+    return render(request, 'myapp/individual_student_fees.html', context)
+
+@login_required
+def add_individual_student_fee(request):
+    """Add a new individual student fee"""
+    if request.method == 'POST':
+        form = IndividualStudentFeeForm(request.POST)
+        if form.is_valid():
+            fee = form.save(commit=False)
+            fee.created_by = request.user
+            fee.save()
+            
+            # Add success message with student name for clarity
+            student_name = f"{fee.student.first_name} {fee.student.last_name}"
+            messages.success(request, f'Individual student fee "{fee.name}" (RM {fee.amount}) added successfully for {student_name}.')
+            
+            return redirect('myapp:individual_student_fees')
+    else:
+        form = IndividualStudentFeeForm()
+        
+        # Pre-select category based on URL parameter
+        category_param = request.GET.get('category')
+        if category_param:
+            if category_param == 'overtime':
+                try:
+                    overtime_category = FeeCategory.objects.get(name='Overtime', category_type='individual')
+                    form.fields['category'].initial = overtime_category
+                except FeeCategory.DoesNotExist:
+                    pass
+            elif category_param == 'demerit':
+                try:
+                    demerit_category = FeeCategory.objects.get(name='Demerit Penalties', category_type='individual')
+                    form.fields['category'].initial = demerit_category
+                except FeeCategory.DoesNotExist:
+                    pass
+    
+    context = {
+        'form': form,
+        'title': 'Add Individual Student Fee'
+    }
+    return render(request, 'myapp/add_individual_student_fee.html', context)
+
+@login_required
+def edit_individual_student_fee(request, fee_id):
+    """Edit an individual student fee"""
+    fee = get_object_or_404(IndividualStudentFee, id=fee_id)
+    
+    if request.method == 'POST':
+        form = IndividualStudentFeeForm(request.POST, instance=fee)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Individual student fee updated successfully.')
+            return redirect('myapp:individual_student_fees')
+    else:
+        form = IndividualStudentFeeForm(instance=fee)
+    
+    context = {
+        'form': form,
+        'fee': fee,
+        'title': 'Edit Individual Student Fee'
+    }
+    return render(request, 'myapp/add_individual_student_fee.html', context)
+
+@login_required
+def delete_individual_student_fee(request, fee_id):
+    """Delete an individual student fee"""
+    fee = get_object_or_404(IndividualStudentFee, id=fee_id)
+    
+    if request.method == 'POST':
+        fee.delete()
+        messages.success(request, 'Individual student fee deleted successfully.')
+        return redirect('myapp:individual_student_fees')
+    
+    context = {
+        'fee': fee
+    }
+    return render(request, 'myapp/delete_individual_student_fee.html', context)
+
+@login_required
+def mark_fee_as_paid(request, fee_id):
+    """Mark an individual student fee as paid"""
+    fee = get_object_or_404(IndividualStudentFee, id=fee_id)
+    
+    if request.method == 'POST':
+        fee.is_paid = True
+        fee.save()
+        messages.success(request, f'Fee "{fee.name}" marked as paid successfully.')
+        return redirect('myapp:individual_student_fees')
+    
+    context = {
+        'fee': fee
+    }
+    return render(request, 'myapp/mark_fee_as_paid.html', context)
+
+# ==================== ANALYTICS VIEWS ====================
+
+@login_required
+def payment_analytics_dashboard(request):
+    """Comprehensive payment analytics dashboard"""
+    from django.db.models import Sum, Count, Q
+    from django.utils import timezone
+    from datetime import datetime, timedelta
+    
+    # Get filter parameters
+    view_type = request.GET.get('view', 'school')  # school, class, batch, student, category
+    student_id = request.GET.get('student')
+    class_name = request.GET.get('class')
+    batch_year = request.GET.get('batch')
+    category_id = request.GET.get('category')
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    
+    # Set default date range (last 12 months)
+    if not date_from:
+        date_from = (timezone.now() - timedelta(days=365)).strftime('%Y-%m-%d')
+    if not date_to:
+        date_to = timezone.now().strftime('%Y-%m-%d')
+    
+    # Base queryset for payments
+    payments = Payment.objects.filter(
+        payment_date__range=[date_from, date_to]
+    ).select_related('student', 'fee_structure__category')
+    
+    # Apply filters based on view type
+    if view_type == 'student' and student_id:
+        payments = payments.filter(student_id=student_id)
+    elif view_type == 'class' and class_name:
+        payments = payments.filter(student__class_name=class_name)
+    elif view_type == 'batch' and batch_year:
+        payments = payments.filter(student__year_batch=batch_year)
+    elif view_type == 'category' and category_id:
+        payments = payments.filter(fee_structure__category_id=category_id)
+    
+    # Calculate statistics
+    total_payments = payments.count()
+    total_amount = payments.aggregate(total=Sum('amount'))['total'] or 0
+    
+    # Status breakdown
+    status_breakdown = payments.values('status').annotate(
+        count=Count('id'),
+        total_amount=Sum('amount')
+    ).order_by('status')
+    
+    # Monthly trend
+    monthly_trend = payments.extra(
+        select={'month': "EXTRACT(month FROM payment_date)"}
+    ).values('month').annotate(
+        count=Count('id'),
+        total_amount=Sum('amount')
+    ).order_by('month')
+    
+    # Category breakdown
+    category_breakdown = payments.values(
+        'fee_structure__category__name'
+    ).annotate(
+        count=Count('id'),
+        total_amount=Sum('amount')
+    ).order_by('-total_amount')
+    
+    # Payment method breakdown
+    method_breakdown = payments.values('payment_method').annotate(
+        count=Count('id'),
+        total_amount=Sum('amount')
+    ).order_by('-total_amount')
+    
+    # Get pending payments (FeeStatus records)
+    pending_payments = FeeStatus.objects.filter(
+        due_date__range=[date_from, date_to]
+    ).select_related('student', 'fee_structure__category')
+    
+    # Apply same filters to pending payments
+    if view_type == 'student' and student_id:
+        pending_payments = pending_payments.filter(student_id=student_id)
+    elif view_type == 'class' and class_name:
+        pending_payments = pending_payments.filter(student__class_name=class_name)
+    elif view_type == 'batch' and batch_year:
+        pending_payments = pending_payments.filter(student__year_batch=batch_year)
+    elif view_type == 'category' and category_id:
+        pending_payments = pending_payments.filter(fee_structure__category_id=category_id)
+    
+    pending_total = pending_payments.filter(status='pending').count()
+    pending_amount = pending_payments.filter(status='pending').aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+    
+    overdue_total = pending_payments.filter(
+        status='pending', 
+        due_date__lt=timezone.now().date()
+    ).count()
+    overdue_amount = pending_payments.filter(
+        status='pending', 
+        due_date__lt=timezone.now().date()
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    # Get filter options
+    students = Student.objects.filter(is_active=True).order_by('first_name')
+    classes = Student.objects.values_list('class_name', flat=True).distinct().exclude(class_name='').order_by('class_name')
+    batches = Student.objects.values_list('year_batch', flat=True).distinct().order_by('-year_batch')
+    categories = FeeCategory.objects.filter(is_active=True).order_by('name')
+    
+    context = {
+        'view_type': view_type,
+        'student_id': student_id,
+        'class_name': class_name,
+        'batch_year': batch_year,
+        'category_id': category_id,
+        'date_from': date_from,
+        'date_to': date_to,
+        
+        # Statistics
+        'total_payments': total_payments,
+        'total_amount': total_amount,
+        'pending_total': pending_total,
+        'pending_amount': pending_amount,
+        'overdue_total': overdue_total,
+        'overdue_amount': overdue_amount,
+        
+        # Breakdowns
+        'status_breakdown': status_breakdown,
+        'monthly_trend': monthly_trend,
+        'category_breakdown': category_breakdown,
+        'method_breakdown': method_breakdown,
+        
+        # Filter options
+        'students': students,
+        'classes': classes,
+        'batches': batches,
+        'categories': categories,
+        
+        # Detailed data
+        'recent_payments': payments.order_by('-payment_date')[:10],
+        'pending_payments_list': pending_payments.filter(status='pending').order_by('due_date')[:10],
+        'overdue_payments_list': pending_payments.filter(
+            status='pending', 
+            due_date__lt=timezone.now().date()
+        ).order_by('due_date')[:10],
+    }
+    
+    return render(request, 'myapp/payment_analytics_dashboard.html', context)
+
+@login_required
+def payment_analytics_export(request):
+    """Export payment analytics data"""
+    from django.http import HttpResponse
+    from django.db.models import Sum, Count
+    import csv
+    
+    view_type = request.GET.get('view', 'school')
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    
+    # Get payments data
+    payments = Payment.objects.filter(
+        payment_date__range=[date_from, date_to]
+    ).select_related('student', 'fee_structure__category')
+    
+    # Apply filters
+    if view_type == 'student':
+        student_id = request.GET.get('student')
+        if student_id:
+            payments = payments.filter(student_id=student_id)
+    elif view_type == 'class':
+        class_name = request.GET.get('class')
+        if class_name:
+            payments = payments.filter(student__class_name=class_name)
+    elif view_type == 'batch':
+        batch_year = request.GET.get('batch')
+        if batch_year:
+            payments = payments.filter(student__year_batch=batch_year)
+    elif view_type == 'category':
+        category_id = request.GET.get('category')
+        if category_id:
+            payments = payments.filter(fee_structure__category_id=category_id)
+    
+    # Create CSV response
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="payment_analytics_{view_type}_{date_from}_to_{date_to}.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow([
+        'Student Name', 'Student ID', 'Class', 'Batch', 
+        'Fee Category', 'Amount', 'Payment Date', 'Payment Method', 'Status'
+    ])
+    
+    for payment in payments:
+        writer.writerow([
+            f"{payment.student.first_name} {payment.student.last_name}",
+            payment.student.student_id,
+            payment.student.class_name or '',
+            payment.student.year_batch,
+            payment.fee_structure.category.name if payment.fee_structure else 'Individual Fee',
+            payment.amount,
+            payment.payment_date,
+            payment.payment_method,
+            payment.status,
+        ])
+    
+    return response

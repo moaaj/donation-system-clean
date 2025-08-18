@@ -100,3 +100,49 @@ class DonorEngagementMessage(models.Model):
         
     def __str__(self):
         return f"{self.get_message_type_display()} for {self.donor.username} - {self.event.title}"
+
+class DonationCart(models.Model):
+    """Cart for storing donation events that users want to donate to"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='donation_carts')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Cart for {self.user.username} - {self.created_at.strftime('%Y-%m-%d')}"
+    
+    def get_total_items(self):
+        """Get total number of items in cart"""
+        return self.cart_items.count()
+    
+    def get_total_amount(self):
+        """Get total amount of all items in cart"""
+        return sum(item.amount for item in self.cart_items.all())
+    
+    def clear_cart(self):
+        """Remove all items from cart"""
+        self.cart_items.all().delete()
+
+class DonationCartItem(models.Model):
+    """Individual items in the donation cart"""
+    cart = models.ForeignKey(DonationCart, on_delete=models.CASCADE, related_name='cart_items')
+    event = models.ForeignKey(DonationEvent, on_delete=models.CASCADE, related_name='cart_items')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    message = models.TextField(blank=True, null=True, max_length=200)
+    added_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-added_at']
+        unique_together = ['cart', 'event']  # Prevent duplicate events in cart
+    
+    def __str__(self):
+        return f"{self.event.title} - ${self.amount} in {self.cart.user.username}'s cart"
+    
+    def get_progress_percentage(self):
+        """Get progress percentage for this event"""
+        if self.event.target_amount > 0:
+            return min(100, round((self.event.current_amount / self.event.target_amount) * 100, 2))
+        return 0

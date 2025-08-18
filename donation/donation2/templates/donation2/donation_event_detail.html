@@ -7,7 +7,14 @@
         <div class="col-md-8">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
-                    <h2 class="text-center mb-0">Event Details</h2>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="text-center mb-0">Event Details</h2>
+                        {% if user.is_superuser or user.is_staff %}
+                        <a href="{% url 'donation_analytics' %}?event_id={{ event.id }}" class="btn btn-light btn-sm">
+                            <i class="fas fa-chart-bar"></i> View Analytics
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="card-body">
                     <h3 class="mb-3">{{ event.title }}</h3>
@@ -39,6 +46,40 @@
                     <p><strong>Fundraising Duration:</strong> {{ event.start_date }} to {{ event.end_date }} ({{ fundraising_duration }} days)</p>
 
                     <p><strong>Status:</strong> {% if event.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</p>
+
+                    <!-- Add to Cart Section -->
+                    {% if event.is_active %}
+                    <div class="mt-4">
+                        <h4 class="mb-3">💝 Make a Donation</h4>
+                        <form method="post" action="{% url 'add_to_cart' event.id %}" class="donation-form">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="amount" class="form-label">Donation Amount ($)</label>
+                                        <input type="number" class="form-control" id="amount" name="amount" 
+                                               step="0.01" min="0.01" required placeholder="Enter amount">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="message" class="form-label">Message (Optional)</label>
+                                        <textarea class="form-control" id="message" name="message" rows="3" 
+                                                  placeholder="Leave a message for this cause..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-cart-plus"></i> Add to Cart
+                                </button>
+                                <a href="{% url 'view_cart' %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-shopping-cart"></i> View Cart
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                    {% endif %}
 
                     {# AI-Powered Insights #}
                     <div class="mt-4">
@@ -173,6 +214,56 @@
                         {% endif %}
                     </div>
 
+                    <!-- Event Files Section -->
+                    {% if event.picture or event.e_poster or event.formal_letter %}
+                    <div class="mt-4">
+                        <h4 class="mb-3">Event Files</h4>
+                        <div class="row">
+                            {% if event.picture %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <img src="{{ event.picture.url }}" class="card-img-top" alt="Event Picture" style="height: 200px; object-fit: cover;">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Event Picture</h6>
+                                        <a href="{{ event.picture.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="fas fa-external-link-alt me-1"></i>View Full Size
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if event.e_poster %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <img src="{{ event.e_poster.url }}" class="card-img-top" alt="E-Poster" style="height: 200px; object-fit: cover;">
+                                    <div class="card-body">
+                                        <h6 class="card-title">E-Poster</h6>
+                                        <a href="{{ event.e_poster.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="fas fa-external-link-alt me-1"></i>View Full Size
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if event.formal_letter %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body text-center" style="height: 200px; display: flex; flex-direction: column; justify-content: center;">
+                                        <i class="fas fa-file-pdf fa-3x text-muted mb-3"></i>
+                                        <h6 class="card-title">Formal Letter</h6>
+                                        <a href="{{ event.formal_letter.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="fas fa-download me-1"></i>Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Social Media Share Buttons -->
                     <div class="my-4 text-center">
                         <span class="fw-bold">Share this event:</span>
@@ -193,6 +284,9 @@
                         {% if user.is_superuser or user.is_staff %}
                         <a href="{% url 'edit_donation_event' event.id %}" class="btn btn-primary me-2">
                             <i class="fas fa-edit me-1"></i>Edit Event
+                        </a>
+                        <a href="{% url 'delete_donation_event' event.id %}" class="btn btn-danger me-2">
+                            <i class="fas fa-trash me-1"></i>Delete Event
                         </a>
                         {% endif %}
                         <a href="{% url 'donation_events' %}" class="btn btn-secondary">

@@ -36,23 +36,46 @@
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="form" class="form-label">Form</label>
-                                <select class="form-select" id="form" name="form" required>
-                                    <option value="">Select Form</option>
-                                    <option value="Form 1">Form 1</option>
-                                    <option value="Form 2">Form 2</option>
-                                    <option value="Form 3">Form 3</option>
-                                    <option value="Form 4">Form 4</option>
-                                    <option value="Form 5">Form 5</option>
+                                <label for="class_name" class="form-label">Class</label>
+                                <input type="text" class="form-control" id="class_name" name="class_name" placeholder="Enter class name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="program" class="form-label">Program</label>
+                                <input type="text" class="form-control" id="program" name="program" placeholder="Enter program name">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="level" class="form-label">Level</label>
+                                <select class="form-select" id="level" name="level">
+                                    <option value="">Select Level</option>
+                                    <option value="year">Year</option>
+                                    <option value="form">Form</option>
+                                    <option value="standard">Standard</option>
+                                    <option value="others">Others</option>
                                 </select>
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="level_custom" class="form-label">Custom Level</label>
+                                <input type="text" class="form-control" id="level_custom" name="level_custom" placeholder="Enter custom level" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="year_batch" class="form-label">Year Batch</label>
                                 <input type="number" class="form-control" id="year_batch" name="year_batch" required>
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                    <label class="form-check-label" for="is_active">
+                                        Active Student
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'student_list' %}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <a href="{% url 'myapp:student_list' %}" class="btn btn-secondary me-md-2">Cancel</a>
                             <button type="submit" class="btn btn-primary">Add Student</button>
                         </div>
                     </form>
@@ -61,4 +84,22 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const levelSelect = document.getElementById('level');
+    const levelCustomInput = document.getElementById('level_custom');
+    
+    levelSelect.addEventListener('change', function() {
+        if (this.value === 'others') {
+            levelCustomInput.style.display = 'block';
+            levelCustomInput.required = true;
+        } else {
+            levelCustomInput.style.display = 'none';
+            levelCustomInput.required = false;
+            levelCustomInput.value = '';
+        }
+    });
+});
+</script>
 {% endblock %} 

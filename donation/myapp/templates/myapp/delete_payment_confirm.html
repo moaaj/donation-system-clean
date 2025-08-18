@@ -25,7 +25,7 @@
                         {% csrf_token %}
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-danger">Confirm Delete</button>
-                            <a href="{% url 'payment_list' %}" class="btn btn-secondary">Cancel</a>
+                            <a href="{% url 'myapp:payment_list' %}" class="btn btn-secondary">Cancel</a>
                         </div>
                     </form>
                 </div>

@@ -81,10 +81,10 @@
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{% url 'payment_list' %}" class="btn btn-secondary">Back to Payments</a>
-                        <a href="{% url 'print_receipts' %}" class="btn btn-primary">Print Receipt</a>
+                        <a href="{% url 'myapp:payment_list' %}" class="btn btn-secondary">Back to Payments</a>
+                        <a href="{% url 'myapp:print_receipts' %}" class="btn btn-primary">Print Receipt</a>
                         {% if payment.status == 'completed' %}
-                        <a href="{% url 'email_receipt' payment.id %}" class="btn btn-success">Email Receipt</a>
+                        <a href="{% url 'myapp:email_receipt' payment.id %}" class="btn btn-success">Email Receipt</a>
                         {% endif %}
                     </div>
                 </div>

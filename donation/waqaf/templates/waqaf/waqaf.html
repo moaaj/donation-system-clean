@@ -3,13 +3,20 @@
 {% block content %}
 <div class="container mt-5">
     <div class="row">
-        <div class="col-md-8 mx-auto">
+        <div class="col-12">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h2 class="text-center mb-0">Waqaf Properties</h2>
-                    <a href="{% url 'waqaf:waqaf_ai_analytics' %}" class="btn btn-light">
-                        <i class="fas fa-robot me-2"></i>AI Analytics
-                    </a>
+                    <div>
+                        {% if is_admin %}
+                        <a href="{% url 'waqaf:add_waqaf_asset' %}" class="btn btn-success me-2">
+                            <i class="fas fa-plus me-2"></i>Add Asset
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'waqaf:waqaf_ai_analytics' %}" class="btn btn-light">
+                            <i class="fas fa-robot me-2"></i>AI Analytics
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="text-center mb-4">
@@ -17,43 +24,156 @@
                         <p class="lead">Contribute to sustainable development through waqaf properties</p>
                     </div>
 
-                    <div class="row g-4">
-                        <!-- Waqaf Property 1 -->
-                        <div class="col-md-6">
-                            <div class="card h-100">
-                                <img src="https://images.unsplash.com/photo-1566669437685-2c5a58524d1f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                                     class="card-img-top" 
-                                     alt="Mosque Property"
-                                     onerror="this.src='https://placehold.co/600x400/2c3e50/ffffff?text=Mosque+Property'">
-                                <div class="card-body">
-                                    <h5 class="card-title">Mosque Property</h5>
-                                    <p class="card-text">Support the maintenance and development of our local mosque.</p>
-                                    <div class="progress mb-3">
-                                        <div class="progress-bar bg-success" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">75% Funded</div>
+                    {% if is_admin %}
+                        <!-- Admin View -->
+                        <div class="row g-4">
+                            {% for asset in assets_progress %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h5 class="card-title mb-0">{{ asset.name }}</h5>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                    <i class="fas fa-cog"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="{% url 'waqaf:asset_detail' asset.id %}">
+                                                        <i class="fas fa-eye me-2"></i>View Details
+                                                    </a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item text-danger" href="{% url 'waqaf:delete_waqaf_asset' asset.id %}">
+                                                        <i class="fas fa-trash me-2"></i>Delete Asset
+                                                    </a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        
+                                        <p class="card-text">{{ asset.description|truncatewords:20 }}</p>
+                                        
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="text-primary fw-bold">RM {{ asset.target_amount|floatformat:2 }}</span>
+                                                <span class="text-muted small">{{ asset.slots_available }}/{{ asset.total_slots }} slots</span>
+                                            </div>
+                                            <div class="progress mb-2">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                     style="width: {{ asset.progress_percent }}%">
+                                                    {{ asset.progress_percent|floatformat:0 }}%
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">
+                                                {{ asset.filled_slots }} of {{ asset.total_slots }} slots filled
+                                            </small>
+                                        </div>
+                                        
+                                        <div class="row text-center">
+                                            <div class="col-6">
+                                                <small class="text-muted">Contributions</small><br>
+                                                <strong>{{ asset.contributions_count }}</strong>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">Slot Price</small><br>
+                                                <strong>RM {{ asset.slot_price|floatformat:2 }}</strong>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-3">
+                                            <a href="{% url 'waqaf:asset_detail' asset.id %}" class="btn btn-outline-primary btn-sm w-100">
+                                                <i class="fas fa-info-circle"></i> View Details
+                                            </a>
+                                        </div>
                                     </div>
-                                    <a href="{% url 'waqaf:contribute_waqaf' %}" class="btn btn-primary">Contribute Now</a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Admin Statistics -->
+                        <div class="row mt-4">
+                            <div class="col-md-4">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h3 class="text-primary">{{ total_assets }}</h3>
+                                        <p class="card-text">Total Assets</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h3 class="text-success">{{ total_contributions }}</h3>
+                                        <p class="card-text">Total Contributions</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h3 class="text-info">RM {{ total_amount|floatformat:2 }}</h3>
+                                        <p class="card-text">Total Amount</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Waqaf Property 2 -->
-                        <div class="col-md-6">
-                            <div class="card h-100">
-                                <img src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                                     class="card-img-top" 
-                                     alt="Educational Center"
-                                     onerror="this.src='https://placehold.co/600x400/2c3e50/ffffff?text=Educational+Center'">
-                                <div class="card-body">
-                                    <h5 class="card-title">Educational Center</h5>
-                                    <p class="card-text">Help establish an Islamic educational center for the community.</p>
-                                    <div class="progress mb-3">
-                                        <div class="progress-bar bg-success" role="progressbar" style="width: 45%;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">45% Funded</div>
+                    {% else %}
+                        <!-- Regular User View -->
+                        {% if assets_progress %}
+                            <div class="row g-4">
+                                {% for asset in assets_progress %}
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ asset.name }}</h5>
+                                            <p class="card-text">{{ asset.description|truncatewords:20 }}</p>
+                                            
+                                            <div class="mb-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="text-primary fw-bold">RM {{ asset.target_amount|floatformat:2 }}</span>
+                                                    <span class="text-muted small">{{ asset.slots_available }} slots available</span>
+                                                </div>
+                                                <div class="progress mb-2">
+                                                    <div class="progress-bar bg-success" role="progressbar" 
+                                                         style="width: {{ asset.progress_percent }}%">
+                                                        {{ asset.progress_percent|floatformat:0 }}%
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">
+                                                    {{ asset.filled_slots }} of {{ asset.total_slots }} slots filled
+                                                </small>
+                                            </div>
+                                            
+                                            <!-- Add to Cart Form -->
+                                            <form class="add-to-cart-form mb-3" data-asset-id="{{ asset.id }}">
+                                                {% csrf_token %}
+                                                <div class="input-group input-group-sm mb-2">
+                                                    <span class="input-group-text">Slots:</span>
+                                                    <input type="number" class="form-control quantity-input" 
+                                                           name="number_of_slots" value="1" min="1" 
+                                                           max="{{ asset.slots_available }}" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-success btn-sm w-100">
+                                                    <i class="fas fa-cart-plus"></i> Add to Cart
+                                                </button>
+                                            </form>
+                                            
+                                            <a href="{% url 'waqaf:asset_detail' asset.id %}" class="btn btn-outline-primary btn-sm w-100">
+                                                <i class="fas fa-info-circle"></i> View Details
+                                            </a>
+                                        </div>
                                     </div>
-                                    <a href="{% url 'waqaf:contribute_waqaf' %}" class="btn btn-primary">Contribute Now</a>
                                 </div>
+                                {% endfor %}
                             </div>
-                        </div>
-                    </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-mosque fa-3x text-muted mb-3"></i>
+                                <h4 class="text-muted">No Waqaf Assets Available</h4>
+                                <p class="text-muted">Currently there are no waqaf assets available for contribution.</p>
+                            </div>
+                        {% endif %}
+                    {% endif %}
 
                     <!-- Waqaf Information Section -->
                     <div class="mt-5">
@@ -88,10 +208,12 @@
         border-radius: 15px;
         border: none;
         transition: transform 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     
     .card:hover {
         transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
     }
     
     .card-img-top {
@@ -117,5 +239,93 @@
         background-color: var(--primary-color);
         transform: translateY(-2px);
     }
+    
+    .btn-success {
+        border-radius: 25px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-2px);
+    }
 </style>
+
+{% if not is_admin %}
+<script>
+// Add to Cart functionality (only for regular users)
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle add to cart forms
+    document.addEventListener('submit', function(e) {
+        if (e.target.classList.contains('add-to-cart-form')) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const assetId = form.dataset.assetId;
+            const formData = new FormData(form);
+            
+            fetch(`{% url 'waqaf:add_to_waqaf_cart' 0 %}`.replace('0', assetId), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showMessage(data.message, 'success');
+                    
+                    // Reset form
+                    form.reset();
+                    form.querySelector('.quantity-input').value = 1;
+                    
+                    // Update cart count in navigation if it exists
+                    updateCartCount();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('An error occurred while adding to cart', 'error');
+            });
+        }
+    });
+    
+    // Show message function
+    function showMessage(message, type) {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const alert = document.createElement('div');
+        alert.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+        alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alert);
+        
+        // Auto-dismiss after 3 seconds
+        setTimeout(() => {
+            alert.remove();
+        }, 3000);
+    }
+    
+    // Update cart count function
+    function updateCartCount() {
+        fetch('{% url "waqaf:get_waqaf_cart_count" %}')
+        .then(response => response.json())
+        .then(data => {
+            const cartBadge = document.getElementById('nav-waqaf-cart-count');
+            if (cartBadge) {
+                cartBadge.textContent = data.count;
+                cartBadge.style.display = data.count > 0 ? 'inline' : 'none';
+            }
+        })
+        .catch(error => console.error('Error updating cart count:', error));
+    }
+});
+</script>
+{% endif %}
 {% endblock %} 

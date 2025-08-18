@@ -1,0 +1,454 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Donation Analytics - Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .stat-card h3 {
+        margin: 0 0 10px 0;
+        font-size: 1.2em;
+        opacity: 0.9;
+    }
+    
+    .stat-card .value {
+        font-size: 2.5em;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    
+    .stat-card .subtitle {
+        font-size: 0.9em;
+        opacity: 0.8;
+    }
+    
+    .filters-section {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    
+    .filters-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        align-items: end;
+    }
+    
+    .filter-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .filter-group input, .filter-group select {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+    
+    .filter-group input:focus, .filter-group select:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: transform 0.2s;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+    }
+    
+    .event-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+        overflow: hidden;
+    }
+    
+    .event-header {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 20px;
+    }
+    
+    .event-header h3 {
+        margin: 0 0 10px 0;
+        font-size: 1.5em;
+    }
+    
+    .event-meta {
+        display: flex;
+        gap: 20px;
+        font-size: 0.9em;
+        opacity: 0.9;
+    }
+    
+    .event-content {
+        padding: 25px;
+    }
+    
+    .progress-section {
+        margin-bottom: 25px;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 20px;
+        background: #e1e5e9;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 10px 0;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4CAF50, #45a049);
+        transition: width 0.3s ease;
+        border-radius: 10px;
+    }
+    
+    .progress-fill.over-target {
+        background: linear-gradient(90deg, #FF9800, #F57C00);
+    }
+    
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+    
+    .metric-item {
+        text-align: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #667eea;
+    }
+    
+    .metric-item .label {
+        font-size: 0.9em;
+        color: #666;
+        margin-bottom: 5px;
+    }
+    
+    .metric-item .value {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .target-reached {
+        background: #d4edda;
+        border-color: #28a745;
+        color: #155724;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-weight: 600;
+    }
+    
+    .payment-methods {
+        margin-bottom: 20px;
+    }
+    
+    .payment-method-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        background: #f8f9fa;
+        margin-bottom: 8px;
+        border-radius: 8px;
+    }
+    
+    .payment-method-name {
+        font-weight: 600;
+    }
+    
+    .payment-method-stats {
+        text-align: right;
+    }
+    
+    .daily-trends {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+    
+    .trend-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #e1e5e9;
+    }
+    
+    .trend-item:last-child {
+        border-bottom: none;
+    }
+    
+    .no-data {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+        font-style: italic;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        font-weight: 600;
+    }
+    
+    .status-active {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-completed {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .status-expired {
+        background: #f8d7da;
+        color: #721c24;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+    <h1 style="text-align: center; margin-bottom: 30px; color: #333;">
+        📊 Donation Analytics Dashboard
+    </h1>
+    
+    <!-- Overall Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Events</h3>
+            <div class="value">{{ overall_stats.total_events }}</div>
+            <div class="subtitle">Campaigns Created</div>
+        </div>
+        <div class="stat-card">
+            <h3>Total Donations</h3>
+            <div class="value">{{ overall_stats.total_donations }}</div>
+            <div class="subtitle">Contributions Received</div>
+        </div>
+        <div class="stat-card">
+            <h3>Total Amount</h3>
+            <div class="value">${{ overall_stats.total_amount|floatformat:2 }}</div>
+            <div class="subtitle">Funds Raised</div>
+        </div>
+        <div class="stat-card">
+            <h3>Average Donation</h3>
+            <div class="value">${{ overall_stats.avg_donation|floatformat:2 }}</div>
+            <div class="subtitle">Per Contribution</div>
+        </div>
+        <div class="stat-card">
+            <h3>Active Events</h3>
+            <div class="value">{{ overall_stats.active_events }}</div>
+            <div class="subtitle">Currently Running</div>
+        </div>
+        <div class="stat-card">
+            <h3>Completed Events</h3>
+            <div class="value">{{ overall_stats.completed_events }}</div>
+            <div class="subtitle">Finished Campaigns</div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="filters-section">
+        <h3 style="margin-bottom: 20px;">🔍 Filter Analytics</h3>
+        <form method="get" class="filters-grid">
+            <div class="filter-group">
+                <label for="event_id">Donation Event:</label>
+                <select name="event_id" id="event_id">
+                    <option value="">All Events</option>
+                    {% for event in events %}
+                        <option value="{{ event.id }}" {% if selected_event_id == event.id|stringformat:"s" %}selected{% endif %}>
+                            {{ event.title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="start_date">Start Date:</label>
+                <input type="date" name="start_date" id="start_date" value="{{ start_date|default:'' }}">
+            </div>
+            <div class="filter-group">
+                <label for="end_date">End Date:</label>
+                <input type="date" name="end_date" id="end_date" value="{{ end_date|default:'' }}">
+            </div>
+            <div class="filter-group">
+                <button type="submit" class="btn-primary">Apply Filters</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Event Analytics -->
+    {% if analytics_data %}
+        {% for data in analytics_data %}
+        <div class="event-card">
+            <div class="event-header">
+                <h3>{{ data.event.title }}</h3>
+                <div class="event-meta">
+                    <span>📅 {{ data.event.start_date|date:"M d, Y" }} - {{ data.event.end_date|date:"M d, Y" }}</span>
+                    <span>💰 Target: ${{ data.event.target_amount|floatformat:2 }}</span>
+                    <span class="status-badge {% if data.event.is_active %}status-active{% elif data.event.end_date < today %}status-expired{% else %}status-completed{% endif %}">
+                        {% if data.event.is_active %}Active{% elif data.event.end_date < today %}Expired{% else %}Completed{% endif %}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="event-content">
+                <!-- Target Reached Status -->
+                {% if data.target_reached %}
+                <div class="target-reached">
+                    🎉 Target Reached! 
+                    {% if data.date_reached %}
+                        Achieved on {{ data.date_reached|date:"M d, Y" }} at {{ data.date_reached|time:"H:i" }}
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- Progress Section -->
+                <div class="progress-section">
+                    <h4>📈 Fundraising Progress</h4>
+                    <div class="progress-bar">
+                        <div class="progress-fill {% if data.progress_percent > 100 %}over-target{% endif %}" 
+                             style="width: {{ data.progress_percent|floatformat:1 }}%"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                        <span>Raised: ${{ data.total_donated|floatformat:2 }}</span>
+                        <span>{{ data.progress_percent|floatformat:1 }}% of target</span>
+                        <span>Target: ${{ data.event.target_amount|floatformat:2 }}</span>
+                    </div>
+                </div>
+                
+                <!-- Key Metrics -->
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="label">👥 Donors</div>
+                        <div class="value">{{ data.donor_count }}</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="label">💵 Total Raised</div>
+                        <div class="value">${{ data.total_donated|floatformat:2 }}</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="label">📊 Average Donation</div>
+                        <div class="value">${{ data.avg_donation|floatformat:2 }}</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="label">⏱️ Days Remaining</div>
+                        <div class="value">{{ data.days_remaining }}</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="label">📅 Completion Rate</div>
+                        <div class="value">{{ data.completion_rate|floatformat:1 }}%</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="label">🎯 Target Status</div>
+                        <div class="value">{% if data.target_reached %}✅ Reached{% else %}⏳ Pending{% endif %}</div>
+                    </div>
+                </div>
+                
+                <!-- Payment Methods Breakdown -->
+                {% if data.payment_methods %}
+                <div class="payment-methods">
+                    <h4>💳 Payment Methods</h4>
+                    {% for method in data.payment_methods %}
+                    <div class="payment-method-item">
+                        <span class="payment-method-name">{{ method.payment_method|title }}</span>
+                        <div class="payment-method-stats">
+                            <div>{{ method.count }} donations</div>
+                            <div style="font-weight: bold;">${{ method.total|floatformat:2 }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Daily Trends -->
+                {% if data.daily_donations %}
+                <div class="daily-trends">
+                    <h4>📊 Daily Donation Trends</h4>
+                    {% for day in data.daily_donations|slice:":7" %}
+                    <div class="trend-item">
+                        <span>{{ day.day|date:"M d, Y" }}</span>
+                        <div style="text-align: right;">
+                            <div>{{ day.count }} donations</div>
+                            <div style="font-weight: bold;">${{ day.total|floatformat:2 }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-data">
+            <h3>📭 No Data Available</h3>
+            <p>No donation events found with the current filters. Try adjusting your search criteria.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// Auto-submit form when filters change
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input, select');
+    
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            form.submit();
+        });
+    });
+});
+</script>
+{% endblock %}
