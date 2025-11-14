@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import dj_database_url
 
 # Load environment variables from .env file
 load_dotenv()
@@ -17,10 +18,10 @@ STRIPE_TEST_SECRET_KEY = os.getenv('STRIPE_TEST_SECRET_KEY', '')
 STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
 
 # Security: Don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
 # In production, set ALLOWED_HOSTS to include your domain(s)
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
 # Security settings for development
 SECURE_SSL_REDIRECT = False
@@ -33,6 +34,9 @@ SECURE_HSTS_PRELOAD = False
 SECURE_REFERRER_POLICY = None
 SECURE_BROWSER_XSS_FILTER = False
 SECURE_CONTENT_TYPE_NOSNIFF = False
+
+# Allow redirects to SMS protocol for text message functionality
+ALLOWED_REDIRECT_PROTOCOLS = ['http', 'https', 'sms']
 
 # Force HTTP in development
 if DEBUG:
@@ -65,6 +69,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',  # Add this for i18n
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -96,17 +101,29 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'donation.wsgi.application'
 
-# Database configuration (use PostgreSQL or MySQL for production)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'donation_db'),
-        'USER': os.getenv('DB_USER', 'donation_user'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'your_secure_password_here'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+# Database configuration
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    # Use Railway's PostgreSQL database
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Fallback to local PostgreSQL for development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', 'donation_db'),
+            'USER': os.getenv('DB_USER', 'donation_user'),
+            'PASSWORD': os.getenv('DB_PASSWORD', 'your_secure_password_here'),
+            'HOST': os.getenv('DB_HOST', 'localhost'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+        }
+    }
 
 # Database connection pooling (optional but recommended for production)
 if not DEBUG:
@@ -131,15 +148,31 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Internationalization settings
+# Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# Languages supported
+LANGUAGES = [
+    ('en', 'English'),
+    ('ms', 'Malay'),
+]
+
+# Locale paths - temporarily disabled until gettext tools are installed
+# LOCALE_PATHS = [
+#     os.path.join(BASE_DIR, 'locale'),
+# ]
+
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Add WhiteNoise for serving static files in production
+if not DEBUG or os.getenv('RAILWAY_ENVIRONMENT'):
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
