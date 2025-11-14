@@ -3,7 +3,7 @@ services:
     name: django-donation-app
     env: python
     plan: free
-    buildCommand: ./build.sh
+    buildCommand: pip install -r requirements.txt
     startCommand: gunicorn donation.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
@@ -14,8 +14,6 @@ services:
         generateValue: true
       - key: DEBUG
         value: "False"
-      - key: DISABLE_COLLECTSTATIC
-        value: "0"
 
 databases:
   - name: django-donation-db
