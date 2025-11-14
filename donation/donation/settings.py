@@ -125,8 +125,8 @@ if DATABASE_URL and HAS_DJ_DATABASE_URL:
             conn_health_checks=True,
         )
     }
-elif os.getenv('VERCEL'):
-    # Use SQLite for Vercel (simpler deployment)
+elif os.getenv('VERCEL') or os.getenv('RENDER'):
+    # Use SQLite for serverless deployments
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -134,15 +134,11 @@ elif os.getenv('VERCEL'):
         }
     }
 else:
-    # Fallback to local PostgreSQL for development
+    # Fallback to SQLite for development (more reliable than PostgreSQL)
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME', 'donation_db'),
-            'USER': os.getenv('DB_USER', 'donation_user'),
-            'PASSWORD': os.getenv('DB_PASSWORD', 'your_secure_password_here'),
-            'HOST': os.getenv('DB_HOST', 'localhost'),
-            'PORT': os.getenv('DB_PORT', '5432'),
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
@@ -190,10 +186,12 @@ LANGUAGES = [
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# For Vercel deployment
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'staticfiles_build', 'static')
-]
+# Static files directories (only if they exist)
+STATICFILES_DIRS = []
+if os.path.exists(os.path.join(BASE_DIR, 'static')):
+    STATICFILES_DIRS.append(os.path.join(BASE_DIR, 'static'))
+if os.path.exists(os.path.join(BASE_DIR, 'staticfiles_build', 'static')):
+    STATICFILES_DIRS.append(os.path.join(BASE_DIR, 'staticfiles_build', 'static'))
 
 # Add WhiteNoise for serving static files in production
 if not DEBUG or os.getenv('RAILWAY_ENVIRONMENT') or os.getenv('VERCEL'):
@@ -219,15 +217,7 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = 'moaaj.upm@gmail.com'
 EMAIL_USE_SSL = False
 
-# Print email settings for debugging
-print("\n=== Email Settings ===")
-print(f"EMAIL_BACKEND: {EMAIL_BACKEND}")
-print(f"EMAIL_HOST: {EMAIL_HOST}")
-print(f"EMAIL_PORT: {EMAIL_PORT}")
-print(f"EMAIL_USE_TLS: {EMAIL_USE_TLS}")
-print(f"EMAIL_HOST_USER: {EMAIL_HOST_USER}")
-print(f"DEFAULT_FROM_EMAIL: {DEFAULT_FROM_EMAIL}")
-print("===================\n")
+# Email settings configured above
 
 # Site settings
 SITE_DOMAIN = '127.0.0.1:8000'  # Development domain
