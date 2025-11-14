@@ -1,36 +1,19 @@
 FROM python:3.11-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV DJANGO_SETTINGS_MODULE=donation.settings
-
-# Set work directory
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    postgresql-client \
-    gcc \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y postgresql-client gcc libpq-dev && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python packages ONLY
+# Copy and install requirements
 COPY requirements.txt .
-RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Copy the entire project
+# Copy project
 COPY . .
-
-# Create directories
-RUN mkdir -p staticfiles media
-
-# Make manage.py executable
-RUN chmod +x manage.py
 
 # Expose port
 EXPOSE 8000
 
-# Start command - do Django setup at runtime, not build time
+# Simple start - NO collectstatic, NO migrations during build
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
