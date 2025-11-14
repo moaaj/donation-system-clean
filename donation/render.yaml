@@ -3,8 +3,27 @@ services:
     name: django-donation-app
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
-    startCommand: python manage.py runserver 0.0.0.0:$PORT
+    buildCommand: |
+      echo "Current directory: $(pwd)"
+      ls -la
+      echo "Looking for manage.py..."
+      find . -name "manage.py" -type f
+      pip install -r requirements.txt
+      cd donation 2>/dev/null || echo "No donation subdirectory"
+      python manage.py collectstatic --noinput
+    startCommand: |
+      echo "Starting app..."
+      echo "Current directory: $(pwd)"
+      ls -la
+      if [ -f "manage.py" ]; then
+        python manage.py runserver 0.0.0.0:$PORT
+      elif [ -f "donation/manage.py" ]; then
+        cd donation && python manage.py runserver 0.0.0.0:$PORT
+      else
+        echo "Cannot find manage.py"
+        find . -name "manage.py" -type f
+        exit 1
+      fi
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
