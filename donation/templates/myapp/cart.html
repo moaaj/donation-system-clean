@@ -6,7 +6,76 @@
 <div class="container mt-4">
     <h2><i class="fas fa-shopping-cart"></i> Your Cart</h2>
     
-    {% if regular_fees or individual_fees %}
+    {% if fee_statuses or regular_fees or individual_fees %}
+        <!-- Fee Statuses Section (with discounts) -->
+        {% if fee_statuses %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Your Fees</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Due Date</th>
+                            <th>Original Amount</th>
+                            <th>Discount</th>
+                            <th>Amount to Pay</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fee_status in fee_statuses %}
+                        <tr>
+                            <td>{{ fee_status.fee_structure.category.name }}</td>
+                            <td>{{ fee_status.due_date|date:"d M Y" }}</td>
+                            <td>
+                                {% if fee_status.discount_info.has_discount %}
+                                    <span class="text-decoration-line-through text-muted">RM {{ fee_status.discount_info.original_amount|floatformat:2 }}</span>
+                                {% else %}
+                                    RM {{ fee_status.amount|floatformat:2 }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if fee_status.discount_info.has_discount %}
+                                    <span class="badge bg-success">
+                                        -RM {{ fee_status.discount_info.total_discount|floatformat:2 }}
+                                    </span>
+                                    {% if fee_status.discount_info.waivers %}
+                                        <br><small class="text-muted">
+                                            {% for waiver in fee_status.discount_info.waivers %}
+                                                {{ waiver.type }}{% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong class="text-primary">RM {{ fee_status.discount_info.discounted_amount|floatformat:2 }}</strong>
+                            </td>
+                            <td>
+                                <form method="post" action="{% url 'myapp:remove_from_cart' %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="fee_status_id" value="{{ fee_status.id }}">
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash"></i> Remove
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="text-end">
+                    <h6>Fees Subtotal: RM {{ fee_statuses_total|floatformat:2 }}</h6>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Regular Fees Section -->
         {% if regular_fees %}
         <div class="card mb-4">
@@ -107,13 +176,104 @@
         </div>
         {% endif %}
 
+        <!-- PIBG Muafakat Donation Section -->
+        {% if donation_settings.is_enabled %}
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5><i class="fas fa-heart"></i> PIBG Muafakat Fund Donation</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">{{ donation_settings.donation_message }}</p>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <label class="form-label">
+                            {% if donation_settings.is_mandatory %}
+                                <strong>Select Donation Amount <span class="text-danger">*</span></strong>
+                            {% else %}
+                                <strong>Optional Donation Amount</strong>
+                            {% endif %}
+                        </label>
+                        
+                        <!-- Preset amounts -->
+                        <div class="row mb-3">
+                            {% if not donation_settings.is_mandatory %}
+                            <div class="col-6 col-md-4 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="donation_amount" id="no_donation" value="0" checked>
+                                    <label class="form-check-label btn btn-outline-secondary w-100 text-center" for="no_donation">
+                                        No Donation
+                                    </label>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% for amount in donation_settings.preset_amounts %}
+                            <div class="col-6 col-md-4 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="donation_amount" id="preset_{{ amount }}" value="{{ amount }}" 
+                                           {% if donation_settings.is_mandatory and forloop.first %}checked{% endif %}>
+                                    <label class="form-check-label btn btn-outline-primary w-100 text-center" for="preset_{{ amount }}">
+                                        RM {{ amount }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            <div class="col-6 col-md-4 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="donation_amount" id="custom_amount" value="custom">
+                                    <label class="form-check-label btn btn-outline-success w-100 text-center" for="custom_amount">
+                                        Custom Amount
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Custom amount input -->
+                        <div id="custom_amount_input" style="display: none;">
+                            <div class="input-group">
+                                <span class="input-group-text">RM</span>
+                                <input type="number" class="form-control" name="custom_donation_amount" 
+                                       min="{{ donation_settings.minimum_custom_amount }}" 
+                                       max="{{ donation_settings.maximum_custom_amount }}" 
+                                       step="0.01" placeholder="Enter amount">
+                            </div>
+                            <small class="form-text text-muted">
+                                Minimum: RM {{ donation_settings.minimum_custom_amount }}, 
+                                Maximum: RM {{ donation_settings.maximum_custom_amount }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Total and Checkout -->
         <div class="card">
             <div class="card-body">
                 <div class="text-end">
-                    <h4>Total: RM {{ total }}</h4>
+                    {% if fee_statuses_total > 0 %}
+                        <p class="text-muted">Fees: RM {{ fee_statuses_total|floatformat:2 }}</p>
+                    {% endif %}
+                    {% if regular_total > 0 %}
+                        <p class="text-muted">Regular Fees: RM {{ regular_total|floatformat:2 }}</p>
+                    {% endif %}
+                    {% if individual_total > 0 %}
+                        <p class="text-muted">Individual Fees: RM {{ individual_total|floatformat:2 }}</p>
+                    {% endif %}
+                    
+                    <!-- Donation Amount (if applicable) -->
+                    <div id="donation_summary" style="display: none;">
+                        <p class="text-muted">PIBG Donation: RM <span id="donation_amount_display">0.00</span></p>
+                    </div>
+                    
+                    <h4>Total: RM <span id="total_amount_display">{{ total|floatformat:2 }}</span></h4>
                     <form method="post" action="{% url 'myapp:checkout_cart' %}" style="display:inline;" id="checkoutForm">
                         {% csrf_token %}
+                        <!-- Hidden fields for donation -->
+                        <input type="hidden" name="donation_amount" id="selected_donation_amount" value="0">
+                        <input type="hidden" name="custom_donation_amount" id="selected_custom_donation_amount" value="">
+                        
                         <button type="submit" class="btn btn-success" id="checkoutBtn">
                             <i class="fas fa-credit-card"></i> Checkout
                         </button>
@@ -128,13 +288,113 @@
     {% endif %}
 </div>
 
+<!-- Hidden data for JavaScript -->
+<script type="application/json" id="cart-data">
+{
+    "baseTotal": {{ total|floatformat:2 }},
+    "donationSettings": {
+        "isEnabled": {{ donation_settings.is_enabled|yesno:"true,false" }},
+        "isMandatory": {{ donation_settings.is_mandatory|yesno:"true,false" }},
+        "minimumCustomAmount": {{ donation_settings.minimum_custom_amount }},
+        "maximumCustomAmount": {{ donation_settings.maximum_custom_amount }}
+    }
+}
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Get data from JSON script tag
+    const cartData = JSON.parse(document.getElementById('cart-data').textContent);
+    const baseTotal = cartData.baseTotal;
+    let currentDonation = 0;
+    
+    // Handle donation amount selection
+    const donationRadios = document.querySelectorAll('input[name="donation_amount"]');
+    const customAmountInput = document.querySelector('input[name="custom_donation_amount"]');
+    const customAmountDiv = document.getElementById('custom_amount_input');
+    const donationSummary = document.getElementById('donation_summary');
+    const donationAmountDisplay = document.getElementById('donation_amount_display');
+    const totalAmountDisplay = document.getElementById('total_amount_display');
+    const selectedDonationAmountInput = document.getElementById('selected_donation_amount');
+    const selectedCustomDonationAmountInput = document.getElementById('selected_custom_donation_amount');
+    
+    function updateTotal() {
+        const newTotal = baseTotal + currentDonation;
+        if (totalAmountDisplay) {
+            totalAmountDisplay.textContent = newTotal.toFixed(2);
+        }
+        
+        if (currentDonation > 0) {
+            if (donationAmountDisplay) {
+                donationAmountDisplay.textContent = currentDonation.toFixed(2);
+            }
+            if (donationSummary) {
+                donationSummary.style.display = 'block';
+            }
+        } else {
+            if (donationSummary) {
+                donationSummary.style.display = 'none';
+            }
+        }
+    }
+    
+    donationRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                if (customAmountDiv) customAmountDiv.style.display = 'block';
+                if (customAmountInput) customAmountInput.focus();
+                currentDonation = parseFloat(customAmountInput?.value) || 0;
+                if (selectedDonationAmountInput) selectedDonationAmountInput.value = 'custom';
+                if (selectedCustomDonationAmountInput) selectedCustomDonationAmountInput.value = customAmountInput?.value || '';
+            } else {
+                if (customAmountDiv) customAmountDiv.style.display = 'none';
+                currentDonation = parseFloat(this.value) || 0;
+                if (selectedDonationAmountInput) selectedDonationAmountInput.value = this.value;
+                if (selectedCustomDonationAmountInput) selectedCustomDonationAmountInput.value = '';
+            }
+            updateTotal();
+        });
+    });
+    
+    if (customAmountInput) {
+        customAmountInput.addEventListener('input', function() {
+            const customRadio = document.getElementById('custom_amount');
+            if (customRadio && customRadio.checked) {
+                currentDonation = parseFloat(this.value) || 0;
+                if (selectedCustomDonationAmountInput) selectedCustomDonationAmountInput.value = this.value;
+                updateTotal();
+            }
+        });
+    }
+    
     const checkoutForm = document.getElementById('checkoutForm');
     const checkoutBtn = document.getElementById('checkoutBtn');
     
     if (checkoutForm) {
         checkoutForm.addEventListener('submit', function(e) {
+            // Validate mandatory donation if required
+            if (cartData.donationSettings.isEnabled && cartData.donationSettings.isMandatory) {
+                const selectedDonation = document.querySelector('input[name="donation_amount"]:checked');
+                if (!selectedDonation || (selectedDonation.value === 'custom' && (!customAmountInput || !customAmountInput.value))) {
+                    e.preventDefault();
+                    alert('Please select a donation amount to continue.');
+                    return false;
+                }
+            }
+            
+            // Validate custom amount if selected
+            const customRadio = document.getElementById('custom_amount');
+            if (customRadio && customRadio.checked && customAmountInput) {
+                const customValue = parseFloat(customAmountInput.value);
+                const minAmount = cartData.donationSettings.minimumCustomAmount;
+                const maxAmount = cartData.donationSettings.maximumCustomAmount;
+                
+                if (customValue < minAmount || customValue > maxAmount) {
+                    e.preventDefault();
+                    alert(`Custom donation amount must be between RM ${minAmount} and RM ${maxAmount}.`);
+                    return false;
+                }
+            }
+            
             // Disable button to prevent double submission
             checkoutBtn.disabled = true;
             checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
@@ -147,6 +407,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
             checkoutForm.parentNode.insertBefore(loadingAlert, checkoutForm);
+            
+            return true;
         });
     }
 });

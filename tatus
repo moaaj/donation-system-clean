@@ -1,0 +1,5 @@
+[33mc401c4b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Update donation system with enhanced features and bug fixes
+[33m23082ad[m Fix NoReverseMatch errors and implement tamim123 fee filtering logic
+[33m9440b7e[m 🚀 Major Update: Enhanced Django Donation & School Fees System with AI Analytics
+[33m96fde28[m User profile icon acts as logout button, improved login UX, fixed logout on homepage, and navbar always available
+[33m91659fe[m Add PostgreSQL support with Docker deployment and setup scripts

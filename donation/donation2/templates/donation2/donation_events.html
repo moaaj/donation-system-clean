@@ -21,6 +21,7 @@
             {% endif %}
         </div>
     </div>
+    
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -44,7 +45,7 @@
                                 <tr>
                                     <td>{{ event.title }}</td>
                                     <td>{{ event.category.name }}</td>
-                                    <td>${{ event.target_amount }}</td>
+                                    <td>RM{{ event.target_amount }}</td>
                                     <td>{{ event.start_date }}</td>
                                     <td>{{ event.end_date }}</td>
                                     <td>
@@ -101,5 +102,15 @@
     .btn-info, .btn-warning, .btn-danger {
         margin-right: 0.25em;
     }
+    mark {
+        background-color: #fff3cd;
+        padding: 0.1em 0.2em;
+        border-radius: 0.2em;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
 </style>
+
 {% endblock %} 

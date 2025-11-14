@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base Template Test</title>
+</head>
+<body>
+    <h1>Base Template Test</h1>
+    
+    <h2>Testing if the base template is working correctly:</h2>
+    
+    <div style="background: #e8f4fd; padding: 20px; border-radius: 10px; margin: 20px 0;">
+        <h3>🔍 What to Check:</h3>
+        <ol>
+            <li>Open the Django development server: <code>python manage.py runserver</code></li>
+            <li>Go to <code>http://127.0.0.1:8000/</code></li>
+            <li>Look for the navigation bar with "Charity Platform" title</li>
+            <li>Look for the language switcher buttons on the right side</li>
+        </ol>
+    </div>
+    
+    <div style="background: #d4edda; padding: 20px; border-radius: 10px; margin: 20px 0;">
+        <h3>✅ Expected Result:</h3>
+        <p>You should see a dark blue navigation bar with:</p>
+        <ul>
+            <li>Left side: "Charity Platform" title</li>
+            <li>Right side: Navigation links (Home, Donate, Events, etc.)</li>
+            <li>Far right: Two language buttons "ENGLISH" and "MALAY"</li>
+        </ul>
+    </div>
+    
+    <div style="background: #f8d7da; padding: 20px; border-radius: 10px; margin: 20px 0;">
+        <h3>❌ If you don't see the language switcher:</h3>
+        <ol>
+            <li>Check if the Django server is running</li>
+            <li>Check browser console for JavaScript errors</li>
+            <li>Try refreshing the page</li>
+            <li>Check if the base.html template is being used</li>
+        </ol>
+    </div>
+    
+    <h3>Debug Steps:</h3>
+    <ol>
+        <li>Open browser developer tools (F12)</li>
+        <li>Check the Console tab for any errors</li>
+        <li>Check the Network tab to see if CSS/JS files are loading</li>
+        <li>Inspect the navigation bar element to see if the language switcher is there</li>
+    </ol>
+    
+    <h3>Alternative Test:</h3>
+    <p>Open the file <code>test_language_switcher.html</code> in your browser to see how the language switcher should look.</p>
+</body>
+</html>

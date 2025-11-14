@@ -1,5 +1,6 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
+from .waqaf_admin import waqaf_admin_site
 
 app_name = 'waqaf'  # Add namespace for the app
 
@@ -12,6 +13,9 @@ urlpatterns = [
     path('ai-analytics/', views.waqaf_ai_analytics, name='waqaf_ai_analytics'),
     path('add-asset/', views.add_waqaf_asset, name='add_waqaf_asset'),
     path('delete-asset/<int:asset_id>/', views.delete_waqaf_asset, name='delete_waqaf_asset'),
+    path('archive-asset/<int:asset_id>/', views.archive_asset, name='archive_asset'),
+    path('unarchive-asset/<int:asset_id>/', views.unarchive_asset, name='unarchive_asset'),
+    path('archived-assets/', views.view_archived_assets, name='view_archived_assets'),
     
     # Cart URLs
     path('cart/', views.view_waqaf_cart, name='view_waqaf_cart'),
@@ -22,4 +26,7 @@ urlpatterns = [
     path('cart/checkout/', views.checkout_waqaf_cart, name='checkout_waqaf_cart'),
     path('cart/success/', views.waqaf_success, name='waqaf_success'),
     path('cart/count/', views.get_waqaf_cart_count, name='get_waqaf_cart_count'),
+    
+    # Waqaf Admin URLs
+    path('admin/', waqaf_admin_site.urls),
 ]

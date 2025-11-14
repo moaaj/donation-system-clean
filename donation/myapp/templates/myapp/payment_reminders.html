@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load myapp_filters %}
 
 {% block title %}Payment Reminders{% endblock %}
 
@@ -39,11 +40,24 @@
                                 <tr>
                                     <td>{{ payment.student.first_name }} {{ payment.student.last_name }}</td>
                                     <td>{{ payment.fee_structure.category.name }}</td>
-                                    <td>RM {{ payment.amount|floatformat:2 }}</td>
-                                    <td>{{ payment.payment_date|date:"d M Y" }}</td>
-                                    <td>{{ payment.payment_date|timeuntil }}</td>
                                     <td>
-                                        <a href="{% url 'myapp:send_payment_reminder' payment.id %}" class="btn btn-sm btn-warning">
+                                        {% if payment.get_discounted_amount %}
+                                            RM {{ payment.get_discounted_amount|floatformat:2 }}
+                                            {% if payment.get_discount_info.has_discount %}
+                                                <br><small class="text-muted">Original: RM {{ payment.amount|floatformat:2 }}</small>
+                                            {% endif %}
+                                        {% else %}
+                                            RM {{ payment.amount|floatformat:2 }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ payment.due_date|date:"d M Y" }}</td>
+                                    <td>
+                                        {% with days_overdue=payment.due_date|days_since %}
+                                            {{ days_overdue }} days overdue
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'myapp:reminder_options' payment.id %}" class="btn btn-sm btn-warning">
                                             <i class="fas fa-envelope"></i> Send Reminder
                                         </a>
                                         <a href="{% url 'myapp:generate_reminder_letter' payment.id %}" class="btn btn-sm btn-info">
@@ -92,14 +106,27 @@
                                 <tr>
                                     <td>{{ payment.student.first_name }} {{ payment.student.last_name }}</td>
                                     <td>{{ payment.fee_structure.category.name }}</td>
-                                    <td>RM {{ payment.amount|floatformat:2 }}</td>
-                                    <td>{{ payment.payment_date|date:"d M Y" }}</td>
-                                    <td>{{ payment.payment_date|timeuntil }}</td>
                                     <td>
-                                                                                 <a href="{% url 'myapp:send_payment_reminder' payment.id %}" class="btn btn-sm btn-warning">
-                                             <i class="fas fa-envelope"></i> Send Reminder
-                                         </a>
-                                         <a href="{% url 'myapp:generate_reminder_letter' payment.id %}" class="btn btn-sm btn-info">
+                                        {% if payment.get_discounted_amount %}
+                                            RM {{ payment.get_discounted_amount|floatformat:2 }}
+                                            {% if payment.get_discount_info.has_discount %}
+                                                <br><small class="text-muted">Original: RM {{ payment.amount|floatformat:2 }}</small>
+                                            {% endif %}
+                                        {% else %}
+                                            RM {{ payment.amount|floatformat:2 }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ payment.due_date|date:"d M Y" }}</td>
+                                    <td>
+                                        {% with days_until=payment.due_date|days_until %}
+                                            {{ days_until }} days until due
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'myapp:reminder_options' payment.id %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-envelope"></i> Send Reminder
+                                        </a>
+                                        <a href="{% url 'myapp:generate_reminder_letter' payment.id %}" class="btn btn-sm btn-info">
                                             <i class="fas fa-file-alt"></i> Generate Letter
                                         </a>
                                     </td>

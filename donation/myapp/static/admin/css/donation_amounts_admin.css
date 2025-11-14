@@ -1,0 +1,259 @@
+/* Enhanced admin styles for donation amounts management */
+
+/* Amount input fields styling */
+.field-amount_1 input,
+.field-amount_2 input,
+.field-amount_3 input,
+.field-amount_4 input,
+.field-amount_5 input,
+.field-amount_6 input,
+.field-amount_7 input,
+.field-amount_8 input {
+    width: 120px !important;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: right;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+/* Add RM prefix styling */
+.field-amount_1 .help,
+.field-amount_2 .help,
+.field-amount_3 .help,
+.field-amount_4 .help,
+.field-amount_5 .help,
+.field-amount_6 .help,
+.field-amount_7 .help,
+.field-amount_8 .help {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+
+/* Amount field labels */
+.field-amount_1 label,
+.field-amount_2 label,
+.field-amount_3 label,
+.field-amount_4 label,
+.field-amount_5 label,
+.field-amount_6 label,
+.field-amount_7 label,
+.field-amount_8 label {
+    font-weight: 600;
+    color: #333;
+}
+
+/* Add visual indicators for amount fields */
+.field-amount_1::before,
+.field-amount_2::before,
+.field-amount_3::before,
+.field-amount_4::before,
+.field-amount_5::before,
+.field-amount_6::before,
+.field-amount_7::before,
+.field-amount_8::before {
+    content: "RM";
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-weight: 500;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Adjust input padding to accommodate RM prefix */
+.field-amount_1 input,
+.field-amount_2 input,
+.field-amount_3 input,
+.field-amount_4 input,
+.field-amount_5 input,
+.field-amount_6 input,
+.field-amount_7 input,
+.field-amount_8 input {
+    padding-left: 35px !important;
+    position: relative;
+}
+
+/* Container for amount fields */
+.field-amount_1,
+.field-amount_2,
+.field-amount_3,
+.field-amount_4,
+.field-amount_5,
+.field-amount_6,
+.field-amount_7,
+.field-amount_8 {
+    position: relative;
+    display: inline-block;
+    margin-right: 15px;
+    margin-bottom: 15px;
+    vertical-align: top;
+}
+
+/* Responsive layout for amount fields */
+@media (max-width: 768px) {
+    .field-amount_1,
+    .field-amount_2,
+    .field-amount_3,
+    .field-amount_4,
+    .field-amount_5,
+    .field-amount_6,
+    .field-amount_7,
+    .field-amount_8 {
+        display: block;
+        margin-right: 0;
+        width: 100%;
+    }
+    
+    .field-amount_1 input,
+    .field-amount_2 input,
+    .field-amount_3 input,
+    .field-amount_4 input,
+    .field-amount_5 input,
+    .field-amount_6 input,
+    .field-amount_7 input,
+    .field-amount_8 input {
+        width: 100% !important;
+    }
+}
+
+/* Quick set buttons styling */
+#quick-set-buttons {
+    background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+    border: 1px solid #b3d9ff;
+}
+
+#quick-set-buttons h4 {
+    color: #0056b3;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.quick-set-btn {
+    transition: all 0.2s ease;
+    font-size: 12px;
+    margin: 2px 4px 2px 0 !important;
+}
+
+.quick-set-btn:hover {
+    background: #e7f3ff !important;
+    border-color: #0056b3 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 86, 179, 0.2);
+}
+
+#clear-all-btn:hover {
+    background: #f8d7da !important;
+    border-color: #b02a37 !important;
+    color: #721c24 !important;
+}
+
+/* Preview container styling */
+#donation-amounts-preview {
+    background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+#donation-amounts-preview h4 {
+    color: #333;
+    font-size: 14px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+#preview-amounts span {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+#preview-amounts span:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 124, 186, 0.3);
+}
+
+#preview-stats {
+    border-top: 1px solid #eee;
+    padding-top: 8px;
+    font-size: 11px;
+}
+
+/* Fieldset styling improvements */
+.module.aligned .form-row.field-amount_1,
+.module.aligned .form-row.field-amount_2,
+.module.aligned .form-row.field-amount_3,
+.module.aligned .form-row.field-amount_4,
+.module.aligned .form-row.field-amount_5,
+.module.aligned .form-row.field-amount_6,
+.module.aligned .form-row.field-amount_7,
+.module.aligned .form-row.field-amount_8 {
+    display: inline-block;
+    width: auto;
+    margin-right: 20px;
+    vertical-align: top;
+}
+
+/* Help text styling */
+.field-amount_1 .help,
+.field-amount_2 .help,
+.field-amount_3 .help,
+.field-amount_4 .help,
+.field-amount_5 .help,
+.field-amount_6 .help,
+.field-amount_7 .help,
+.field-amount_8 .help {
+    display: block;
+    font-size: 11px;
+    color: #666;
+    margin-top: 3px;
+    line-height: 1.2;
+}
+
+/* Success/error states */
+.field-amount_1 input.valid,
+.field-amount_2 input.valid,
+.field-amount_3 input.valid,
+.field-amount_4 input.valid,
+.field-amount_5 input.valid,
+.field-amount_6 input.valid,
+.field-amount_7 input.valid,
+.field-amount_8 input.valid {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+}
+
+.field-amount_1 input.error,
+.field-amount_2 input.error,
+.field-amount_3 input.error,
+.field-amount_4 input.error,
+.field-amount_5 input.error,
+.field-amount_6 input.error,
+.field-amount_7 input.error,
+.field-amount_8 input.error {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Animation for changes */
+@keyframes highlight {
+    0% { background-color: #fff3cd; }
+    100% { background-color: transparent; }
+}
+
+.field-amount_1 input:focus,
+.field-amount_2 input:focus,
+.field-amount_3 input:focus,
+.field-amount_4 input:focus,
+.field-amount_5 input:focus,
+.field-amount_6 input:focus,
+.field-amount_7 input:focus,
+.field-amount_8 input:focus {
+    animation: highlight 0.3s ease;
+}

@@ -116,11 +116,112 @@
     </div>
     {% endfor %}
 
+    <!-- Debug Information (remove in production) -->
+    {% if user.is_superuser %}
+    <div class="alert alert-info">
+        <strong>Debug Info:</strong> Found {{ pibg_donations|length }} PIBG donations. 
+        Total donations for student: {{ all_donations_count|default:"Unknown" }}
+        {% if pibg_donations %}
+        <br><strong>Donations found:</strong>
+        {% for donation in pibg_donations %}
+        <br>- {{ donation.receipt_number }}: RM{{ donation.amount }} ({{ donation.created_at|date:"M d, Y H:i" }})
+        {% endfor %}
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- ALWAYS show this message for testing -->
+    <div class="alert alert-warning">
+        <strong>TESTING:</strong> PIBG donations section will be shown below. 
+        Found {{ pibg_donations|length }} donations.
+        {% if pibg_donations %}
+        <br>Total donation amount: RM {% for donation in pibg_donations %}{{ donation.amount }}{% if not forloop.last %} + {% endif %}{% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- PIBG Muafakat Donations - Always show this section -->
+    <div class="card mb-4 shadow-sm" style="border-radius: 15px; border: 1px solid #e9ecef;">
+        <div class="card-header bg-white" style="border-bottom: 2px solid #f8f9fa; border-radius: 15px 15px 0 0;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-heart text-success me-2"></i>
+                    PIBG Muafakat Fund Donations
+                </h5>
+                {% if pibg_donations %}
+                <span class="badge bg-success px-3 py-2">Completed</span>
+                {% else %}
+                <span class="badge bg-warning px-3 py-2">No donations found</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            {% if pibg_donations %}
+            <!-- Student Information -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="text-muted mb-2">DONATION DETAILS</h6>
+                    <p class="mb-1"><strong>{{ student.first_name }} {{ student.last_name }}</strong></p>
+                    <p class="mb-1 text-muted">Student ID: {{ student.student_id }}</p>
+                    <p class="mb-0 text-muted">Class: {{ student.class_name|default:"Not specified" }}</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h6 class="text-muted mb-2">DONATION SUMMARY</h6>
+                    <p class="mb-1"><strong>Total Donations:</strong> {{ pibg_donations|length }}</p>
+                    <p class="mb-1"><strong>Total Amount:</strong> RM {% for donation in pibg_donations %}{{ donation.amount }}{% if not forloop.last %} + {% endif %}{% endfor %}</p>
+                    <p class="mb-0"><strong>Status:</strong> <span class="badge bg-success">Completed</span></p>
+                </div>
+            </div>
+
+            <!-- Donation Items -->
+            {% for donation in pibg_donations %}
+            <div class="bg-light rounded p-4 mb-3">
+                <h6 class="text-muted mb-3">PIBG MUAFAKAT DONATION #{{ forloop.counter }}</h6>
+                <div class="row">
+                    <div class="col-md-8">
+                        <p class="mb-2">
+                            <strong>PIBG Muafakat Fund Donation</strong>
+                        </p>
+                        <small class="text-muted">
+                            Receipt: {{ donation.receipt_number }}<br>
+                            Date: {{ donation.created_at|date:"M d, Y H:i" }}<br>
+                            Payment Method: {{ donation.get_payment_method_display }}
+                        </small>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <p class="mb-1"><strong>Amount:</strong> RM {{ donation.amount }}</p>
+                        <p class="mb-0"><strong>Status:</strong> <span class="badge bg-success">{{ donation.get_status_display }}</span></p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Donation Notes -->
+            <div class="mb-3">
+                <h6 class="text-muted mb-2">ABOUT PIBG MUAFAKAT FUND</h6>
+                <p class="mb-0">Thank you for your generous contribution to the PIBG Muafakat Fund. Your donation helps improve school facilities and student programs.</p>
+            </div>
+            {% else %}
+            <!-- No donations found message -->
+            <div class="text-center py-4">
+                <i class="fas fa-info-circle text-muted" style="font-size: 2rem;"></i>
+                <h6 class="text-muted mt-3">No PIBG Muafakat donations found</h6>
+                <p class="text-muted mb-0">If you made a donation during this transaction, please contact support.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
     <!-- Total Summary -->
     <div class="card mb-4" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); border: none; border-radius: 15px;">
         <div class="card-body text-center">
             <h4 class="mb-2">Total Amount Due</h4>
+            {% if pibg_donations %}
+            <h2 class="text-primary mb-0">RM {{ invoices|sum:'total_amount' }} + RM {% for donation in pibg_donations %}{{ donation.amount }}{% if not forloop.last %} + {% endif %}{% endfor %}</h2>
+            <small class="text-muted">Includes school fees and PIBG Muafakat donations</small>
+            {% else %}
             <h2 class="text-primary mb-0">RM {{ invoices|sum:'total_amount' }}</h2>
+            <small class="text-muted">School fees only (no PIBG donations found)</small>
+            {% endif %}
         </div>
     </div>
 

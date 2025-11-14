@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Form 3 Fee Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-money-bill-wave text-primary"></i>
+                    Form 3 Fee Management
+                </h1>
+                <div class="text-muted">
+                    <i class="fas fa-user-shield"></i>
+                    Form 3 Administrator
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fee Structures Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list"></i>
+                        Form 3 Fee Structures
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if fee_structures %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Fee Category</th>
+                                        <th>Amount</th>
+                                        <th>Frequency</th>
+                                        <th>Status</th>
+                                        <th>Students Affected</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for fee_structure in fee_structures %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ fee_structure.category.name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ fee_structure.category.description }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="font-weight-bold text-success">
+                                                RM {{ fee_structure.amount|floatformat:2 }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-info">
+                                                {{ fee_structure.get_frequency_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if fee_structure.is_active %}
+                                                <span class="badge badge-success">Active</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-primary">
+                                                {{ form3_students.count }} students
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-outline-primary" 
+                                                        onclick="viewFeeDetails({{ fee_structure.id }})"
+                                                        title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-warning" 
+                                                        onclick="editFeeStructure({{ fee_structure.id }})"
+                                                        title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-money-bill-wave fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Form 3 Fee Structures Found</h5>
+                            <p class="text-muted">No fee structures have been created for Form 3 students yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fee Status Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie"></i>
+                        Form 3 Fee Status Overview
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if fee_statuses %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Fee Category</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Due Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for fee_status in fee_statuses %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'form3_admin:student_detail' fee_status.student.id %}" 
+                                               class="text-decoration-none">
+                                                {{ fee_status.student.first_name }} {{ fee_status.student.last_name }}
+                                            </a>
+                                            <br>
+                                            <small class="text-muted">{{ fee_status.student.student_id }}</small>
+                                        </td>
+                                        <td>{{ fee_status.fee_structure.category.name }}</td>
+                                        <td>
+                                            <span class="font-weight-bold text-success">
+                                                RM {{ fee_status.amount|floatformat:2 }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if fee_status.status == 'paid' %}
+                                                <span class="badge badge-success">Paid</span>
+                                            {% elif fee_status.status == 'pending' %}
+                                                <span class="badge badge-warning">Pending</span>
+                                            {% elif fee_status.status == 'overdue' %}
+                                                <span class="badge badge-danger">Overdue</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">{{ fee_status.get_status_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if fee_status.due_date %}
+                                                {{ fee_status.due_date|date:"M d, Y" }}
+                                                {% if fee_status.status != 'paid' and fee_status.due_date < today %}
+                                                    <br><small class="text-danger">Overdue</small>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                {% if fee_status.status != 'paid' %}
+                                                    <button class="btn btn-outline-success" 
+                                                            onclick="markAsPaid({{ fee_status.id }})"
+                                                            title="Mark as Paid">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                {% endif %}
+                                                <button class="btn btn-outline-primary" 
+                                                        onclick="viewFeeStatus({{ fee_status.id }})"
+                                                        title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Fee Status Records Found</h5>
+                            <p class="text-muted">No fee status records have been created for Form 3 students yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-bolt"></i>
+                        Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'form3_admin:add_individual_fee' %}" class="btn btn-success btn-block">
+                                <i class="fas fa-plus"></i>
+                                Add Individual Fee
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-primary btn-block" onclick="createFeeStructure()">
+                                <i class="fas fa-plus-circle"></i>
+                                Create Fee Structure
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-info btn-block" onclick="bulkUpdateFees()">
+                                <i class="fas fa-edit"></i>
+                                Bulk Update Fees
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-warning btn-block" onclick="generateFeeReport()">
+                                <i class="fas fa-file-pdf"></i>
+                                Generate Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Dashboard -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="{% url 'form3_admin:dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for interactive features -->
+<script>
+function viewFeeDetails(feeStructureId) {
+    // Implement view fee details functionality
+    alert('View fee details for structure ID: ' + feeStructureId);
+}
+
+function editFeeStructure(feeStructureId) {
+    // Implement edit fee structure functionality
+    alert('Edit fee structure ID: ' + feeStructureId);
+}
+
+function markAsPaid(feeStatusId) {
+    if (confirm('Are you sure you want to mark this fee as paid?')) {
+        // Send AJAX request to mark fee as paid
+        fetch(`/myapp/fee-status/${feeStatusId}/mark-paid/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                alert(data.message);
+                // Reload the page to update the status
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while marking the fee as paid.');
+        });
+    }
+}
+
+function viewFeeStatus(feeStatusId) {
+    // Implement view fee status functionality
+    alert('View fee status ID: ' + feeStatusId);
+}
+
+function createFeeStructure() {
+    // Implement create fee structure functionality
+    alert('Create new fee structure');
+}
+
+function bulkUpdateFees() {
+    // Implement bulk update fees functionality
+    alert('Bulk update fees');
+}
+
+function generateFeeReport() {
+    // Implement generate fee report functionality
+    alert('Generate fee report');
+}
+</script>
+{% endblock %}

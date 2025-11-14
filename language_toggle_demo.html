@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Toggle Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .navbar {
+            background-color: #2c3e50;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .navbar-brand {
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .nav-link {
+            color: #ecf0f1;
+            margin: 0 10px;
+            text-decoration: none;
+        }
+        
+        .nav-link:hover {
+            color: #3498db;
+        }
+        
+        /* Language Toggle Switch Styles */
+        .language-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+        }
+        
+        .language-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #ecf0f1;
+            min-width: 20px;
+            text-align: center;
+        }
+        
+        .language-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .language-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #3498db;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .slider.round {
+            border-radius: 24px;
+        }
+        
+        .slider.round:before {
+            border-radius: 50%;
+        }
+        
+        /* Hover effects */
+        .language-toggle-container:hover .language-label {
+            color: #3498db;
+        }
+        
+        .language-switch:hover .slider {
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        
+        .demo-content {
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        .demo-title {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .demo-text {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .status {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <!-- Navigation Bar with Toggle -->
+        <nav class="navbar">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="navbar-brand">Charity Platform</div>
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <a href="#" class="nav-link">Home</a>
+                    <a href="#" class="nav-link">Donate</a>
+                    <a href="#" class="nav-link">Events</a>
+                    <a href="#" class="nav-link">School Fees</a>
+                    
+                    <!-- Language Toggle -->
+                    <div class="language-toggle-container">
+                        <span class="language-label">EN</span>
+                        <label class="language-switch">
+                            <input type="checkbox" id="languageToggle" onchange="toggleLanguage()">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="language-label">MS</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Demo Content -->
+        <div class="demo-content">
+            <h1 class="demo-title" id="demoTitle">Make a Difference Today</h1>
+            <p class="demo-text" id="demoText">
+                Join us in our mission to support education, provide donations, and manage waqaf properties for a better tomorrow.
+            </p>
+            
+            <div class="status" id="status">
+                <strong>Current Language:</strong> <span id="currentLang">English</span><br>
+                <strong>Toggle Position:</strong> <span id="togglePos">Left (EN)</span>
+            </div>
+            
+            <h3>How the Toggle Works:</h3>
+            <ul style="text-align: left; max-width: 600px; margin: 0 auto;">
+                <li><strong>Left Position (EN):</strong> English language is active</li>
+                <li><strong>Right Position (MS):</strong> Malay language is active</li>
+                <li><strong>Click the toggle:</strong> Switches between languages instantly</li>
+                <li><strong>Visual Feedback:</strong> Smooth animation and color changes</li>
+                <li><strong>Persistent:</strong> Language choice is remembered across sessions</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Demo language content
+        const content = {
+            en: {
+                title: "Make a Difference Today",
+                text: "Join us in our mission to support education, provide donations, and manage waqaf properties for a better tomorrow.",
+                currentLang: "English",
+                togglePos: "Left (EN)"
+            },
+            ms: {
+                title: "Buat Perbezaan Hari Ini",
+                text: "Sertai kami dalam misi untuk menyokong pendidikan, memberikan derma, dan menguruskan harta waqaf untuk masa depan yang lebih baik.",
+                currentLang: "Malay",
+                togglePos: "Right (MS)"
+            }
+        };
+        
+        let currentLanguage = 'en';
+        
+        function toggleLanguage() {
+            const toggle = document.getElementById('languageToggle');
+            
+            // Toggle language
+            currentLanguage = toggle.checked ? 'ms' : 'en';
+            
+            // Update content
+            document.getElementById('demoTitle').textContent = content[currentLanguage].title;
+            document.getElementById('demoText').textContent = content[currentLanguage].text;
+            document.getElementById('currentLang').textContent = content[currentLanguage].currentLang;
+            document.getElementById('togglePos').textContent = content[currentLanguage].togglePos;
+            
+            // Add visual feedback
+            const slider = document.querySelector('.slider');
+            slider.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                slider.style.transform = 'scale(1)';
+            }, 200);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Language toggle demo loaded');
+        });
+    </script>
+</body>
+</html>

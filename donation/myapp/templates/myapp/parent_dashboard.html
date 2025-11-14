@@ -1,0 +1,142 @@
+{% extends 'myapp/base_ubac.html' %}
+{% load myapp_filters %}
+
+{% block title %}Parent Portal - Dashboard{% endblock %}
+
+{% block content %}
+<!-- Success Messages -->
+{% if messages %}
+<div class="row">
+    <div class="col-12">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-home"></i> Parent Portal - Dashboard</h2>
+            <div>
+                <a href="{% url 'myapp:parent_payment_history' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-history"></i> Payment History
+                </a>
+                <a href="{% url 'myapp:parent_view_cart' %}" class="btn btn-success ms-2">
+                    <i class="fas fa-shopping-cart"></i> View Cart 
+                    {% if cart_items_count > 0 %}({{ cart_items_count }}){% else %}(Empty){% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Parent Information Card -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-user"></i> Parent Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Name:</strong> {{ parent.user.get_full_name }}</p>
+                <p><strong>Username:</strong> {{ parent.user.username }}</p>
+                <p><strong>Phone:</strong> {{ parent.phone_number }}</p>
+                <p><strong>Children:</strong> {{ children|length }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Summary</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Total Outstanding:</strong> <span class="text-danger">RM {{ total_outstanding|floatformat:2 }}</span></p>
+                <p><strong>Total Paid:</strong> <span class="text-success">RM {{ total_paid|floatformat:2 }}</span></p>
+                <p><strong>Cart Total:</strong> <span class="text-warning">RM {{ cart_total|floatformat:2 }}</span></p>
+                <p><strong>Items in Cart:</strong> {{ cart_items_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Children Cards -->
+<div class="row">
+    <div class="col-12">
+        <h3 class="mb-4"><i class="fas fa-users"></i> Your Children</h3>
+    </div>
+    
+    {% for child_data in children %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-graduate me-2"></i>
+                    {{ child_data.child.first_name }} {{ child_data.child.last_name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Student ID:</strong> {{ child_data.child.student_id }}</p>
+                <p><strong>Form:</strong> {{ child_data.child.level_custom }} {{ child_data.child.class_name }}</p>
+                <p><strong>Program:</strong> {{ child_data.child.program }}</p>
+                
+                <hr>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="text-danger">
+                            <strong>RM {{ child_data.outstanding_amount|floatformat:2 }}</strong>
+                            <br><small>Outstanding ({{ child_data.outstanding_count }} fees)</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-success">
+                            <strong>RM {{ child_data.paid_amount|floatformat:2 }}</strong>
+                            <br><small>Paid This Year</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'myapp:parent_child_fees' child_data.child.id %}" class="btn btn-primary w-100">
+                    <i class="fas fa-eye me-1"></i> View & Pay Fees
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle me-2"></i>
+            No children found. Please contact the school administration.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Quick Actions -->
+{% if cart_items_count > 0 %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-warning text-dark">
+            <div class="card-body text-center">
+                <h5><i class="fas fa-shopping-cart me-2"></i>You have {{ cart_items_count }} items in your cart</h5>
+                <p class="mb-3">Total: RM {{ cart_total|floatformat:2 }}</p>
+                <a href="{% url 'myapp:parent_view_cart' %}" class="btn btn-dark me-2">
+                    <i class="fas fa-eye me-1"></i> View Cart
+                </a>
+                <a href="{% url 'myapp:parent_checkout_cart' %}" class="btn btn-success">
+                    <i class="fas fa-credit-card me-1"></i> Checkout Now
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

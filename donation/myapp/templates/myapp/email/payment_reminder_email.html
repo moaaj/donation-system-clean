@@ -58,12 +58,13 @@
             <div class="payment-details">
                 <p><strong>Student ID:</strong> {{ payment.student.student_id }}</p>
                 <p><strong>Fee Category:</strong> {{ payment.fee_structure.category.name }}</p>
-                <p><strong>Amount Due:</strong> RM {{ payment.amount|floatformat:2 }}</p>
-                <p><strong>Due Date:</strong> {{ payment.payment_date|date:"d M Y" }}</p>
-                <p><strong>Status:</strong> {{ payment.status|title }}</p>
+                <p><strong>Original Amount:</strong> RM {{ payment.amount|floatformat:2 }}</p>
+                <p><strong>Amount Due:</strong> RM {{ amount_to_pay|floatformat:2 }}</p>
+                <p><strong>Due Date:</strong> {{ payment.due_date|date:"d M Y" }}</p>
+                <p><strong>Status:</strong> {{ days_text }}</p>
             </div>
 
-            {% if payment.payment_date < now %}
+            {% if is_overdue %}
             <p style="color: #dc3545;"><strong>This payment is overdue.</strong> Please make the payment as soon as possible to avoid any late fees or penalties.</p>
             {% else %}
             <p>This payment is due soon. Please ensure timely payment to avoid any late fees.</p>

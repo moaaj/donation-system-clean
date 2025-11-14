@@ -1,0 +1,1101 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Student Fee Collection Admin Dashboard" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-green: #27ae60;
+        --primary-blue: #3498db;
+        --primary-purple: #9b59b6;
+        --primary-red: #e74c3c;
+        --primary-orange: #f39c12;
+        --primary-yellow: #f1c40f;
+        --light-green: #d5f4e6;
+        --light-blue: #e8f4fd;
+        --light-purple: #f4e6f7;
+        --light-red: #fadbd8;
+        --light-orange: #fef5e7;
+        --light-yellow: #fef9e7;
+        --dark-green: #1e8449;
+        --dark-blue: #2980b9;
+        --dark-purple: #7d3c98;
+        --dark-red: #c0392b;
+        --dark-orange: #d68910;
+    }
+
+    .dashboard-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+
+    .dashboard-header {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .dashboard-title {
+        color: var(--dark-blue);
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .dashboard-subtitle {
+        color: #666;
+        font-size: 1.2rem;
+    }
+
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .summary-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .summary-card.actual-collection {
+        border-left: 5px solid var(--primary-green);
+        background: linear-gradient(135deg, var(--light-green) 0%, white 100%);
+    }
+
+    .summary-card.amount-due {
+        border-left: 5px solid var(--primary-blue);
+        background: linear-gradient(135deg, var(--light-blue) 0%, white 100%);
+    }
+
+    .summary-card.percentage {
+        border-left: 5px solid var(--primary-purple);
+        background: linear-gradient(135deg, var(--light-purple) 0%, white 100%);
+    }
+
+    .summary-card.total-students {
+        border-left: 5px solid var(--primary-orange);
+        background: linear-gradient(135deg, var(--light-orange) 0%, white 100%);
+    }
+
+    .card-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+    }
+
+    .card-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .card-label {
+        font-size: 1.1rem;
+        color: #666;
+        font-weight: 500;
+    }
+
+    .section-container {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .section-title {
+        color: var(--dark-blue);
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid var(--primary-blue);
+    }
+
+    .filter-controls {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+    }
+
+    .filter-select {
+        padding: 10px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        min-width: 150px;
+        transition: border-color 0.3s ease;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 25px;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .data-table th {
+        background: var(--primary-blue);
+        color: white;
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .data-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .data-table tr:hover {
+        background: #f8f9fa;
+    }
+
+    .category-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .category-card {
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .category-card.pta {
+        background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+    }
+
+    .category-card.activities {
+        background: linear-gradient(135deg, var(--primary-yellow), var(--dark-orange));
+    }
+
+    .category-card.exams {
+        background: linear-gradient(135deg, var(--primary-purple), var(--dark-purple));
+    }
+
+    .category-card.dormitory {
+        background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+    }
+
+    .chart-container {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .chart-placeholder {
+        height: 300px;
+        background: linear-gradient(45deg, #e0e0e0 25%, transparent 25%), 
+                    linear-gradient(-45deg, #e0e0e0 25%, transparent 25%), 
+                    linear-gradient(45deg, transparent 75%, #e0e0e0 75%), 
+                    linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
+        background-size: 20px 20px;
+        background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+        font-size: 1.2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .chart-placeholder::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+    }
+
+    .stat-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        border-left: 4px solid var(--primary-blue);
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--dark-blue);
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 5px;
+    }
+
+    .alert-box {
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+    }
+
+    .alert-warning {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+    }
+
+    .alert-danger {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+    }
+
+    .quick-action-btn {
+        padding: 15px;
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: #333;
+    }
+
+    .quick-action-btn:hover {
+        border-color: var(--primary-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .quick-action-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .quick-action-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .recent-activity {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 1.2rem;
+    }
+
+    .activity-icon.payment {
+        background: #d4edda;
+        color: #27ae60;
+    }
+
+    .activity-icon.reminder {
+        background: #fff3cd;
+        color: #f39c12;
+    }
+
+    .activity-icon.report {
+        background: #d1ecf1;
+        color: #3498db;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-title {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+
+    .activity-time {
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    .status-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .status-card {
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        color: white;
+        font-weight: 600;
+    }
+
+    .status-card.paid {
+        background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+    }
+
+    .status-card.not-paid {
+        background: linear-gradient(135deg, var(--primary-red), var(--dark-red));
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 30px;
+    }
+
+    .action-btn {
+        padding: 15px 30px;
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .action-btn.download {
+        background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+    }
+
+    .action-btn.print {
+        background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+    }
+
+    .action-btn.reminder {
+        background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 20px;
+        background: #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 10px 0;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary-green), var(--dark-green));
+        transition: width 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 10px;
+        }
+        
+        .summary-cards {
+            grid-template-columns: 1fr;
+        }
+        
+        .filter-controls {
+            flex-direction: column;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">{% trans "Student Fee Collection Admin Dashboard" %}</h1>
+            <p class="dashboard-subtitle">{% trans "Comprehensive fee management and reporting system" %}</p>
+            <div style="margin-top: 15px; color: #666; font-size: 1rem;">
+                <span>🕒 <span class="current-time"></span></span>
+            </div>
+        </div>
+
+        <!-- 1. Main Summary -->
+        <div class="summary-cards">
+            <div class="summary-card actual-collection">
+                <div class="card-icon">💰</div>
+                <div class="card-value">RM {{ actual_collection|floatformat:0|add:0|floatformat:0 }}</div>
+                <div class="card-label">{% trans "Actual Collection Amount" %}</div>
+            </div>
+            <div class="summary-card amount-due">
+                <div class="card-icon">🏫</div>
+                <div class="card-value">RM {{ amount_due|floatformat:0|add:0|floatformat:0 }}</div>
+                <div class="card-label">{% trans "Amount Due" %}</div>
+            </div>
+            <div class="summary-card percentage">
+                <div class="card-icon">📈</div>
+                <div class="card-value">{{ collection_percentage }}%</div>
+                <div class="card-label">{% trans "Collection Achievement" %}</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" data-width="{% if collection_percentage %}{{ collection_percentage|floatformat:0 }}{% else %}0{% endif %}"></div>
+                </div>
+            </div>
+            <div class="summary-card total-students">
+                <div class="card-icon">👨‍🎓</div>
+                <div class="card-value">{{ total_students }}</div>
+                <div class="card-label">{% trans "Total Students Registered" %}</div>
+            </div>
+        </div>
+
+        <!-- Quick Stats & Alerts -->
+        <div class="section-container">
+            <h2 class="section-title">{% trans "Quick Overview & Alerts" %}</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">RM 15,000</div>
+                    <div class="stat-label">{% trans "Outstanding Amount" %}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">130</div>
+                    <div class="stat-label">{% trans "Pending Payments" %}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">25</div>
+                    <div class="stat-label">{% trans "Overdue Payments" %}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">95%</div>
+                    <div class="stat-label">{% trans "Collection Rate" %}</div>
+                </div>
+            </div>
+
+            <div class="alert-box alert-success">
+                <span style="font-size: 1.5rem;">✅</span>
+                <div>
+                    <strong>{% trans "Collection Target Met!" %}</strong><br>
+                    {% trans "Current collection is 5% above the target for this month." %}
+                </div>
+            </div>
+
+            <div class="alert-box alert-warning">
+                <span style="font-size: 1.5rem;">⚠️</span>
+                <div>
+                    <strong>{% trans "25 Overdue Payments" %}</strong><br>
+                    {% trans "Please send reminders to students with overdue payments." %}
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <a href="#" class="quick-action-btn">
+                    <span class="quick-action-icon">📊</span>
+                    <div class="quick-action-label">{% trans "View Reports" %}</div>
+                </a>
+                <a href="#" class="quick-action-btn">
+                    <span class="quick-action-icon">📧</span>
+                    <div class="quick-action-label">{% trans "Send Reminders" %}</div>
+                </a>
+                <a href="#" class="quick-action-btn">
+                    <span class="quick-action-icon">📥</span>
+                    <div class="quick-action-label">{% trans "Export Data" %}</div>
+                </a>
+                <a href="#" class="quick-action-btn">
+                    <span class="quick-action-icon">⚙️</span>
+                    <div class="quick-action-label">{% trans "Settings" %}</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="section-container">
+            <h2 class="section-title">{% trans "Recent Activity" %}</h2>
+            
+            <div class="recent-activity">
+                <div class="activity-item">
+                    <div class="activity-icon payment">💰</div>
+                    <div class="activity-content">
+                        <div class="activity-title">{% trans "Payment Received" %}</div>
+                        <div class="activity-time">{% trans "Student John Doe paid RM 500 for Form 3A - 2 hours ago" %}</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon reminder">📧</div>
+                    <div class="activity-content">
+                        <div class="activity-title">{% trans "Reminder Sent" %}</div>
+                        <div class="activity-time">{% trans "Payment reminder sent to 15 students - 4 hours ago" %}</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon report">📊</div>
+                    <div class="activity-content">
+                        <div class="activity-title">{% trans "Report Generated" %}</div>
+                        <div class="activity-time">{% trans "Monthly collection report exported - 1 day ago" %}</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon payment">💰</div>
+                    <div class="activity-content">
+                        <div class="activity-title">{% trans "Bulk Payment" %}</div>
+                        <div class="activity-time">{% trans "25 students from Form 2B made payments - 2 days ago" %}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Report by Form & Class -->
+        <div class="section-container">
+            <h2 class="section-title">{% trans "Report by Form & Class" %}</h2>
+            
+            <div class="filter-controls">
+                <select class="filter-select">
+                    <option>{% trans "Report by" %}</option>
+                    <option>{% trans "Form" %}</option>
+                    <option>{% trans "Class" %}</option>
+                    <option>{% trans "Both" %}</option>
+                </select>
+                <select class="filter-select">
+                    <option>{% trans "Form" %}</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                </select>
+                <select class="filter-select">
+                    <option>{% trans "Class" %}</option>
+                    <option>A</option>
+                    <option>B</option>
+                    <option>C</option>
+                    <option>D</option>
+                    <option>E</option>
+                    <option>F</option>
+                </select>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Form" %}</th>
+                        <th>{% trans "Class" %}</th>
+                        <th>{% trans "Male" %}</th>
+                        <th>{% trans "Female" %}</th>
+                        <th>{% trans "Total Students" %}</th>
+                        <th>{% trans "Due (RM)" %}</th>
+                        <th>{% trans "Paid (RM)" %}</th>
+                        <th>{% trans "Outstanding (RM)" %}</th>
+                        <th>{% trans "% Achievement" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in form_class_data %}
+                    <tr>
+                        <td>{{ data.form }}</td>
+                        <td>{{ data.class }}</td>
+                        <td>{{ data.male }}</td>
+                        <td>{{ data.female }}</td>
+                        <td>{{ data.total }}</td>
+                        <td>{{ data.due|floatformat:0|add:0|floatformat:0 }}</td>
+                        <td>{{ data.paid|floatformat:0|add:0|floatformat:0 }}</td>
+                        <td>{{ data.outstanding|floatformat:0|add:0|floatformat:0 }}</td>
+                        <td>{{ data.achievement }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="chart-container">
+                <h4>{% trans "Collection by Form" %}</h4>
+                <div class="chart-placeholder">
+                    📊 {% trans "Bar Chart: Monthly Collection Trends (Jan-Dec)" %}
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h4>{% trans "Collection by Gender" %}</h4>
+                <div class="chart-placeholder">
+                    🥧 {% trans "Pie Chart: Male vs Female Distribution" %}
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h4>{% trans "Monthly Trend" %}</h4>
+                <div class="chart-placeholder">
+                    📈 {% trans "Line Chart: Collection Progress (Jan-Dec)" %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Report by Fee Category -->
+        <div class="section-container">
+            <h2 class="section-title">{% trans "Report by Fee Category" %}</h2>
+            
+            <div class="category-cards">
+                <div class="category-card pta">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">🏫</div>
+                    <div style="font-size: 1.5rem; margin-bottom: 5px;">{{ fee_categories.pta }}</div>
+                    <div>{% trans "PTA" %}</div>
+                </div>
+                <div class="category-card activities">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">🎯</div>
+                    <div style="font-size: 1.5rem; margin-bottom: 5px;">{{ fee_categories.activities }}</div>
+                    <div>{% trans "Activities" %}</div>
+                </div>
+                <div class="category-card exams">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">📝</div>
+                    <div style="font-size: 1.5rem; margin-bottom: 5px;">{{ fee_categories.exams }}</div>
+                    <div>{% trans "Exams" %}</div>
+                </div>
+                <div class="category-card dormitory">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">🏠</div>
+                    <div style="font-size: 1.5rem; margin-bottom: 5px;">{{ fee_categories.dormitory }}</div>
+                    <div>{% trans "Dormitory" %}</div>
+                </div>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Grade" %}</th>
+                        <th>{% trans "PTA" %}</th>
+                        <th>{% trans "Activities" %}</th>
+                        <th>{% trans "Exams" %}</th>
+                        <th>{% trans "Dormitory" %}</th>
+                        <th>{% trans "Amount Due" %}</th>
+                        <th>{% trans "Amount Paid" %}</th>
+                        <th>{% trans "% Achievement" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>80</td>
+                        <td>60</td>
+                        <td>40</td>
+                        <td>50</td>
+                        <td>20,000</td>
+                        <td>17,000</td>
+                        <td>85%</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>90</td>
+                        <td>70</td>
+                        <td>50</td>
+                        <td>60</td>
+                        <td>25,000</td>
+                        <td>21,250</td>
+                        <td>85%</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>100</td>
+                        <td>80</td>
+                        <td>60</td>
+                        <td>70</td>
+                        <td>30,000</td>
+                        <td>25,500</td>
+                        <td>85%</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>110</td>
+                        <td>90</td>
+                        <td>70</td>
+                        <td>80</td>
+                        <td>35,000</td>
+                        <td>29,750</td>
+                        <td>85%</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="chart-container">
+                <h4>{% trans "Categories by Grade" %}</h4>
+                <div class="chart-placeholder">
+                    📊 {% trans "Stacked Bar Chart: Fee Categories by Grade" %}
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h4>{% trans "Category Contribution" %}</h4>
+                <div class="chart-placeholder">
+                    🥧 {% trans "Pie Chart: Percentage Contribution of Each Category" %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Status of Students Who Have Paid & Not Paid -->
+        <div class="section-container">
+            <h2 class="section-title">{% trans "Status of Students Who Have Paid & Not Paid" %}</h2>
+            
+            <div class="status-cards">
+                <div class="status-card paid">
+                    <div style="font-size: 2.5rem; margin-bottom: 15px;">✅</div>
+                    <div style="font-size: 2rem; margin-bottom: 10px;">{{ paid_students }}</div>
+                    <div style="font-size: 1.2rem;">{% trans "Paid" %}</div>
+                    <div style="font-size: 1.5rem; margin-top: 10px;">{{ paid_percentage }}%</div>
+                </div>
+                <div class="status-card not-paid">
+                    <div style="font-size: 2.5rem; margin-bottom: 15px;">❌</div>
+                    <div style="font-size: 2rem; margin-bottom: 10px;">{{ not_paid_students }}</div>
+                    <div style="font-size: 1.2rem;">{% trans "Not Paid" %}</div>
+                    <div style="font-size: 1.5rem; margin-top: 10px;">{{ not_paid_percentage }}%</div>
+                </div>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Grade" %}</th>
+                        <th>{% trans "Class" %}</th>
+                        <th>{% trans "Males Have Paid" %}</th>
+                        <th>{% trans "Females Have Paid" %}</th>
+                        <th>{% trans "Males Have Not Paid" %}</th>
+                        <th>{% trans "Females Have Not Paid" %}</th>
+                        <th>{% trans "Total" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in grade_payment_data %}
+                    <tr>
+                        <td>{{ data.grade }}</td>
+                        <td>{{ data.class }}</td>
+                        <td>{{ data.males_paid }}</td>
+                        <td>{{ data.females_paid }}</td>
+                        <td>{{ data.males_not_paid }}</td>
+                        <td>{{ data.females_not_paid }}</td>
+                        <td>{{ data.total }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="chart-container">
+                <h4>{% trans "Paid vs Not Paid by Grade" %}</h4>
+                <div class="chart-placeholder">
+                    📊 {% trans "Stacked Bar Chart: Payment Status by Grade" %}
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h4>{% trans "Not Paid by Gender" %}</h4>
+                <div class="chart-placeholder">
+                    🥧 {% trans "Pie Chart: Unpaid Students by Gender" %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Action Section -->
+        <div class="section-container">
+            <h2 class="section-title">{% trans "Action Section" %}</h2>
+            
+            <div class="action-buttons">
+                <a href="{% url 'myapp:download_report' %}" class="action-btn download">
+                    <span>📥</span>
+                    {% trans "Download Report (all categories)" %}
+                </a>
+                <a href="{% url 'myapp:print_receipt' %}" class="action-btn print">
+                    <span>🖨️</span>
+                    {% trans "Print Receipt / Overdue Notice" %}
+                </a>
+                <a href="{% url 'myapp:send_reminder' %}" class="action-btn reminder">
+                    <span>📧</span>
+                    {% trans "Send Parent Reminder" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add some interactive features
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to summary cards
+    const summaryCards = document.querySelectorAll('.summary-card');
+    summaryCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px) scale(1.02)';
+            this.style.boxShadow = '0 15px 35px rgba(0,0,0,0.2)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+            this.style.boxShadow = '0 5px 20px rgba(0,0,0,0.1)';
+        });
+    });
+    
+    // Add click effects to action buttons
+    const actionButtons = document.querySelectorAll('.action-btn');
+    actionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            this.style.transform = 'translateY(-2px) scale(0.98)';
+            setTimeout(() => {
+                this.style.transform = 'translateY(0) scale(1)';
+            }, 150);
+        });
+    });
+    
+    // Add hover effects to quick action buttons
+    const quickActionBtns = document.querySelectorAll('.quick-action-btn');
+    quickActionBtns.forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            this.style.borderColor = '#3498db';
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            this.style.borderColor = '#e0e0e0';
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
+        });
+    });
+    
+    // Add filter functionality
+    const filterSelects = document.querySelectorAll('.filter-select');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            console.log('Filter changed:', this.value);
+            // Add visual feedback
+            this.style.borderColor = '#3498db';
+            setTimeout(() => {
+                this.style.borderColor = '#e0e0e0';
+            }, 1000);
+        });
+    });
+    
+    // Add click effects to category cards
+    const categoryCards = document.querySelectorAll('.category-card');
+    categoryCards.forEach(card => {
+        card.addEventListener('click', function() {
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 150);
+        });
+    });
+    
+    // Add click effects to status cards
+    const statusCards = document.querySelectorAll('.status-card');
+    statusCards.forEach(card => {
+        card.addEventListener('click', function() {
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 150);
+        });
+    });
+    
+    // Add animation to progress bars
+    const progressBars = document.querySelectorAll('.progress-fill');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 500);
+    });
+    
+    // Add real-time clock
+    function updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString();
+        const dateString = now.toLocaleDateString();
+        
+        // Update any clock elements if they exist
+        const clockElements = document.querySelectorAll('.current-time');
+        clockElements.forEach(element => {
+            element.textContent = `${dateString} ${timeString}`;
+        });
+    }
+    
+    // Update clock every second
+    setInterval(updateClock, 1000);
+    updateClock();
+    
+    // Add smooth scrolling for anchor links
+    const anchorLinks = document.querySelectorAll('a[href^="#"]');
+    anchorLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // Add loading animation for chart placeholders
+    const chartPlaceholders = document.querySelectorAll('.chart-placeholder');
+    chartPlaceholders.forEach(placeholder => {
+        placeholder.addEventListener('click', function() {
+            this.style.background = 'linear-gradient(45deg, #3498db 25%, transparent 25%), linear-gradient(-45deg, #3498db 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #3498db 75%), linear-gradient(-45deg, transparent 75%, #3498db 75%)';
+            this.style.backgroundSize = '20px 20px';
+            this.style.backgroundPosition = '0 0, 0 10px, 10px -10px, -10px 0px';
+            this.style.color = '#2c3e50';
+            this.innerHTML = '📊 Chart Loading...';
+            
+            setTimeout(() => {
+                this.style.background = 'linear-gradient(45deg, #e0e0e0 25%, transparent 25%), linear-gradient(-45deg, #e0e0e0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e0e0e0 75%), linear-gradient(-45deg, transparent 75%, #e0e0e0 75%)';
+                this.style.color = '#666';
+                this.innerHTML = '📊 Chart Placeholder - Click to Load';
+            }, 2000);
+        });
+    });
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+            switch(e.key) {
+                case 'r':
+                    e.preventDefault();
+                    location.reload();
+                    break;
+                case 'e':
+                    e.preventDefault();
+                    // Export functionality
+                    console.log('Export triggered');
+                    break;
+                case 's':
+                    e.preventDefault();
+                    // Save functionality
+                    console.log('Save triggered');
+                    break;
+            }
+        }
+    });
+    
+    // Add tooltip functionality
+    const tooltipElements = document.querySelectorAll('[data-tooltip]');
+    tooltipElements.forEach(element => {
+        element.addEventListener('mouseenter', function() {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.textContent = this.getAttribute('data-tooltip');
+            tooltip.style.cssText = `
+                position: absolute;
+                background: #2c3e50;
+                color: white;
+                padding: 8px 12px;
+                border-radius: 4px;
+                font-size: 0.8rem;
+                z-index: 1000;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            `;
+            document.body.appendChild(tooltip);
+            
+            const rect = this.getBoundingClientRect();
+            tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+            tooltip.style.top = rect.top - tooltip.offsetHeight - 10 + 'px';
+            
+            setTimeout(() => {
+                tooltip.style.opacity = '1';
+            }, 10);
+            
+            this.addEventListener('mouseleave', function() {
+                tooltip.remove();
+            }, { once: true });
+        });
+    });
+
+    // Set progress bar width from data attribute
+    const progressFill = document.querySelector('.progress-fill[data-width]');
+    if (progressFill) {
+        const width = progressFill.getAttribute('data-width');
+        progressFill.style.width = width + '%';
+    }
+});
+</script>
+{% endblock %}

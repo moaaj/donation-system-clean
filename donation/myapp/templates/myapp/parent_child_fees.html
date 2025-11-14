@@ -1,0 +1,291 @@
+{% extends 'myapp/base_ubac.html' %}
+{% load myapp_filters %}
+
+{% block title %}{{ child.first_name }}'s Fees - Parent Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-user-graduate"></i> {{ child.first_name }} {{ child.last_name }} - School Fees</h2>
+            <div>
+                <a href="{% url 'myapp:parent_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+                <a href="{% url 'myapp:parent_view_cart' %}" class="btn btn-success ms-2">
+                    <i class="fas fa-shopping-cart"></i> View Cart
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Child Information Card -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-user-graduate"></i> Student Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Name:</strong> {{ child.first_name }} {{ child.last_name }}</p>
+                <p><strong>Student ID:</strong> {{ child.student_id }}</p>
+                <p><strong>Form:</strong> {{ child.level_custom }} {{ child.class_name }}</p>
+                <p><strong>Program:</strong> {{ child.program }}</p>
+                <p><strong>Year Batch:</strong> {{ child.year_batch }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Fee Summary</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Outstanding Fees:</strong> {{ fee_statuses|length }}</p>
+                <p><strong>Individual Fees:</strong> {{ individual_fees|length }}</p>
+                <p><strong>Available Fees:</strong> {{ available_fees|length }}</p>
+                <p><strong>Payment History:</strong> {{ payment_history|length }} payments</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Outstanding Fee Statuses -->
+{% if fee_statuses %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-exclamation-triangle text-warning"></i> Outstanding School Fees</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Form</th>
+                                <th>Amount</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Discount</th>
+                                <th>Final Amount</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fee_status in fee_statuses %}
+                            <tr>
+                                <td>{{ fee_status.fee_structure.category.name }}</td>
+                                <td>{{ fee_status.fee_structure.form }}</td>
+                                <td>RM {{ fee_status.amount|floatformat:2 }}</td>
+                                <td>{{ fee_status.due_date|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if fee_status.status == 'overdue' %}
+                                        <span class="badge bg-danger">{{ fee_status.status|title }}</span>
+                                    {% elif fee_status.status == 'pending' %}
+                                        <span class="badge bg-warning">{{ fee_status.status|title }}</span>
+                                    {% else %}
+                                        <span class="badge bg-info">{{ fee_status.status|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% with discount_info=fee_status.get_discount_info %}
+                                        {% if discount_info.has_discount %}
+                                            <span class="text-success">{{ discount_info.discount_percentage }}% off</span>
+                                        {% else %}
+                                            <span class="text-muted">No discount</span>
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td>
+                                    <strong class="text-primary">RM {{ fee_status.get_discounted_amount|floatformat:2 }}</strong>
+                                </td>
+                                <td>
+                                    <form method="post" action="{% url 'myapp:parent_add_to_cart' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="fee_status_id" value="{{ fee_status.id }}">
+                                        <input type="hidden" name="student_id" value="{{ child.id }}">
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="fas fa-cart-plus"></i> Add to Cart
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Available Fee Structures -->
+{% if available_fees %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-list text-info"></i> Available Fee Structures</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Form</th>
+                                <th>Amount</th>
+                                <th>Frequency</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fee in available_fees %}
+                            <tr>
+                                <td>{{ fee.category.name }}</td>
+                                <td>{{ fee.form }}</td>
+                                <td>RM {{ fee.amount|floatformat:2 }}</td>
+                                <td>{{ fee.frequency|title }}</td>
+                                <td>
+                                    <form method="post" action="{% url 'myapp:parent_add_to_cart' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="fee_id" value="{{ fee.id }}">
+                                        <input type="hidden" name="student_id" value="{{ child.id }}">
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="fas fa-cart-plus"></i> Add to Cart
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Individual Student Fees -->
+{% if individual_fees %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-user-tag text-purple"></i> Individual Student Fees</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fee Name</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Due Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fee in individual_fees %}
+                            <tr>
+                                <td>{{ fee.name }}</td>
+                                <td>{{ fee.category.name }}</td>
+                                <td>{{ fee.description|truncatewords:10 }}</td>
+                                <td>RM {{ fee.amount|floatformat:2 }}</td>
+                                <td>{{ fee.due_date|date:"M d, Y" }}</td>
+                                <td>
+                                    <form method="post" action="{% url 'myapp:parent_add_to_cart' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="individual_fee_id" value="{{ fee.id }}">
+                                        <input type="hidden" name="student_id" value="{{ child.id }}">
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="fas fa-cart-plus"></i> Add to Cart
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- No Outstanding Fees -->
+{% if not fee_statuses and not individual_fees and not available_fees %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-success text-center">
+            <i class="fas fa-check-circle fa-3x mb-3"></i>
+            <h4>All Fees Paid!</h4>
+            <p>{{ child.first_name }} has no outstanding fees at this time.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Payment History -->
+{% if payment_history %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-history text-success"></i> Recent Payment History</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                                <th>Receipt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payment_history|slice:":10" %}
+                            <tr>
+                                <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                                <td>{{ payment.fee_structure.category.name|default:"Individual Fee" }}</td>
+                                <td>RM {{ payment.amount|floatformat:2 }}</td>
+                                <td>{{ payment.payment_method|title }}</td>
+                                <td>
+                                    <span class="badge bg-success">{{ payment.status|title }}</span>
+                                </td>
+                                <td>{{ payment.receipt_number|default:"N/A" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if payment_history|length > 10 %}
+                <div class="text-center mt-3">
+                    <a href="{% url 'myapp:parent_payment_history' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-1"></i> View All Payment History
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

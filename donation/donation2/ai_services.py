@@ -196,15 +196,28 @@ class DonationAIService:
 
 class UnifiedAIAssistant:
     def __init__(self):
-        self.greetings = ['hello', 'hi', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening']
-        self.farewells = ['bye', 'goodbye', 'see you', 'farewell', 'thank you', 'thanks']
+        self.greetings = ['hello', 'hi', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening', 'halo', 'hai']
+        self.farewells = ['bye', 'goodbye', 'see you', 'farewell', 'thank you', 'thanks', 'selamat tinggal', 'terima kasih']
         
-        # Keywords for module identification
+        # Enhanced keywords for better module identification
         self.module_keywords = {
-            'donation': ['donation', 'donate', 'fundraising', 'contribute', 'give', 'charity'],
-            'fees': ['fee', 'fees', 'payment', 'pay', 'school fees', 'tuition', 'payment status'],
-            'events': ['event', 'events', 'activity', 'activities', 'schedule', 'calendar'],
-            'waqaf': ['waqaf', 'endowment', 'islamic endowment', 'religious endowment', 'charitable trust']
+            'donation': ['donation', 'donate', 'fundraising', 'contribute', 'give', 'charity', 'sumbangan', 'derma', 'tabung'],
+            'fees': ['fee', 'fees', 'payment', 'pay', 'school fees', 'tuition', 'payment status', 'yuran', 'bayar', 'bayaran'],
+            'events': ['event', 'events', 'activity', 'activities', 'schedule', 'calendar', 'acara', 'aktiviti', 'program'],
+            'waqaf': ['waqaf', 'endowment', 'islamic endowment', 'religious endowment', 'charitable trust', 'wakaf'],
+            'student': ['student', 'students', 'registration', 'enroll', 'pelajar', 'murid', 'daftar'],
+            'receipt': ['receipt', 'resit', 'invoice', 'bil', 'proof', 'bukti'],
+            'help': ['help', 'bantuan', 'tolong', 'assist', 'support', 'sokongan']
+        }
+        
+        # Common question patterns
+        self.question_patterns = {
+            'how': ['how', 'bagaimana', 'macam mana', 'cara'],
+            'what': ['what', 'apa', 'apakah'],
+            'when': ['when', 'bila', 'kapan'],
+            'where': ['where', 'mana', 'di mana'],
+            'why': ['why', 'kenapa', 'mengapa'],
+            'who': ['who', 'siapa']
         }
         
         # Download required NLTK data
@@ -217,46 +230,214 @@ class UnifiedAIAssistant:
 
     def process_message(self, message, user=None):
         """Process user message and return appropriate response"""
+        original_message = message
         message = message.lower().strip()
         
         # Check for greetings
         if any(greeting in message for greeting in self.greetings):
-            return self._get_greeting_response()
+            return self._get_greeting_response(user)
         
         # Check for farewells
         if any(farewell in message for farewell in self.farewells):
             return self._get_farewell_response()
         
-        # Identify module and handle accordingly
-        module = self._identify_module(message)
-        if module == 'donation':
-            return self._handle_donation_query(message, user)
-        elif module == 'fees':
-            return self._handle_fees_query(message, user)
-        elif module == 'events':
-            return self._handle_events_query(message, user)
-        elif module == 'waqaf':
-            return self._handle_waqaf_query(message, user)
+        # Handle help requests
+        if any(help_word in message for help_word in self.module_keywords['help']):
+            return self._get_help_response()
         
-        return self._get_default_response()
+        # Identify question type for better responses
+        question_type = self._identify_question_type(message)
+        
+        # Identify module and handle accordingly
+        modules = self._identify_modules(message)  # Can identify multiple modules
+        
+        if 'donation' in modules:
+            return self._handle_donation_query(message, user, question_type)
+        elif 'fees' in modules:
+            return self._handle_fees_query(message, user, question_type)
+        elif 'events' in modules:
+            return self._handle_events_query(message, user, question_type)
+        elif 'waqaf' in modules:
+            return self._handle_waqaf_query(message, user, question_type)
+        elif 'student' in modules:
+            return self._handle_student_query(message, user, question_type)
+        elif 'receipt' in modules:
+            return self._handle_receipt_query(message, user, question_type)
+        
+        # Try to provide intelligent response based on keywords
+        return self._get_intelligent_response(message, user)
 
-    def _identify_module(self, message):
-        """Identify which module the query belongs to"""
+    def _handle_student_query(self, message, user, question_type='general'):
+        """Handle student-related queries"""
+        from myapp.models import Student
+        
+        if 'register' in message or 'registration' in message:
+            return {
+                'message': "👨‍🎓 **Student Registration Process:**\n\n📋 **Required Information:**\n• Student ID (unique)\n• NRIC number\n• Full name (first & last)\n• Class/Form level\n• Phone number\n• Program details\n\n📝 **Registration Steps:**\n1. Fill out student registration form\n2. Provide required documents\n3. Submit application\n4. Wait for approval\n5. Receive confirmation\n\nNeed help with the registration form?",
+                'suggestions': ['Registration form', 'Required documents', 'Class levels', 'Contact admin']
+            }
+        
+        elif 'information' in message or 'details' in message:
+            if user and user.is_authenticated:
+                try:
+                    if hasattr(user, 'myapp_profile') and user.myapp_profile.role == 'student':
+                        student = user.myapp_profile.student
+                        response = f"👨‍🎓 **Your Student Information:**\n\n"
+                        response += f"📋 **Name**: {student.first_name} {student.last_name}\n"
+                        response += f"🆔 **Student ID**: {student.student_id}\n"
+                        response += f"📚 **Level**: {student.get_level_display_value()}\n"
+                        if student.class_name:
+                            response += f"🏫 **Class**: {student.class_name}\n"
+                        response += f"📱 **Phone**: {student.phone_number or 'Not provided'}\n"
+                        response += f"✅ **Status**: {'Active' if student.is_active else 'Inactive'}"
+                        
+                        return {
+                            'message': response,
+                            'suggestions': ['Update information', 'Check fees', 'Payment history', 'Download receipt']
+                        }
+                except:
+                    pass
+            
+            return {
+                'message': "🔐 Please log in to view your student information.",
+                'suggestions': ['Login', 'Registration info', 'Contact admin']
+            }
+        
+        return {
+            'message': "👨‍🎓 **Student Services Help**\n\nI can help you with:\n• Student registration process\n• View student information\n• Class and level details\n• Academic matters\n• Contact information\n\nWhat would you like to know?",
+            'suggestions': ['Registration process', 'My student info', 'Class levels', 'Academic help']
+        }
+    
+    def _handle_receipt_query(self, message, user, question_type='general'):
+        """Handle receipt-related queries"""
+        from myapp.models import Payment
+        
+        if user and user.is_authenticated:
+            try:
+                if hasattr(user, 'myapp_profile') and user.myapp_profile.role == 'student':
+                    student = user.myapp_profile.student
+                    recent_payments = Payment.objects.filter(
+                        student=student, 
+                        status='completed'
+                    ).order_by('-payment_date')[:5]
+                    
+                    if recent_payments.exists():
+                        response = "🧾 **Available Receipts:**\n\n"
+                        for payment in recent_payments:
+                            response += f"📄 **Payment #{payment.id}**\n"
+                            response += f"   Amount: RM {payment.amount}\n"
+                            response += f"   Date: {payment.payment_date}\n"
+                            response += f"   Method: {payment.get_payment_method_display()}\n"
+                            if payment.receipt_number:
+                                response += f"   Receipt: {payment.receipt_number}\n"
+                            response += "\n"
+                        
+                        return {
+                            'message': response,
+                            'suggestions': ['Download receipt', 'Email receipt', 'Print receipt', 'Payment history']
+                        }
+                    else:
+                        return {
+                            'message': "📭 No completed payments found. Make a payment first to generate receipts.",
+                            'suggestions': ['Check fees', 'Make payment', 'Payment methods']
+                        }
+            except:
+                pass
+        
+        return {
+            'message': "🧾 **Receipt Information:**\n\n📋 **About Receipts:**\n• Generated automatically after successful payment\n• Available for download immediately\n• Can be emailed to your address\n• Include all payment details\n• Valid for tax purposes\n\n🔐 Login to access your receipts.",
+            'suggestions': ['Login', 'Payment methods', 'How to pay?']
+        }
+    
+    def _get_intelligent_response(self, message, user):
+        """Generate intelligent response for unrecognized queries"""
+        # Analyze sentiment
+        sentiment = self.sia.polarity_scores(message)
+        
+        # Check for common keywords and provide helpful responses
+        if 'problem' in message or 'issue' in message or 'error' in message:
+            return {
+                'message': "🔧 **Having Problems?**\n\nI'm here to help! Common issues and solutions:\n\n💳 **Payment Issues:**\n• Check payment method details\n• Verify account balance\n• Contact bank if needed\n\n🔐 **Login Problems:**\n• Reset password\n• Check username spelling\n• Clear browser cache\n\n📱 **Technical Issues:**\n• Refresh the page\n• Try different browser\n• Contact technical support\n\nWhat specific problem are you facing?",
+                'suggestions': ['Payment problems', 'Login issues', 'Technical support', 'Contact admin']
+            }
+        
+        elif 'contact' in message or 'phone' in message or 'email' in message:
+            return {
+                'message': "📞 **Contact Information:**\n\n🏫 **School Office:**\n• Phone: +60X-XXX-XXXX\n• Email: admin@school.edu.my\n• Office Hours: 8:00 AM - 5:00 PM\n\n💻 **Technical Support:**\n• Email: support@school.edu.my\n• Response time: 24-48 hours\n\n📍 **Address:**\nSchool Administration Office\n[School Address]\n\nHow else can I help you?",
+                'suggestions': ['Office hours', 'Email admin', 'Technical support', 'Visit office']
+            }
+        
+        # Default response with sentiment consideration
+        if sentiment['compound'] < -0.1:  # Negative sentiment
+            return {
+                'message': "😔 I sense you might be frustrated. I'm here to help make things easier!\n\n🤝 **I can assist with:**\n• School fees and payments\n• Donation events\n• Student services\n• Technical issues\n• General questions\n\nPlease tell me what's bothering you, and I'll do my best to help! 💪",
+                'suggestions': ['I have a problem', 'Payment issues', 'Technical help', 'Contact admin']
+            }
+        else:
+            return {
+                'message': "🤔 I'm not sure I understand that specific question, but I'm here to help!\n\n💡 **I can help you with:**\n• 🏫 School fees and payments\n• 💰 Donations and fundraising\n• 🕌 Waqaf (Islamic endowment)\n• 📅 Events and activities\n• 👨‍🎓 Student services\n\nTry asking me something like 'Check my fees' or 'Show donation events'!",
+                'suggestions': [
+                    'Check my fees',
+                    'Show donation events',
+                    'What is waqaf?',
+                    'Upcoming events',
+                    'Help me'
+                ]
+            }
+
+    def _identify_modules(self, message):
+        """Identify which modules the query belongs to (can be multiple)"""
+        identified_modules = []
         for module, keywords in self.module_keywords.items():
             if any(keyword in message for keyword in keywords):
-                return module
-        return None
-
-    def _get_greeting_response(self):
-        """Generate greeting response"""
+                identified_modules.append(module)
+        return identified_modules
+    
+    def _identify_question_type(self, message):
+        """Identify the type of question being asked"""
+        for q_type, patterns in self.question_patterns.items():
+            if any(pattern in message for pattern in patterns):
+                return q_type
+        return 'general'
+    
+    def _get_help_response(self):
+        """Generate help response"""
         return {
-            'message': "Hello! I'm your AI assistant. I can help you with donations, school fees, waqaf, and events. How can I assist you today?",
+            'message': "I'm here to help! I can assist you with:\n\n🏫 **School Fees & Payments**\n- Check fee status\n- Make payments\n- Apply for waivers\n\n💰 **Donations**\n- Current donation events\n- How to donate\n- Payment methods\n\n🕌 **Waqaf (Islamic Endowment)**\n- What is waqaf\n- Available assets\n- How to contribute\n\n📅 **Events & Activities**\n- Upcoming events\n- Event details\n- How to participate\n\n👨‍🎓 **Student Services**\n- Registration process\n- Student information\n- Academic matters\n\nJust ask me anything!",
             'suggestions': [
-                'Tell me about current donation events',
-                'How do I check my school fees?',
+                'Check my fees',
+                'Show donation events',
                 'What is waqaf?',
-                'What events are coming up?'
+                'Upcoming events',
+                'How to register?'
             ]
+        }
+
+    def _get_greeting_response(self, user=None):
+        """Generate personalized greeting response"""
+        if user and user.is_authenticated:
+            name = user.first_name if user.first_name else user.username
+            message = f"Hello {name}! 👋 Welcome back! I'm your AI assistant and I'm here to help you with:"
+        else:
+            message = "Hello! 👋 I'm your AI assistant and I'm here to help you with:"
+        
+        message += "\n\n🏫 **School Fees & Payments**\n💰 **Donations & Fundraising**\n🕌 **Waqaf (Islamic Endowment)**\n📅 **Events & Activities**\n👨‍🎓 **Student Services**\n\nWhat can I help you with today?"
+        
+        suggestions = [
+            'Check my fees',
+            'Show donation events', 
+            'What is waqaf?',
+            'Upcoming events',
+            'How to make payment?'
+        ]
+        
+        # Add personalized suggestions for authenticated users
+        if user and user.is_authenticated:
+            suggestions.insert(0, 'My account status')
+        
+        return {
+            'message': message,
+            'suggestions': suggestions
         }
 
     def _get_farewell_response(self):
@@ -266,61 +447,168 @@ class UnifiedAIAssistant:
             'suggestions': []
         }
 
-    def _handle_donation_query(self, message, user):
-        """Handle donation-related queries"""
-        if 'current' in message or 'active' in message:
-            active_events = DonationEvent.objects.filter(is_active=True)
+    def _handle_donation_query(self, message, user, question_type='general'):
+        """Handle donation-related queries with enhanced responses"""
+        from myapp.models import DonationEvent, Donation
+        
+        if 'current' in message or 'active' in message or 'events' in message:
+            active_events = DonationEvent.objects.filter(is_active=True).order_by('-created_at')
             if active_events.exists():
-                response = "Here are the current donation events:\n"
-                for event in active_events[:3]:
-                    response += f"- {event.title}: ${event.current_amount} / ${event.target_amount}\n"
+                response = "💰 **Current Donation Events:**\n\n"
+                for event in active_events[:4]:
+                    progress = (event.current_amount / event.target_amount * 100) if event.target_amount > 0 else 0
+                    progress_bar = "🟩" * int(progress // 10) + "⬜" * (10 - int(progress // 10))
+                    response += f"🎯 **{event.title}**\n"
+                    response += f"   Progress: RM {event.current_amount:,.2f} / RM {event.target_amount:,.2f}\n"
+                    response += f"   {progress_bar} {progress:.1f}%\n"
+                    if event.end_date:
+                        response += f"   📅 Ends: {event.end_date}\n"
+                    response += "\n"
+                
                 return {
                     'message': response,
-                    'suggestions': ['How do I make a donation?', 'What payment methods are accepted?']
+                    'suggestions': ['How to donate?', 'Payment methods', 'Event details', 'Donation history']
                 }
             return {
-                'message': "There are no active donation events at the moment.",
-                'suggestions': ['When will new events be available?']
+                'message': "📭 **No Active Events**\n\nThere are no active donation events at the moment. New events are regularly added, so please check back soon!\n\nYou can also contact the administration for information about upcoming fundraising campaigns.",
+                'suggestions': ['Contact admin', 'Notification settings', 'Past events', 'How to suggest event?']
             }
         
+        elif 'how' in message and ('donate' in message or 'contribute' in message):
+            return {
+                'message': "💝 **How to Make a Donation:**\n\n📋 **Step-by-Step Process:**\n1. Browse available donation events\n2. Select an event you'd like to support\n3. Choose your donation amount\n4. Provide your contact details\n5. Select payment method\n6. Complete the payment\n7. Receive confirmation & receipt\n\n💳 **Payment Methods:**\n• Credit/Debit Card\n• Bank Transfer\n• Online Banking\n• Cash (at office)\n\nReady to make a difference?",
+                'suggestions': ['Show current events', 'Payment methods', 'Donation amounts', 'Tax benefits']
+            }
+        
+        elif 'history' in message or 'my donations' in message:
+            if user and user.is_authenticated:
+                # Get user's donation history
+                donations = Donation.objects.filter(donor_email=user.email).order_by('-created_at')[:5]
+                if donations.exists():
+                    response = f"📊 **Your Donation History:**\n\n"
+                    total_donated = sum(d.amount for d in donations)
+                    for donation in donations:
+                        response += f"💰 RM {donation.amount} - {donation.event.title}\n"
+                        response += f"   📅 {donation.created_at.strftime('%d %b %Y')}\n\n"
+                    response += f"🎯 **Total Contributed**: RM {total_donated:,.2f}\n\nThank you for your generous support! 🙏"
+                    return {
+                        'message': response,
+                        'suggestions': ['Download receipts', 'Current events', 'Impact report']
+                    }
+                else:
+                    return {
+                        'message': "📭 You haven't made any donations yet. Would you like to explore current donation opportunities?",
+                        'suggestions': ['Show current events', 'How to donate?', 'Why donate?']
+                    }
+            else:
+                return {
+                    'message': "🔐 Please log in to view your donation history.",
+                    'suggestions': ['Login', 'Show current events']
+                }
+        
         return {
-            'message': "I can help you with donations. Would you like to know about current events or how to make a donation?",
-            'suggestions': ['Show current events', 'How to donate', 'Payment methods']
+            'message': "💰 **Donation Help**\n\nI can help you with:\n• Current donation events\n• How to make donations\n• Payment methods\n• Donation history\n• Impact reports\n\nWhat would you like to know?",
+            'suggestions': ['Show current events', 'How to donate?', 'Payment methods', 'My donations']
         }
 
-    def _handle_fees_query(self, message, user):
-        """Handle fee-related queries"""
+    def _handle_fees_query(self, message, user, question_type='general'):
+        """Handle fee-related queries with real database integration"""
+        from myapp.models import Student, FeeStatus, Payment, FeeStructure
+        
         if user and user.is_authenticated:
-            if 'check' in message or 'status' in message:
-                # Get student's fee status
-                try:
+            try:
+                # Try to get student profile
+                student = None
+                if hasattr(user, 'myapp_profile') and user.myapp_profile.role == 'student':
+                    student = user.myapp_profile.student
+                elif hasattr(user, 'student'):
                     student = user.student
-                    fee_statuses = FeeStatus.objects.filter(student=student).order_by('-due_date')
-                    if fee_statuses.exists():
-                        response = "Here's your fee status:\n"
-                        for status in fee_statuses[:3]:
-                            response += f"- {status.fee_structure.category.name}: ${status.amount} (Due: {status.due_date})\n"
+                
+                if student:
+                    if 'check' in message or 'status' in message or 'my fees' in message:
+                        # Get student's fee status
+                        fee_statuses = FeeStatus.objects.filter(
+                            student=student, 
+                            status__in=['pending', 'overdue']
+                        ).select_related('fee_structure__category').order_by('-due_date')
+                        
+                        if fee_statuses.exists():
+                            response = f"📋 **Fee Status for {student.first_name} {student.last_name}**\n\n"
+                            total_due = 0
+                            for status in fee_statuses[:5]:
+                                status_icon = "🔴" if status.status == 'overdue' else "🟡"
+                                response += f"{status_icon} **{status.fee_structure.category.name}**: RM {status.amount}\n"
+                                response += f"   Due: {status.due_date} ({status.get_status_display()})\n\n"
+                                total_due += status.amount
+                            
+                            response += f"💰 **Total Outstanding**: RM {total_due:.2f}"
+                            
+                            return {
+                                'message': response,
+                                'suggestions': ['How to make payment?', 'Payment methods', 'Apply for waiver', 'Payment history']
+                            }
+                        else:
+                            # Check recent payments
+                            recent_payments = Payment.objects.filter(
+                                student=student, 
+                                status='completed'
+                            ).order_by('-payment_date')[:3]
+                            
+                            if recent_payments.exists():
+                                response = f"✅ **Great news {student.first_name}!** All your fees are up to date!\n\n"
+                                response += "📋 **Recent Payments:**\n"
+                                for payment in recent_payments:
+                                    response += f"• RM {payment.amount} - {payment.payment_date}\n"
+                            else:
+                                response = "✅ No outstanding fees found. You're all caught up!"
+                            
+                            return {
+                                'message': response,
+                                'suggestions': ['View payment history', 'Download receipt', 'Fee structure info']
+                            }
+                    
+                    elif 'payment' in message and ('how' in message or 'method' in message):
                         return {
-                            'message': response,
-                            'suggestions': ['How do I make a payment?', 'View payment history', 'Apply for fee waiver']
+                            'message': "💳 **Payment Methods Available:**\n\n🏦 **Bank Transfer**\n💰 **Cash** (at school office)\n🌐 **Online Payment**\n\n📍 **How to Pay:**\n1. Go to School Fees section\n2. Select your outstanding fees\n3. Choose payment method\n4. Complete payment\n5. Download receipt\n\nNeed help with a specific payment method?",
+                            'suggestions': ['Bank transfer details', 'Online payment guide', 'Cash payment info', 'Payment problems']
                         }
-                except:
-                    pass
+                    
+                    elif 'waiver' in message or 'discount' in message:
+                        return {
+                            'message': "🎓 **Fee Waiver & Discount Options:**\n\n📋 **Available Types:**\n• Percentage-based discount (10-50%)\n• Fixed amount discount\n• Full fee waiver\n• Hardship assistance\n\n📝 **How to Apply:**\n1. Fill out waiver application form\n2. Provide supporting documents\n3. Submit for review\n4. Wait for approval notification\n\nWould you like to start an application?",
+                            'suggestions': ['Apply for waiver', 'Required documents', 'Check application status', 'Eligibility criteria']
+                        }
+                    
+                    elif 'history' in message or 'past' in message:
+                        payments = Payment.objects.filter(student=student, status='completed').order_by('-payment_date')[:5]
+                        if payments.exists():
+                            response = f"📊 **Payment History for {student.first_name}**\n\n"
+                            for payment in payments:
+                                response += f"💰 RM {payment.amount} - {payment.payment_date}\n"
+                                response += f"   Method: {payment.get_payment_method_display()}\n\n"
+                            return {
+                                'message': response,
+                                'suggestions': ['Download receipt', 'View all payments', 'Current fee status']
+                            }
+                        else:
+                            return {
+                                'message': "No payment history found. You haven't made any payments yet.",
+                                'suggestions': ['Check current fees', 'How to make payment?']
+                            }
+                
+            except Exception as e:
+                print(f"Error in fee query: {e}")
             
-            if 'waiver' in message or 'discount' in message:
-                return {
-                    'message': "You can apply for a fee waiver or discount through the fee waiver form. The available types are:\n- Percentage-based discount\n- Fixed amount discount\n- Full waiver\nWould you like to apply for a waiver?",
-                    'suggestions': ['Apply for waiver', 'Check eligibility', 'View waiver status']
-                }
-            
+            # General fee information for authenticated users
             return {
-                'message': "I can help you check your fee status, make payments, or apply for waivers. What would you like to do?",
-                'suggestions': ['Check fee status', 'Make a payment', 'Apply for waiver']
+                'message': "🏫 **School Fees Help**\n\nI can help you with:\n• Check your fee status\n• Payment methods and guides\n• Apply for fee waivers\n• View payment history\n• Download receipts\n\nWhat would you like to know?",
+                'suggestions': ['Check my fees', 'Payment methods', 'Apply for waiver', 'Payment history']
             }
         
+        # For non-authenticated users
         return {
-            'message': "Please log in to check your fee status, make payments, or apply for waivers.",
-            'suggestions': ['Login', 'Register']
+            'message': "🔐 **Login Required**\n\nTo check your fees and make payments, please log in to your account first.\n\n📋 **General Fee Information:**\n• School fees vary by form/grade level\n• Multiple payment methods available\n• Fee waivers available for eligible students\n• Online payment system available 24/7",
+            'suggestions': ['Login to account', 'Fee structure info', 'Payment methods', 'How to register?']
         }
 
     def _handle_events_query(self, message, user):

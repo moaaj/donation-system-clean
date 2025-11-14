@@ -181,6 +181,16 @@
                             </a>
                         </div>
                         <div class="col-md-3">
+                            <a href="{% url 'myapp:record_cash_payment' %}" class="quick-action-btn btn btn-warning">
+                                <i class="fas fa-money-bill"></i> Record Cash Payment
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'myapp:pending_cash_payments' %}" class="quick-action-btn btn btn-outline-warning">
+                                <i class="fas fa-clock"></i> Pending Cash Payments
+                            </a>
+                        </div>
+                        <div class="col-md-3">
                             <a href="{% url 'myapp:add_fee_structure' %}" class="quick-action-btn btn btn-info">
                                 <i class="fas fa-list"></i> Add Fee Structure
                             </a>
@@ -253,10 +263,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script type="text/javascript">
 // Django template variables - processed server-side
-var monthlyLabels = {{ monthly_labels|safe }};
-var monthlyData = {{ monthly_data|safe }};
-var categoryLabels = {{ category_labels|safe }};
-var categoryData = {{ category_data|safe }};
+var monthlyLabels = JSON.parse('{{ monthly_labels|default:"[]"|escapejs }}');
+var monthlyData = JSON.parse('{{ monthly_data|default:"[]"|escapejs }}');
+var categoryLabels = JSON.parse('{{ category_labels|default:"[]"|escapejs }}');
+var categoryData = JSON.parse('{{ category_data|default:"[]"|escapejs }}');
 </script>
 <script type="text/javascript">
 document.addEventListener('DOMContentLoaded', function() {

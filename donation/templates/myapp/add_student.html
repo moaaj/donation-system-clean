@@ -12,63 +12,111 @@
                     <h3>Add New Student</h3>
                 </div>
                 <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Note:</strong> When you add a new student, a user account will be automatically created with:
+                        <ul class="mb-0 mt-2">
+                            <li><strong>Username:</strong> student_[student_id] (e.g., student_stu000010)</li>
+                            <li><strong>Password:</strong> [student_id]123 (e.g., stu000010123)</li>
+                            <li><strong>Email:</strong> student_[student_id]@school.com</li>
+                        </ul>
+                    </div>
                     <form method="post">
                         {% csrf_token %}
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="student_id" class="form-label">Student ID</label>
-                                <input type="text" class="form-control" id="student_id" name="student_id" required>
+                                <label for="{{ form.student_id.id_for_label }}" class="form-label">Student ID</label>
+                                {{ form.student_id }}
+                                {% if form.student_id.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.student_id.errors }}
+                                </div>
+                                {% endif %}
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="nric" class="form-label">NRIC</label>
-                                <input type="text" class="form-control" id="nric" name="nric" required>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="first_name" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="first_name" name="first_name" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="last_name" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="last_name" name="last_name" required>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="class_name" class="form-label">Class</label>
-                                <input type="text" class="form-control" id="class_name" name="class_name" placeholder="Enter class name">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="program" class="form-label">Program</label>
-                                <input type="text" class="form-control" id="program" name="program" placeholder="Enter program name">
+                                <label for="{{ form.nric.id_for_label }}" class="form-label">NRIC</label>
+                                {{ form.nric }}
+                                {% if form.nric.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.nric.errors }}
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="level" class="form-label">Level</label>
-                                <select class="form-select" id="level" name="level">
-                                    <option value="">Select Level</option>
-                                    <option value="year">Year</option>
-                                    <option value="form">Form</option>
-                                    <option value="standard">Standard</option>
-                                    <option value="others">Others</option>
-                                </select>
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.first_name.errors }}
+                                </div>
+                                {% endif %}
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="level_custom" class="form-label">Custom Level</label>
-                                <input type="text" class="form-control" id="level_custom" name="level_custom" placeholder="Enter custom level" style="display: none;">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.last_name.errors }}
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="year_batch" class="form-label">Year Batch</label>
-                                <input type="number" class="form-control" id="year_batch" name="year_batch" required>
+                                <label for="{{ form.class_name.id_for_label }}" class="form-label">Class</label>
+                                {{ form.class_name }}
+                                {% if form.class_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.class_name.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.program.id_for_label }}" class="form-label">Program</label>
+                                {{ form.program }}
+                                {% if form.program.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.program.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.level.id_for_label }}" class="form-label">Level</label>
+                                {{ form.level }}
+                                {% if form.level.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.level.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.level_custom.id_for_label }}" class="form-label">Form Number / Custom Level</label>
+                                {{ form.level_custom }}
+                                {% if form.level_custom.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.level_custom.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.year_batch.id_for_label }}" class="form-label">Year Batch</label>
+                                {{ form.year_batch }}
+                                {% if form.year_batch.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.year_batch.errors }}
+                                </div>
+                                {% endif %}
                             </div>
                             <div class="col-md-6 mb-3">
                                 <div class="form-check mt-4">
-                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
-                                    <label class="form-check-label" for="is_active">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
                                         Active Student
                                     </label>
                                 </div>
@@ -87,19 +135,36 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const levelSelect = document.getElementById('level');
-    const levelCustomInput = document.getElementById('level_custom');
+    const levelSelect = document.getElementById('{{ form.level.id_for_label }}');
+    const levelCustomField = document.getElementById('{{ form.level_custom.id_for_label }}');
     
-    levelSelect.addEventListener('change', function() {
-        if (this.value === 'others') {
-            levelCustomInput.style.display = 'block';
-            levelCustomInput.required = true;
+    if (levelSelect && levelCustomField) {
+        levelSelect.addEventListener('change', function() {
+            if (this.value === 'form') {
+                // Show form number field
+                levelCustomField.style.display = 'block';
+                levelCustomField.required = true;
+            } else if (this.value === 'others') {
+                // Show custom level field
+                levelCustomField.style.display = 'block';
+                levelCustomField.required = true;
+            } else {
+                // Hide for other levels
+                levelCustomField.style.display = 'none';
+                levelCustomField.required = false;
+                levelCustomField.value = '';
+            }
+        });
+        
+        // Initial state
+        if (levelSelect.value === 'form' || levelSelect.value === 'others') {
+            levelCustomField.style.display = 'block';
+            levelCustomField.required = true;
         } else {
-            levelCustomInput.style.display = 'none';
-            levelCustomInput.required = false;
-            levelCustomInput.value = '';
+            levelCustomField.style.display = 'none';
+            levelCustomField.required = false;
         }
-    });
+    }
 });
 </script>
 {% endblock %} 

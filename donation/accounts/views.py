@@ -20,7 +20,7 @@ from .forms import (
     UserProfileForm, PasswordChangeRequestForm, PasswordResetForm,
     RoleBasedRegistrationForm
 )
-from .models import UserProfile, LoginAttempt
+from .models import UserProfile, LoginAttempt, UserActivity
 from myapp.models import Student, UserProfile as MyAppUserProfile
 
 
@@ -46,6 +46,19 @@ def log_login_attempt(request, user, success):
     except Exception as e:
         # Log error but don't break the login process
         print(f"Error logging login attempt: {e}")
+
+def log_user_activity(request, user, activity_type):
+    """Log user activity for superuser monitoring"""
+    try:
+        UserActivity.objects.create(
+            user=user,
+            activity_type=activity_type,
+            ip_address=get_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')
+        )
+    except Exception as e:
+        # Log error but don't break the process
+        print(f"Error logging user activity: {e}")
 
 
 @csrf_protect
@@ -90,9 +103,11 @@ def register_view(request):
                         address=address
                     )
                     
-                    # If student role, create or link student record
+                    # If student role, create or link student record with form level
                     if role == 'student':
                         student_id = form.cleaned_data['student_id']
+                        form_level = form.cleaned_data['form_level']
+                        
                         # Check if student already exists
                         student, created = Student.objects.get_or_create(
                             student_id=student_id,
@@ -100,18 +115,129 @@ def register_view(request):
                                 'first_name': user.first_name,
                                 'last_name': user.last_name,
                                 'year_batch': timezone.now().year,
-                                'nric': f"T{student_id[:10]}"  # Shorter NRIC format
+                                'nric': f"T{student_id[:10]}",  # Shorter NRIC format
+                                'level': 'form',  # Set level to 'form'
+                                'level_custom': form_level,  # Set the selected form level
+                                'is_active': True
                             }
                         )
+                        
+                        # If student was updated (not created), update the form level
+                        if not created:
+                            student.level = 'form'
+                            student.level_custom = form_level
+                            student.save()
+                        
+                        # Link student to profile
                         myapp_profile.student = student
                         myapp_profile.save()
+                        
+                        # Automatically generate fees for the selected form level
+                        if form_level:
+                            from myapp.models import FeeStructure, FeeStatus
+                            from datetime import date, timedelta
+                            
+                            # Get fee structures for this form level
+                            form_fees = FeeStructure.objects.filter(
+                                form__iexact=form_level,
+                                is_active=True
+                            )
+                            
+                            generated_count = 0
+                            for fee_structure in form_fees:
+                                # Check if fee status already exists
+                                existing_status = FeeStatus.objects.filter(
+                                    student=student,
+                                    fee_structure=fee_structure
+                                ).first()
+                                
+                                if not existing_status:
+                                    # Calculate due date based on frequency
+                                    if fee_structure.frequency == 'yearly':
+                                        due_date = date.today() + timedelta(days=30)  # 30 days from now
+                                    elif fee_structure.frequency == 'termly':
+                                        due_date = date.today() + timedelta(days=90)  # 90 days from now
+                                    elif fee_structure.frequency == 'monthly':
+                                        due_date = date.today() + timedelta(days=30)  # 30 days from now
+                                    else:
+                                        due_date = date.today() + timedelta(days=30)
+                                    
+                                    # Create fee status
+                                    FeeStatus.objects.create(
+                                        student=student,
+                                        fee_structure=fee_structure,
+                                        amount=fee_structure.amount or 0,
+                                        due_date=due_date,
+                                        status='pending'
+                                    )
+                                    generated_count += 1
+                            
+                            if generated_count > 0:
+                                messages.success(request, f'Account created successfully! You can now login as a student. {generated_count} fee records have been automatically generated for {form_level}.')
+                            else:
+                                messages.success(request, f'Account created successfully! You can now login as a student. You have been assigned to {form_level}.')
+                        else:
+                            messages.success(request, 'Account created successfully! You can now login as a student.')
                     
                     # Set admin permissions if admin role
-                    if role == 'admin':
+                    if role in ['admin', 'donation_admin', 'waqaf_admin', 'school_fees_admin', 'school_fees_level_admin']:
                         user.is_staff = True
                         user.save()
+                        
+                        # Handle school fees level admin level assignment
+                        if role == 'school_fees_level_admin':
+                            admin_level = form.cleaned_data.get('admin_level')
+                            if admin_level:
+                                from myapp.models import SchoolFeesLevelAdmin
+                                SchoolFeesLevelAdmin.objects.create(
+                                    user_profile=myapp_profile,
+                                    level=admin_level,
+                                    can_view=True,
+                                    can_add=True,
+                                    can_change=True,
+                                    can_delete=True,
+                                    can_manage_fees=True,
+                                    can_manage_payments=True
+                                )
+                                messages.success(request, f'Account created successfully! You can now login as a School Fees Level Admin for {admin_level}.')
+                            else:
+                                messages.success(request, 'Account created successfully! You can now login as a School Fees Level Admin.')
+                        else:
+                            # Set up module permissions for other admin roles
+                            from myapp.models import ModulePermission
+                            module_mapping = {
+                                'donation_admin': 'donation',
+                                'waqaf_admin': 'waqaf',
+                                'school_fees_admin': 'school_fees',
+                            }
+                            
+                            if role in module_mapping:
+                                ModulePermission.objects.create(
+                                    user_profile=myapp_profile,
+                                    module=module_mapping[role],
+                                    can_view=True,
+                                    can_add=True,
+                                    can_change=True,
+                                    can_delete=True,
+                                    can_manage_settings=True
+                                )
+                                
+                                # Also add PIBG donation permissions for donation admin
+                                if role == 'donation_admin':
+                                    ModulePermission.objects.create(
+                                        user_profile=myapp_profile,
+                                        module='pibg_donation',
+                                        can_view=True,
+                                        can_add=True,
+                                        can_change=True,
+                                        can_delete=True,
+                                        can_manage_settings=True
+                                    )
+                            
+                            messages.success(request, f'Account created successfully! You can now login as a {role.replace("_", " ").title()}.')
+                    else:
+                        messages.success(request, 'Account created successfully! You can now login.')
                     
-                    messages.success(request, f'Account created successfully! You can now login as a {role}.')
                     return redirect('accounts:login')
                     
             except Exception as e:
@@ -142,6 +268,8 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
+            # Log successful login activity
+            log_user_activity(request, user, 'login')
             messages.success(request, f'Hello {user.username}!')
             return redirect('home')
         else:
@@ -156,6 +284,8 @@ def login_view(request):
 def logout_view(request):
     """Enhanced logout view"""
     user = request.user
+    # Log logout activity before logging out
+    log_user_activity(request, user, 'logout')
     logout(request)
     messages.success(request, f'You have been successfully logged out. Goodbye, {user.get_full_name() or user.username}!')
     return redirect('/accounts/login/?next=/')  # Redirect to login with next parameter
@@ -333,4 +463,171 @@ def check_email_availability(request):
     if User.objects.filter(email=email).exists():
         return JsonResponse({'available': False})
     else:
-        return JsonResponse({'available': True}) 
+        return JsonResponse({'available': True})
+
+
+@login_required
+def superuser_dashboard(request):
+    """Dashboard for superuser to monitor user activity"""
+    if not request.user.is_superuser:
+        messages.error(request, 'Access denied. Superuser privileges required.')
+        return redirect('home')
+    
+    # Get recent user activity
+    recent_activities = UserActivity.objects.select_related('user').order_by('-timestamp')[:50]
+    
+    # Get login statistics
+    total_logins = UserActivity.objects.filter(activity_type='login').count()
+    total_logouts = UserActivity.objects.filter(activity_type='logout').count()
+    
+    # Get today's activity
+    from datetime import datetime, timedelta
+    today = datetime.now().date()
+    today_logins = UserActivity.objects.filter(
+        activity_type='login',
+        timestamp__date=today
+    ).count()
+    today_logouts = UserActivity.objects.filter(
+        activity_type='logout',
+        timestamp__date=today
+    ).count()
+    
+    # Get unique users who logged in today
+    today_users = UserActivity.objects.filter(
+        activity_type='login',
+        timestamp__date=today
+    ).values('user').distinct().count()
+    
+    # Get failed login attempts
+    failed_logins = LoginAttempt.objects.filter(success=False).order_by('-timestamp')[:20]
+    
+    context = {
+        'recent_activities': recent_activities,
+        'total_logins': total_logins,
+        'total_logouts': total_logouts,
+        'today_logins': today_logins,
+        'today_logouts': today_logouts,
+        'today_users': today_users,
+        'failed_logins': failed_logins,
+    }
+    
+    return render(request, 'accounts/superuser_dashboard.html', context) 
+
+
+def public_activity_dashboard(request):
+    """Superuser-only dashboard showing all user activities"""
+    # Check if user is superuser
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        from django.contrib import messages
+        from django.shortcuts import redirect
+        messages.error(request, 'Access denied. Only superusers can view this dashboard.')
+        return redirect('home')
+    
+    from django.utils import timezone
+    from datetime import datetime, timedelta
+    from django.db.models import Count, Q, Max
+    from django.contrib.auth.models import User
+    
+    # Get current date and time
+    now = timezone.now()
+    today = now.date()
+    
+    # User Activity Statistics
+    total_logins = UserActivity.objects.filter(activity_type='login').count()
+    total_logouts = UserActivity.objects.filter(activity_type='logout').count()
+    
+    # Today's activity
+    today_logins = UserActivity.objects.filter(
+        activity_type='login',
+        timestamp__date=today
+    ).count()
+    today_logouts = UserActivity.objects.filter(
+        activity_type='logout',
+        timestamp__date=today
+    ).count()
+    
+    # Unique users today
+    today_users = UserActivity.objects.filter(
+        activity_type='login',
+        timestamp__date=today
+    ).values('user').distinct().count()
+    
+    # Failed login attempts
+    failed_logins = LoginAttempt.objects.filter(success=False).count()
+    successful_logins = LoginAttempt.objects.filter(success=True).count()
+    
+    # Recent activities (last 30 for more detail)
+    recent_activities = UserActivity.objects.select_related('user').order_by('-timestamp')[:30]
+    
+    # Failed login attempts (last 15)
+    recent_failed_logins = LoginAttempt.objects.filter(success=False).order_by('-timestamp')[:15]
+    
+    # Activity by day (last 7 days)
+    daily_activity = []
+    for i in range(7):
+        date = today - timedelta(days=i)
+        count = UserActivity.objects.filter(timestamp__date=date).count()
+        daily_activity.append({
+            'date': date.strftime('%Y-%m-%d'),
+            'count': count
+        })
+    daily_activity.reverse()
+    
+    # Top active users with more details
+    top_users = UserActivity.objects.values(
+        'user__username', 'user__first_name', 'user__last_name'
+    ).annotate(
+        activity_count=Count('id'),
+        login_count=Count('id', filter=Q(activity_type='login')),
+        logout_count=Count('id', filter=Q(activity_type='logout'))
+    ).order_by('-activity_count')[:15]
+    
+    # IP address analysis
+    top_ips = UserActivity.objects.values('ip_address').annotate(
+        count=Count('id')
+    ).order_by('-count')[:10]
+    
+    # Specific user activity (tamim123)
+    try:
+        tamim123 = User.objects.get(username='tamim123')
+        tamim123_activities = UserActivity.objects.filter(user=tamim123).order_by('-timestamp')[:15]
+        tamim123_stats = {
+            'total_activities': UserActivity.objects.filter(user=tamim123).count(),
+            'logins': UserActivity.objects.filter(user=tamim123, activity_type='login').count(),
+            'logouts': UserActivity.objects.filter(user=tamim123, activity_type='logout').count(),
+            'today_activities': UserActivity.objects.filter(user=tamim123, timestamp__date=today).count(),
+        }
+    except User.DoesNotExist:
+        tamim123_activities = []
+        tamim123_stats = {'total_activities': 0, 'logins': 0, 'logouts': 0, 'today_activities': 0}
+    
+    # All users with their activity counts
+    all_users_activity = UserActivity.objects.values(
+        'user__username', 'user__first_name', 'user__last_name'
+    ).annotate(
+        total_activities=Count('id'),
+        login_count=Count('id', filter=Q(activity_type='login')),
+        logout_count=Count('id', filter=Q(activity_type='logout')),
+        last_activity=Max('timestamp')
+    ).order_by('-total_activities')
+    
+    context = {
+        'total_logins': total_logins,
+        'total_logouts': total_logouts,
+        'today_logins': today_logins,
+        'today_logouts': today_logouts,
+        'today_users': today_users,
+        'failed_logins': failed_logins,
+        'successful_logins': successful_logins,
+        'recent_activities': recent_activities,
+        'recent_failed_logins': recent_failed_logins,
+        'daily_activity': daily_activity,
+        'top_users': top_users,
+        'top_ips': top_ips,
+        'tamim123_activities': tamim123_activities,
+        'tamim123_stats': tamim123_stats,
+        'all_users_activity': all_users_activity,
+        'current_time': now,
+    }
+    
+    return render(request, 'accounts/public_activity_dashboard.html', context) 

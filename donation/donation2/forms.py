@@ -15,7 +15,6 @@ class DonationForm(forms.ModelForm):
                 ('credit_card', 'Credit Card'),
                 ('debit_card', 'Debit Card'),
                 ('bank_transfer', 'Bank Transfer'),
-                ('cash', 'Cash'),
             ]),
             'message': forms.Textarea(attrs={
                 'class': 'form-control',

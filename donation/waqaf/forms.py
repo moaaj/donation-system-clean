@@ -28,8 +28,8 @@ class WaqafContributionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Get available assets with slot prices
-        available_assets = WaqafAsset.objects.filter(slots_available__gt=0)
+        # Get available assets with slot prices (excluding archived)
+        available_assets = WaqafAsset.objects.filter(slots_available__gt=0, is_archived=False)
         choices = [(asset.id, f"{asset.name} - RM{asset.slot_price}/slot ({asset.slots_available} slots available)") 
                   for asset in available_assets]
         self.fields['asset'].choices = [('', 'Select an asset...')] + choices

@@ -1,0 +1,835 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Student Fee Collection Admin Dashboard" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-green: #27ae60;
+        --primary-blue: #3498db;
+        --primary-purple: #9b59b6;
+        --primary-red: #e74c3c;
+        --primary-orange: #f39c12;
+        --primary-yellow: #f1c40f;
+        --light-green: #d5f4e6;
+        --light-blue: #e8f4fd;
+        --light-purple: #f4e6f7;
+        --light-red: #fadbd8;
+        --light-orange: #fef5e7;
+        --light-yellow: #fef9e7;
+        --dark-green: #1e8449;
+        --dark-blue: #2980b9;
+        --dark-purple: #7d3c98;
+        --dark-red: #c0392b;
+        --dark-orange: #d68910;
+    }
+
+    .dashboard-container {
+        background: #f5f6fa;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .dashboard-header {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .dashboard-title {
+        color: #2c3e50;
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .dashboard-subtitle {
+        color: #7f8c8d;
+        font-size: 1rem;
+    }
+
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .summary-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.2s ease;
+        border-left: 4px solid;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .summary-card.expected-amount {
+        border-left-color: #3498db;
+    }
+
+    .summary-card.actual-collection {
+        border-left-color: #27ae60;
+    }
+
+    .summary-card.achievement-percentage {
+        border-left-color: #9b59b6;
+    }
+
+    .summary-card.outstanding-amount {
+        border-left-color: #e74c3c;
+    }
+
+    .summary-card.total-students {
+        border-left-color: #f39c12;
+    }
+
+    .card-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .card-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: #2c3e50;
+    }
+
+    .card-label {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        font-weight: 500;
+    }
+
+    .section-container {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .section-title {
+        color: #2c3e50;
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #3498db;
+    }
+
+    .filter-controls {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+    }
+
+    .filter-select {
+        padding: 10px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        min-width: 150px;
+        transition: border-color 0.3s ease;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        background: white;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .data-table th {
+        background: #3498db;
+        color: white;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .data-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #ecf0f1;
+        font-size: 0.9rem;
+    }
+
+    .data-table tr:hover {
+        background: #f8f9fa;
+    }
+
+    .category-cards {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .category-card {
+        padding: 15px;
+        border-radius: 6px;
+        text-align: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .category-card.blue {
+        background: #3498db;
+    }
+
+    .category-card.yellow {
+        background: #f39c12;
+    }
+
+    .category-card.purple {
+        background: #9b59b6;
+    }
+
+    .category-card.green {
+        background: #27ae60;
+    }
+
+    .chart-container {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .chart-placeholder {
+        height: 300px;
+        background: linear-gradient(45deg, #e0e0e0 25%, transparent 25%), 
+                    linear-gradient(-45deg, #e0e0e0 25%, transparent 25%), 
+                    linear-gradient(45deg, transparent 75%, #e0e0e0 75%), 
+                    linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
+        background-size: 20px 20px;
+        background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+        font-size: 1.2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .chart-placeholder::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .status-cards {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .status-card {
+        padding: 20px;
+        border-radius: 6px;
+        text-align: center;
+        color: white;
+        font-weight: 600;
+    }
+
+    .status-card.paid {
+        background: #27ae60;
+    }
+
+    .status-card.not-paid {
+        background: #e67e22;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .action-btn {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-btn.download {
+        background: #27ae60;
+    }
+
+    .action-btn.print {
+        background: #3498db;
+    }
+
+    .action-btn.reminder {
+        background: #f39c12;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 20px;
+        background: #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 10px 0;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary-green), var(--dark-green));
+        transition: width 0.3s ease;
+    }
+
+    .achievement-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: white;
+    }
+
+    .achievement-badge.high {
+        background: #27ae60;
+    }
+
+    .achievement-badge.medium {
+        background: #f39c12;
+    }
+
+    .achievement-badge.low {
+        background: #e74c3c;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 10px;
+        }
+        
+        .summary-cards {
+            grid-template-columns: 1fr;
+        }
+        
+        .filter-controls {
+            flex-direction: column;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">📊 Student Fee Collection Admin Dashboard</h1>
+            <p class="dashboard-subtitle">Comprehensive fee management and reporting system</p>
+            <div style="margin-top: 15px; color: #666; font-size: 1rem;">
+                <span>🕒 <span class="current-time"></span></span>
+            </div>
+        </div>
+
+        <!-- 1. Main Summary Cards -->
+        <div class="summary-cards">
+            <div class="summary-card expected-amount">
+                <div class="card-icon">🏫</div>
+                <div class="card-value">RM 100,000</div>
+                <div class="card-label">Expected Amount</div>
+            </div>
+            <div class="summary-card actual-collection">
+                <div class="card-icon">💰</div>
+                <div class="card-value">RM 85,000</div>
+                <div class="card-label">Actual Collection</div>
+            </div>
+            <div class="summary-card achievement-percentage">
+                <div class="card-icon">📈</div>
+                <div class="card-value">85%</div>
+                <div class="card-label">Achievement Percentage</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 85%;"></div>
+                </div>
+            </div>
+            <div class="summary-card outstanding-amount">
+                <div class="card-icon">🔴</div>
+                <div class="card-value">RM 15,000</div>
+                <div class="card-label">Outstanding Amount</div>
+            </div>
+            <div class="summary-card total-students">
+                <div class="card-icon">👨‍🎓</div>
+                <div class="card-value">950</div>
+                <div class="card-label">Total Students</div>
+            </div>
+        </div>
+
+        <!-- 2. Report by Form & Class -->
+        <div class="section-container">
+            <h2 class="section-title">📋 Collection Report by Form & Class</h2>
+            
+            <div class="filter-controls">
+                <select class="filter-select">
+                    <option>Report by</option>
+                    <option>Form</option>
+                    <option>Class</option>
+                    <option>Both</option>
+                </select>
+                <select class="filter-select">
+                    <option>Form</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                </select>
+                <select class="filter-select">
+                    <option>Class</option>
+                    <option>A</option>
+                    <option>B</option>
+                    <option>C</option>
+                    <option>D</option>
+                    <option>E</option>
+                    <option>F</option>
+                </select>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Form</th>
+                        <th>Class</th>
+                        <th>Boys</th>
+                        <th>Girls</th>
+                        <th>Total Students</th>
+                        <th>Expected (RM)</th>
+                        <th>Paid (RM)</th>
+                        <th>Outstanding (RM)</th>
+                        <th>% Achieved</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>A</td>
+                        <td>20</td>
+                        <td>18</td>
+                        <td>38</td>
+                        <td>3,800</td>
+                        <td>3,500</td>
+                        <td>300</td>
+                        <td><span class="achievement-badge high">92%</span></td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>B</td>
+                        <td>19</td>
+                        <td>20</td>
+                        <td>39</td>
+                        <td>3,900</td>
+                        <td>3,200</td>
+                        <td>700</td>
+                        <td><span class="achievement-badge medium">82%</span></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>A</td>
+                        <td>22</td>
+                        <td>25</td>
+                        <td>47</td>
+                        <td>4,700</td>
+                        <td>4,200</td>
+                        <td>500</td>
+                        <td><span class="achievement-badge high">89%</span></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>B</td>
+                        <td>18</td>
+                        <td>21</td>
+                        <td>39</td>
+                        <td>3,900</td>
+                        <td>3,600</td>
+                        <td>300</td>
+                        <td><span class="achievement-badge high">92%</span></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>A</td>
+                        <td>25</td>
+                        <td>23</td>
+                        <td>48</td>
+                        <td>4,800</td>
+                        <td>4,500</td>
+                        <td>300</td>
+                        <td><span class="achievement-badge high">94%</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="chart-container">
+                <h4>📊 Collection by Form (Bar Chart)</h4>
+                <div class="chart-placeholder">
+                    📊 Bar Chart: Collection by Form (Blue-Green gradient)
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h4>🥧 Collection by Gender (Pie Chart)</h4>
+                <div class="chart-placeholder">
+                    🥧 Pie Chart: Male vs Female Distribution
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h4>📈 Monthly Trend (Line Chart)</h4>
+                <div class="chart-placeholder">
+                    📈 Line Chart: Monthly Collection Trend (Jan-Dec)
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Fee Categories -->
+        <div class="section-container">
+            <h2 class="section-title">📑 Fee Categories</h2>
+            
+            <div class="category-cards">
+                <div class="category-card blue">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">🏫</div>
+                    <div style="font-size: 1.2rem; margin-bottom: 5px;">PTA</div>
+                    <div style="font-size: 1rem; margin-bottom: 3px;">320</div>
+                </div>
+                <div class="category-card yellow">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">🎯</div>
+                    <div style="font-size: 1.2rem; margin-bottom: 5px;">Activities</div>
+                    <div style="font-size: 1rem; margin-bottom: 3px;">320</div>
+                </div>
+                <div class="category-card purple">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">📝</div>
+                    <div style="font-size: 1.2rem; margin-bottom: 5px;">Exams</div>
+                    <div style="font-size: 1rem; margin-bottom: 3px;">130</div>
+                </div>
+                <div class="category-card green">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">🏠</div>
+                    <div style="font-size: 1.2rem; margin-bottom: 5px;">Hostel</div>
+                    <div style="font-size: 1rem; margin-bottom: 3px;">200</div>
+                </div>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Grade</th>
+                        <th>PTA</th>
+                        <th>Activities</th>
+                        <th>Examinations</th>
+                        <th>Hostel</th>
+                        <th>Amount Due</th>
+                        <th>Amount Paid</th>
+                        <th>% Achievement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>80</td>
+                        <td>60</td>
+                        <td>40</td>
+                        <td>50</td>
+                        <td>20,000</td>
+                        <td>17,000</td>
+                        <td><span class="achievement-badge high">85%</span></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>90</td>
+                        <td>70</td>
+                        <td>50</td>
+                        <td>60</td>
+                        <td>25,000</td>
+                        <td>21,250</td>
+                        <td><span class="achievement-badge high">85%</span></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>100</td>
+                        <td>80</td>
+                        <td>60</td>
+                        <td>70</td>
+                        <td>30,000</td>
+                        <td>25,500</td>
+                        <td><span class="achievement-badge high">85%</span></td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>110</td>
+                        <td>90</td>
+                        <td>70</td>
+                        <td>80</td>
+                        <td>35,000</td>
+                        <td>29,750</td>
+                        <td><span class="achievement-badge high">85%</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="chart-container">
+                <h4>📊 Categories by Grade (Stacked Bar Chart)</h4>
+                <div class="chart-placeholder">
+                    📊 Stacked Bar Chart: Fee Categories by Grade
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h4>🥧 Category Contribution (Pie Chart)</h4>
+                <div class="chart-placeholder">
+                    🥧 Pie Chart: Percentage Contribution of Each Category
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Student Payment Status -->
+        <div class="section-container">
+            <h2 class="section-title">🟢🔴 Student Payment Status</h2>
+            
+            <div class="status-cards">
+                <div class="status-card paid">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">🟢</div>
+                    <div style="font-size: 1.8rem; margin-bottom: 5px;">320</div>
+                    <div style="font-size: 1rem;">Paid</div>
+                    <div style="font-size: 1.2rem; margin-top: 5px;">71%</div>
+                </div>
+                <div class="status-card not-paid">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">🔴</div>
+                    <div style="font-size: 1.8rem; margin-bottom: 5px;">130</div>
+                    <div style="font-size: 1rem;">Not Paid</div>
+                    <div style="font-size: 1.2rem; margin-top: 5px;">29%</div>
+                </div>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Grade</th>
+                        <th>Class</th>
+                        <th>Males Have Paid</th>
+                        <th>Females Have Paid</th>
+                        <th>Males Have Not Paid</th>
+                        <th>Females Have Not Paid</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in grade_payment_data %}
+                    <tr>
+                        <td>{{ data.grade }}</td>
+                        <td>{{ data.class }}</td>
+                        <td>{{ data.males_paid }}</td>
+                        <td>{{ data.females_paid }}</td>
+                        <td>{{ data.males_not_paid }}</td>
+                        <td>{{ data.females_not_paid }}</td>
+                        <td>{{ data.total }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="chart-container">
+                <h4>📊 Paid vs Not Paid by Grade (Stacked Bar Chart)</h4>
+                <div class="chart-placeholder">
+                    📊 Stacked Bar Chart: Payment Status by Grade
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h4>🥧 Not Paid by Gender (Pie Chart)</h4>
+                <div class="chart-placeholder">
+                    🥧 Pie Chart: Unpaid Students by Gender
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Action Section -->
+        <div class="section-container">
+            <h2 class="section-title">⚡ Action Section</h2>
+            
+            <div class="action-buttons">
+                <a href="#" class="action-btn download">
+                    <span>📥</span>
+                    Download Report (all categories)
+                </a>
+                <a href="#" class="action-btn print">
+                    <span>🖨️</span>
+                    Print Receipt / Overdue Notice
+                </a>
+                <a href="#" class="action-btn reminder">
+                    <span>📧</span>
+                    Send Parent Reminder
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add interactive features
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to summary cards
+    const summaryCards = document.querySelectorAll('.summary-card');
+    summaryCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px) scale(1.02)';
+            this.style.boxShadow = '0 15px 35px rgba(0,0,0,0.2)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+            this.style.boxShadow = '0 5px 20px rgba(0,0,0,0.1)';
+        });
+    });
+    
+    // Add click effects to action buttons
+    const actionButtons = document.querySelectorAll('.action-btn');
+    actionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            this.style.transform = 'translateY(-2px) scale(0.98)';
+            setTimeout(() => {
+                this.style.transform = 'translateY(0) scale(1)';
+            }, 150);
+        });
+    });
+    
+    // Add click effects to category cards
+    const categoryCards = document.querySelectorAll('.category-card');
+    categoryCards.forEach(card => {
+        card.addEventListener('click', function() {
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 150);
+        });
+    });
+    
+    // Add click effects to status cards
+    const statusCards = document.querySelectorAll('.status-card');
+    statusCards.forEach(card => {
+        card.addEventListener('click', function() {
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 150);
+        });
+    });
+    
+    // Add animation to progress bars
+    const progressBars = document.querySelectorAll('.progress-fill');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 500);
+    });
+    
+    // Add real-time clock
+    function updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString();
+        const dateString = now.toLocaleDateString();
+        
+        const clockElements = document.querySelectorAll('.current-time');
+        clockElements.forEach(element => {
+            element.textContent = `${dateString} ${timeString}`;
+        });
+    }
+    
+    setInterval(updateClock, 1000);
+    updateClock();
+    
+    // Add filter functionality
+    const filterSelects = document.querySelectorAll('.filter-select');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            console.log('Filter changed:', this.value);
+            this.style.borderColor = '#3498db';
+            setTimeout(() => {
+                this.style.borderColor = '#e0e0e0';
+            }, 1000);
+        });
+    });
+    
+    // Add loading animation for chart placeholders
+    const chartPlaceholders = document.querySelectorAll('.chart-placeholder');
+    chartPlaceholders.forEach(placeholder => {
+        placeholder.addEventListener('click', function() {
+            this.style.background = 'linear-gradient(45deg, #3498db 25%, transparent 25%), linear-gradient(-45deg, #3498db 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #3498db 75%), linear-gradient(-45deg, transparent 75%, #3498db 75%)';
+            this.style.backgroundSize = '20px 20px';
+            this.style.backgroundPosition = '0 0, 0 10px, 10px -10px, -10px 0px';
+            this.style.color = '#2c3e50';
+            this.innerHTML = '📊 Chart Loading...';
+            
+            setTimeout(() => {
+                this.style.background = 'linear-gradient(45deg, #e0e0e0 25%, transparent 25%), linear-gradient(-45deg, #e0e0e0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e0e0e0 75%), linear-gradient(-45deg, transparent 75%, #e0e0e0 75%)';
+                this.style.color = '#666';
+                this.innerHTML = '📊 Chart Placeholder - Click to Load';
+            }, 2000);
+        });
+    });
+});
+</script>
+{% endblock %}

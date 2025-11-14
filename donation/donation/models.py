@@ -28,7 +28,6 @@ PAYMENT_METHODS = [
     ('bank', 'Bank Transfer'),
     ('bkash', 'bKash'),
     ('nagad', 'Nagad'),
-    ('cash', 'Cash'),
 ]
 
 # ------------------- Transaction -------------------

@@ -21,7 +21,54 @@
         </div>
     </div>
 
-        <!-- Overtime and Demerit Penalties Section (Admin Only) -->
+    <!-- Form-Based Fee System Information -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle"></i> How Our Fee System Works
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6 class="text-primary">Form-Based Fee Structure</h6>
+                            <p class="mb-2">
+                                Our fee system is designed to be fair and consistent. <strong>All students enrolled in the same form/grade level pay exactly the same amount</strong> for each fee category.
+                            </p>
+                            <ul class="mb-0">
+                                <li><strong>Form 1 students:</strong> All pay the same amount for tuition, examination fees, etc.</li>
+                                <li><strong>Form 2 students:</strong> All pay the same amount for their respective fees</li>
+                                <li><strong>Form 3 students:</strong> All pay the same amount for their respective fees</li>
+                                <li>And so on...</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-balance-scale text-primary" style="font-size: 3rem;"></i>
+                                <p class="text-muted small mt-2">Fair & Consistent<br>Pricing</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if is_tamim or individual_fees %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="alert alert-info mb-0">
+                                <i class="fas fa-user-graduate"></i>
+                                <strong>Student View:</strong> You are currently viewing fees for your form level only. 
+                                {% if individual_fees %}You also have some individual fees (overtime, demerit penalties, etc.) that are specific to you.{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overtime and Demerit Penalties Section (Admin Only) -->
     {% if not is_tamim %}
     <div class="row mb-4">
         <div class="col-12">

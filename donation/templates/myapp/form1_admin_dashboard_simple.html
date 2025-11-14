@@ -1,0 +1,376 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Form 1 Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-card { background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 20px; }
+    .card-header { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; border-radius: 10px 10px 0 0; }
+    .stat-card { background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); padding: 20px; margin-bottom: 20px; border-left: 4px solid #007bff; }
+    .stat-number { font-size: 2rem; font-weight: bold; color: #007bff; }
+    .stat-label { color: #6c757d; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .welcome-message { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: center; }
+    .data-isolation-notice { background: #e3f2fd; border: 1px solid #2196f3; border-radius: 8px; padding: 15px; margin-bottom: 20px; color: #1976d2; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+        <!-- Welcome Message -->
+        <div class="welcome-message">
+            <h2><i class="fas fa-user-shield"></i> Form 1 Admin Dashboard</h2>
+            <p class="mb-0">Welcome, {{ user.get_full_name|default:user.username }}! Manage Form 1 students and their fees.</p>
+        </div>
+
+        <!-- Data Isolation Notice -->
+        <div class="data-isolation-notice">
+            <i class="fas fa-shield-alt"></i>
+            <strong>Data Isolation Active:</strong> You can only view and manage Form 1 student data. All analytics, reports, and management functions are restricted to Form 1 students only.
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="col-md-2">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_students }}</div>
+                    <div class="stat-label">Total Form 1 Students</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_payments }}</div>
+                    <div class="stat-label">Total Payments</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-card">
+                    <div class="stat-number">RM {{ total_revenue|floatformat:2 }}</div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-card">
+                    <div class="stat-number">{{ pending_payments }}</div>
+                    <div class="stat-label">Pending Fees</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-card">
+                    <div class="stat-number">{{ overdue_payments }}</div>
+                    <div class="stat-label">Overdue Fees</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-card">
+                    <div class="stat-number">RM {{ monthly_revenue|floatformat:2 }}</div>
+                    <div class="stat-label">This Month</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions - Form 1 Only</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'form1_admin:student_list' %}" class="btn btn-primary btn-block">
+                                    <i class="fas fa-users"></i><br>Manage Form 1 Students
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'form1_admin:fee_management' %}" class="btn btn-success btn-block">
+                                    <i class="fas fa-money-bill-wave"></i><br>Manage Form 1 Fees
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'form1_admin:payment_management' %}" class="btn btn-info btn-block">
+                                    <i class="fas fa-credit-card"></i><br>View Form 1 Payments
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'form1_admin:analytics' %}" class="btn btn-warning btn-block">
+                                    <i class="fas fa-chart-bar"></i><br>Form 1 Analytics
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Payments Section -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-credit-card"></i> Recent Form 1 Payments</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_payments %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Student</th>
+                                            <th>Amount</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for payment in recent_payments %}
+                                        <tr>
+                                            <td>{{ payment.student.first_name }} {{ payment.student.last_name }}</td>
+                                            <td>RM {{ payment.amount|floatformat:2 }}</td>
+                                            <td>{{ payment.created_at|date:"M d, Y" }}</td>
+                                            <td><span class="badge bg-success">{{ payment.status|title }}</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No recent payments found for Form 1 students.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Pending Form 1 Fees</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if pending_fees %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Student</th>
+                                            <th>Fee Type</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for fee in pending_fees %}
+                                        <tr>
+                                            <td>{{ fee.student.first_name }} {{ fee.student.last_name }}</td>
+                                            <td>{{ fee.fee_structure.name }}</td>
+                                            <td>RM {{ fee.amount|floatformat:2 }}</td>
+                                            <td>
+                                                {% if fee.status == 'overdue' %}
+                                                    <span class="badge bg-danger">Overdue</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Pending</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No pending fees found for Form 1 students.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Methods & Top Students -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Payment Methods Used</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if payment_methods %}
+                            {% for method in payment_methods %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-capitalize">{{ method.payment_method|default:"Unknown" }}</span>
+                                <div>
+                                    <span class="badge bg-primary">{{ method.count }} payments</span>
+                                    <span class="text-muted">RM {{ method.total|floatformat:2 }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No payment data available.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-trophy"></i> Top Paying Form 1 Students</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if top_paying_students %}
+                            {% for student in top_paying_students %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>{{ student.first_name }} {{ student.last_name }}</span>
+                                <span class="badge bg-success">RM {{ student.total_paid|floatformat:2 }}</span>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No payment data available.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fee Categories -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-tags"></i> Form 1 Fee Categories</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if form1_fee_categories %}
+                            <div class="row">
+                                {% for category in form1_fee_categories %}
+                                <div class="col-md-3 mb-3">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">{{ category.name }}</h6>
+                                            <p class="card-text text-muted">{{ category.description|truncatechars:50 }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No fee categories found for Form 1.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student List Section (when viewing students) -->
+        {% if students_with_data %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-users"></i> Form 1 Students ({{ total_students }} total)</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Search Form -->
+                        <form method="GET" class="mb-3">
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="search" placeholder="Search students..." value="{{ search_query }}">
+                                <button class="btn btn-primary" type="submit">Search</button>
+                            </div>
+                        </form>
+                        
+                        <!-- Student Statistics -->
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-number">{{ students_with_payments }}</div>
+                                    <div class="stat-label">With Payments</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-number">{{ students_with_pending }}</div>
+                                    <div class="stat-label">With Pending Fees</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-number">{{ students_overdue }}</div>
+                                    <div class="stat-label">Overdue</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-number">{{ total_students }}</div>
+                                    <div class="stat-label">Total Students</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Students Table -->
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Name</th>
+                                        <th>Total Paid</th>
+                                        <th>Pending Fees</th>
+                                        <th>Overdue Fees</th>
+                                        <th>Last Payment</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student_data in students_with_data %}
+                                    <tr>
+                                        <td>{{ student_data.student.student_id }}</td>
+                                        <td>{{ student_data.student.first_name }} {{ student_data.student.last_name }}</td>
+                                        <td>RM {{ student_data.total_paid|floatformat:2 }}</td>
+                                        <td>
+                                            {% if student_data.pending_fees > 0 %}
+                                                <span class="badge bg-warning">{{ student_data.pending_fees }}</span>
+                                            {% else %}
+                                                <span class="badge bg-success">0</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if student_data.overdue_fees > 0 %}
+                                                <span class="badge bg-danger">{{ student_data.overdue_fees }}</span>
+                                            {% else %}
+                                                <span class="badge bg-success">0</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if student_data.last_payment %}
+                                                {{ student_data.last_payment.created_at|date:"M d, Y" }}
+                                            {% else %}
+                                                <span class="text-muted">No payments</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if student_data.overdue_fees > 0 %}
+                                                <span class="badge bg-danger">Overdue</span>
+                                            {% elif student_data.pending_fees > 0 %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% else %}
+                                                <span class="badge bg-success">Up to date</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Admin Status -->
+        <div class="alert alert-info">
+            <h5><i class="fas fa-user-shield"></i> Form 1 Admin Dashboard - Full Access</h5>
+            <p>You have complete admin access to Form 1 student data and management functions. All features are restricted to Form 1 students only.</p>
+            <p><strong>User:</strong> {{ user.username }} | <strong>Role:</strong> {{ user.profile.role }} | <strong>Access Level:</strong> Full Admin (Form 1 Only)</p>
+        </div>
+    </div>
+{% endblock %}

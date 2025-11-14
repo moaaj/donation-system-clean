@@ -10,11 +10,12 @@ from .models import WaqafAsset, Contributor, FundDistribution, Contribution, Pay
 
 @admin.register(WaqafAsset)
 class WaqafAssetAdmin(admin.ModelAdmin):
-    list_display = ('name', 'target_amount', 'total_slots', 'slots_available', 'slot_price', 'current_value')
+    list_display = ('name', 'target_amount', 'total_slots', 'slots_available', 'slot_price', 'current_value', 'status_display', 'contribution_count', 'total_contributed', 'funding_progress', 'is_archived', 'archived_at')
     search_fields = ('name', 'description')
-    list_filter = ('total_slots', 'slots_available')
-    readonly_fields = ('slots_available', 'slot_price')
-    actions = ['calculate_slot_prices']
+    list_filter = ('total_slots', 'slots_available', 'is_archived')
+    readonly_fields = ('slots_available', 'slot_price', 'status_display', 'contribution_count', 'total_contributed', 'funding_progress', 'is_archived', 'archived_at', 'archived_by')
+    actions = ['calculate_slot_prices', 'archive_assets', 'unarchive_assets', 'delete_archived_assets', 'bulk_archive_completed', 'bulk_unarchive_all']
+    change_form_template = 'admin/waqaf/waqafasset/change_form.html'
     fieldsets = (
         ('Basic Information', {
             'fields': ('name', 'description')
@@ -23,7 +24,102 @@ class WaqafAssetAdmin(admin.ModelAdmin):
             'fields': ('current_value', 'target_amount', 'total_slots', 'slot_price'),
             'description': 'Set target_amount and total_slots to auto-calculate slot_price'
         }),
+        ('Status & Progress', {
+            'fields': ('status_display', 'contribution_count', 'total_contributed', 'funding_progress'),
+            'classes': ('collapse',)
+        }),
+        ('Archive Status', {
+            'fields': ('is_archived', 'archived_at', 'archived_by'),
+            'classes': ('collapse',)
+        }),
     )
+
+    def status_display(self, obj):
+        """Display status with color coding"""
+        status = obj.get_status_display()
+        if status == "Archived":
+            return f'<span style="color: #dc3545; font-weight: bold;">{status}</span>'
+        elif status == "Completed":
+            return f'<span style="color: #28a745; font-weight: bold;">{status}</span>'
+        elif status == "In Progress":
+            return f'<span style="color: #ffc107; font-weight: bold;">{status}</span>'
+        else:
+            return f'<span style="color: #17a2b8; font-weight: bold;">{status}</span>'
+    status_display.short_description = "Status"
+    status_display.allow_tags = True
+
+    def contribution_count(self, obj):
+        """Display contribution count"""
+        return obj.get_contribution_count()
+    contribution_count.short_description = "Contributions"
+
+    def total_contributed(self, obj):
+        """Display total contributed amount"""
+        return f"RM {obj.get_total_contributed():,.2f}"
+    total_contributed.short_description = "Total Contributed"
+
+    def funding_progress(self, obj):
+        """Display funding progress as percentage"""
+        progress = obj.get_funding_progress()
+        return f"{progress:.1f}%"
+    funding_progress.short_description = "Funding Progress"
+
+    def get_queryset(self, request):
+        """Show all assets by default, but allow filtering by archive status"""
+        qs = super().get_queryset(request)
+        return qs
+
+    def get_list_display(self, request):
+        """Customize list display based on archive filter"""
+        list_display = list(super().get_list_display(request))
+        
+        # If viewing archived assets, show archive-related fields more prominently
+        if request.GET.get('is_archived') == '1':
+            # Move archive fields to the front for better visibility
+            archive_fields = ['is_archived', 'archived_at', 'archived_by']
+            for field in reversed(archive_fields):
+                if field in list_display:
+                    list_display.remove(field)
+                    list_display.insert(0, field)
+        
+        return list_display
+
+    def get_actions(self, request):
+        """Customize actions based on archive status"""
+        actions = super().get_actions(request)
+        
+        # If viewing archived assets, show unarchive and delete actions more prominently
+        if request.GET.get('is_archived') == '1':
+            # Reorder actions to prioritize archive-related ones
+            if 'unarchive_assets' in actions:
+                del actions['unarchive_assets']
+                actions['unarchive_assets'] = actions.pop('unarchive_assets')
+            if 'delete_archived_assets' in actions:
+                del actions['delete_archived_assets']
+                actions['delete_archived_assets'] = actions.pop('delete_archived_assets')
+        
+        return actions
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('archived/', self.admin_site.admin_view(self.archived_assets_view), name='waqaf_waqafasset_archived'),
+        ]
+        return custom_urls + urls
+
+    def archived_assets_view(self, request):
+        """Custom admin view for archived assets"""
+        archived_assets = WaqafAsset.objects.filter(is_archived=True).order_by('-archived_at')
+        
+        context = {
+            'title': 'Archived Waqaf Assets',
+            'assets': archived_assets,
+            'opts': self.model._meta,
+            'total_archived': archived_assets.count(),
+            'total_assets': WaqafAsset.objects.count(),
+        }
+        
+        return TemplateResponse(request, 'admin/waqaf/waqafasset/archived_assets.html', context)
 
     def calculate_slot_prices(self, request, queryset):
         """Calculate slot prices for selected assets based on target amount and total slots"""
@@ -58,6 +154,138 @@ class WaqafAssetAdmin(admin.ModelAdmin):
     
     calculate_slot_prices.short_description = "Calculate slot prices for selected assets"
 
+    def archive_assets(self, request, queryset):
+        """Archive selected assets"""
+        updated_count = 0
+        for asset in queryset:
+            if not asset.is_archived:
+                asset.archive(user=request.user)
+                updated_count += 1
+        
+        if updated_count > 0:
+            self.message_user(
+                request, 
+                f'Successfully archived {updated_count} assets.'
+            )
+        else:
+            self.message_user(
+                request, 
+                f'No assets needed archiving.',
+                level=messages.WARNING
+            )
+    
+    archive_assets.short_description = "Archive selected assets"
+
+    def unarchive_assets(self, request, queryset):
+        """Unarchive selected assets"""
+        updated_count = 0
+        for asset in queryset:
+            if asset.is_archived:
+                asset.unarchive()
+                updated_count += 1
+        
+        if updated_count > 0:
+            self.message_user(
+                request, 
+                f'Successfully unarchived {updated_count} assets.'
+            )
+        else:
+            self.message_user(
+                request, 
+                f'No assets needed unarchiving.',
+                level=messages.WARNING
+            )
+    
+    unarchive_assets.short_description = "Unarchive selected assets"
+
+    def delete_archived_assets(self, request, queryset):
+        """Delete only archived assets"""
+        archived_assets = queryset.filter(is_archived=True)
+        if not archived_assets.exists():
+            self.message_user(
+                request, 
+                f'No archived assets selected for deletion.',
+                level=messages.WARNING
+            )
+            return
+        
+        # Show confirmation page
+        if 'apply' in request.POST:
+            deleted_count = 0
+            for asset in archived_assets:
+                try:
+                    asset.delete()
+                    deleted_count += 1
+                except Exception as e:
+                    self.message_user(
+                        request, 
+                        f'Error deleting asset {asset.name}: {str(e)}',
+                        level=messages.ERROR
+                    )
+            
+            self.message_user(
+                request, 
+                f'Successfully deleted {deleted_count} archived assets.'
+            )
+            return HttpResponseRedirect('../')
+        
+        # Show confirmation template
+        context = {
+            'title': 'Delete Archived Assets',
+            'assets': archived_assets,
+            'opts': self.model._meta,
+            'action': 'delete_archived_assets',
+        }
+        return TemplateResponse(request, 'admin/waqaf/waqafasset/delete_archived_assets.html', context)
+    
+    delete_archived_assets.short_description = "Delete selected archived assets"
+
+    def bulk_archive_completed(self, request, queryset):
+        """Archive assets that are fully funded (all slots filled)"""
+        completed_assets = queryset.filter(slots_available=0, is_archived=False)
+        archived_count = 0
+        
+        for asset in completed_assets:
+            asset.archive(user=request.user)
+            archived_count += 1
+        
+        if archived_count > 0:
+            self.message_user(
+                request, 
+                f'Successfully archived {archived_count} completed assets.'
+            )
+        else:
+            self.message_user(
+                request, 
+                f'No completed assets found to archive.',
+                level=messages.WARNING
+            )
+    
+    bulk_archive_completed.short_description = "Archive completed assets (fully funded)"
+
+    def bulk_unarchive_all(self, request, queryset):
+        """Unarchive all selected assets"""
+        archived_assets = queryset.filter(is_archived=True)
+        unarchived_count = 0
+        
+        for asset in archived_assets:
+            asset.unarchive()
+            unarchived_count += 1
+        
+        if unarchived_count > 0:
+            self.message_user(
+                request, 
+                f'Successfully unarchived {unarchived_count} assets.'
+            )
+        else:
+            self.message_user(
+                request, 
+                f'No archived assets found to unarchive.',
+                level=messages.WARNING
+            )
+    
+    bulk_unarchive_all.short_description = "Unarchive all selected assets"
+
     def save_model(self, request, obj, form, change):
         # Set initial slots_available equal to total_slots for new assets
         if not change:  # If this is a new asset
@@ -69,11 +297,13 @@ class WaqafAssetAdmin(admin.ModelAdmin):
         
         super().save_model(request, obj, form, change)
 
+
 @admin.register(Contributor)
 class ContributorAdmin(admin.ModelAdmin):
     list_display = ('name', 'email', 'phone', 'amount_contributed')
     search_fields = ('name', 'email', 'phone')
     readonly_fields = ('amount_contributed',)
+
 
 class PaymentInline(admin.TabularInline):
     model = Payment
@@ -81,6 +311,7 @@ class PaymentInline(admin.TabularInline):
     readonly_fields = ('payment_id', 'created_at', 'updated_at')
     fields = ('payment_number', 'amount', 'due_date', 'status', 'payment_method', 'reference_number')
     can_delete = False
+
 
 @admin.register(Contribution)
 class ContributionAdmin(admin.ModelAdmin):
@@ -261,6 +492,7 @@ class ContributionAdmin(admin.ModelAdmin):
     class Media:
         js = ('admin/js/waqaf_contribution_auto_calculate.js',)
 
+
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('payment_id', 'contribution', 'payment_number', 'amount', 'due_date', 'status', 'payment_method', 'is_overdue_display')
@@ -324,6 +556,7 @@ class PaymentAdmin(admin.ModelAdmin):
             self.message_user(request, 'No payments needed status update.', level=messages.INFO)
     
     mark_as_cancelled.short_description = "Mark selected payments as cancelled"
+
 
 @admin.register(FundDistribution)
 class FundDistributionAdmin(admin.ModelAdmin):

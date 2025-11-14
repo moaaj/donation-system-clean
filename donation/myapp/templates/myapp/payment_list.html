@@ -8,9 +8,37 @@
     <div class="row mb-4">
         <div class="col-12 d-flex justify-content-between align-items-center">
             <h1>Payments</h1>
-            <a href="{% url 'myapp:add_payment' %}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Add Payment
-            </a>
+            <div class="btn-group">
+                <a href="{% url 'myapp:add_payment' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Payment
+                </a>
+                <a href="{% url 'myapp:record_cash_payment' %}" class="btn btn-success">
+                    <i class="fas fa-money-bill"></i> Record Cash Payment
+                </a>
+                <a href="{% url 'myapp:pending_cash_payments' %}" class="btn btn-warning">
+                    <i class="fas fa-clock"></i> Pending Cash Payments
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cash Payment Notice -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Cash Payments:</strong> Cash payments show as "Pending" until confirmed by admin. 
+                        Use the "Pending Cash Payments" button to confirm cash payments received at the office.
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{% url 'myapp:pending_cash_payments' %}" class="btn btn-warning btn-sm">
+                            <i class="fas fa-clock"></i> View Pending Cash Payments
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -19,8 +47,8 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <form method="get" class="row">
-                        <div class="col-md-3">
+                    <form method="get" id="searchForm" class="row">
+                        <div class="col-md-2">
                             <div class="form-group">
                                 <label for="{{ form.student.id_for_label }}">Student</label>
                                 {{ form.student }}
@@ -28,11 +56,17 @@
                         </div>
                         <div class="col-md-2">
                             <div class="form-group">
+                                <label for="{{ form.search.id_for_label }}">Search</label>
+                                {{ form.search }}
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <div class="form-group">
                                 <label for="{{ form.month.id_for_label }}">Month</label>
                                 {{ form.month }}
                             </div>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-1">
                             <div class="form-group">
                                 <label for="{{ form.year.id_for_label }}">Year</label>
                                 {{ form.year }}
@@ -44,15 +78,43 @@
                                 {{ form.status }}
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label for="{{ form.payment_method.id_for_label }}">Payment Method</label>
+                                {{ form.payment_method }}
+                            </div>
+                        </div>
+                        <div class="col-md-2">
                             <div class="form-group">
                                 <label>&nbsp;</label>
-                                <button type="submit" class="btn btn-primary btn-block">
-                                    <i class="fas fa-search"></i> Search
-                                </button>
+                                <div class="btn-group d-flex" role="group">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search"></i> Search
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </form>
+                    
+                    <!-- Download Section -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="text-muted">
+                                        Found {{ total_payments }} payment(s) 
+                                        {% if total_amount %}
+                                        | Total Amount: RM {{ total_amount|floatformat:2 }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <!-- Simple Download Button -->
+                                <button type="button" class="btn btn-success" onclick="downloadFilteredData()" id="downloadBtn">
+                                    <i class="fas fa-download"></i> Download Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -86,9 +148,18 @@
                                     <td>RM {{ payment.amount|floatformat:2 }}</td>
                                     <td>{{ payment.payment_method }}</td>
                                     <td>
-                                        <span class="badge badge-{{ payment.status|lower }}">
-                                            {{ payment.get_status_display|default:payment.status }}
-                                        </span>
+                                        {% if payment.status == 'completed' %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% elif payment.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                            {% if payment.payment_method == 'cash' %}
+                                                <br><small class="text-muted">Awaiting confirmation</small>
+                                            {% endif %}
+                                        {% elif payment.status == 'failed' %}
+                                            <span class="badge bg-danger">Failed</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ payment.status|title }}</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         {% if payment.status == "completed" %}
@@ -121,4 +192,76 @@
         </div>
     </div>
 </div>
+
+<script>
+// Simple and reliable download function
+function downloadFilteredData() {
+    const downloadBtn = document.getElementById('downloadBtn');
+    const originalText = downloadBtn.innerHTML;
+    
+    try {
+        // Show loading state
+        downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+        downloadBtn.disabled = true;
+        
+        // Get form data
+        const form = document.getElementById('searchForm');
+        const formData = new FormData(form);
+        
+        // Build URL with current filters
+        const params = new URLSearchParams();
+        for (let [key, value] of formData.entries()) {
+            if (value && value.trim() !== '') {
+                params.append(key, value);
+            }
+        }
+        params.append('format', 'csv'); // Default to CSV for simplicity
+        
+        // Create download URL
+        const downloadUrl = "{% url 'myapp:download_payment_data' %}?" + params.toString();
+        
+        // Trigger download
+        window.location.href = downloadUrl;
+        
+        // Reset button
+        setTimeout(() => {
+            downloadBtn.innerHTML = originalText;
+            downloadBtn.disabled = false;
+        }, 2000);
+        
+    } catch (error) {
+        alert('Download failed. Please try again.');
+        downloadBtn.innerHTML = originalText;
+        downloadBtn.disabled = false;
+    }
+}
+
+// Auto-submit form when dropdowns change
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('searchForm');
+    const selects = form.querySelectorAll('select');
+    
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            // Small delay to allow user to make multiple selections
+            setTimeout(() => {
+                form.submit();
+            }, 300);
+        });
+    });
+    
+    // Real-time search for text input
+    const searchInput = form.querySelector('input[name="search"]');
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                form.submit();
+            }, 500); // Wait 500ms after user stops typing
+        });
+    }
+});
+</script>
+
 {% endblock %} 

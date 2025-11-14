@@ -1,0 +1,459 @@
+{% extends 'myapp/base_ubac.html' %}
+{% load myapp_filters %}
+
+{% block title %}Shopping Cart - Student Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-shopping-cart"></i> Shopping Cart</h2>
+            <div>
+                <a href="{% url 'myapp:school_fees_home' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if fee_statuses or regular_fees or individual_fees %}
+<!-- Cart Summary -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-receipt"></i> Cart Summary</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Total Items:</strong> {{ fee_statuses|length|add:regular_fees|length|add:individual_fees|length }}</p>
+                <p><strong>Total Amount:</strong> <span class="text-success fs-4">RM {{ total|floatformat:2 }}</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fee Statuses in Cart -->
+{% if fee_statuses %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-exclamation-triangle text-warning"></i> Outstanding School Fees</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Fee Category</th>
+                                <th>Form</th>
+                                <th>Due Date</th>
+                                <th>Original Amount</th>
+                                {% if fee_statuses.0.discount_info.has_discount %}
+                                <th>Discount</th>
+                                <th>Final Amount</th>
+                                {% endif %}
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fee_status in fee_statuses %}
+                            <tr>
+                                <td>{{ fee_status.fee_structure.category.name }}</td>
+                                <td>{{ fee_status.fee_structure.form }}</td>
+                                <td>{{ fee_status.due_date|date:"M d, Y" }}</td>
+                                <td>RM {{ fee_status.amount|floatformat:2 }}</td>
+                                {% if fee_status.discount_info.has_discount %}
+                                <td>
+                                    <span class="badge bg-success">{{ fee_status.discount_info.discount_percentage }}% OFF</span>
+                                </td>
+                                <td><strong>RM {{ fee_status.discount_info.discounted_amount|floatformat:2 }}</strong></td>
+                                {% endif %}
+                                <td>
+                                    {% if fee_status.status == 'overdue' %}
+                                        <span class="badge bg-danger">Overdue</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form method="post" action="{% url 'myapp:remove_from_cart' %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="fee_status_id" value="{{ fee_status.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i> Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Regular Fees in Cart -->
+{% if regular_fees %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-list"></i> Regular Fees</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Fee Category</th>
+                                <th>Form</th>
+                                <th>Frequency</th>
+                                <th>Amount</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fee in regular_fees %}
+                            <tr>
+                                <td>{{ fee.category.name }}</td>
+                                <td>{{ fee.form }}</td>
+                                <td>{{ fee.frequency|title }}</td>
+                                <td>RM {{ fee.amount|floatformat:2 }}</td>
+                                <td>
+                                    <form method="post" action="{% url 'myapp:remove_from_cart' %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="fee_id" value="{{ fee.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i> Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Individual Fees in Cart -->
+{% if individual_fees %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-user"></i> Individual Fees</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Fee Name</th>
+                                <th>Description</th>
+                                <th>Due Date</th>
+                                <th>Amount</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fee in individual_fees %}
+                            <tr>
+                                <td>{{ fee.name }}</td>
+                                <td>{{ fee.description|truncatewords:10 }}</td>
+                                <td>{{ fee.due_date|date:"M d, Y" }}</td>
+                                <td>RM {{ fee.amount|floatformat:2 }}</td>
+                                <td>
+                                    <form method="post" action="{% url 'myapp:remove_from_cart' %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="individual_fee_id" value="{{ fee.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i> Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Payment Method Selection and Checkout -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-credit-card"></i> Payment Method</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'myapp:checkout_cart' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="payment_method" id="cash" value="cash" checked>
+                            <label class="form-check-label" for="cash">
+                                <i class="fas fa-money-bill text-success me-2"></i>
+                                <strong>Cash Payment</strong>
+                                <br><small class="text-muted">Pay in cash at school office (requires admin confirmation)</small>
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="payment_method" id="bank_transfer" value="bank_transfer">
+                            <label class="form-check-label" for="bank_transfer">
+                                <i class="fas fa-university text-info me-2"></i>
+                                <strong>Bank Transfer</strong>
+                                <br><small class="text-muted">Direct bank transfer payment</small>
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="payment_method" id="online" value="online">
+                            <label class="form-check-label" for="online">
+                                <i class="fas fa-globe text-primary me-2"></i>
+                                <strong>Online Payment</strong>
+                                <br><small class="text-muted">Secure online payment gateway</small>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Cash Payment Notice -->
+                    <div class="alert alert-warning" id="cash-notice" style="display: none;">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Cash Payment Notice:</strong> 
+                        When you select cash payment, your payment will be marked as "pending" until you make the actual cash payment at the school office and an admin confirms it.
+                    </div>
+                    
+                    <!-- PIBG Donation Section (if enabled) -->
+                    {% if donation_settings.is_enabled %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6><i class="fas fa-heart text-danger"></i> Optional: PIBG Muafakat Donation</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small">Support our school programs with an optional donation</p>
+                            
+                            <div class="row">
+                                {% for amount in donation_settings.preset_amounts %}
+                                <div class="col-6 col-md-3 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="donation_amount" id="donation_{{ amount }}" value="{{ amount }}">
+                                        <label class="form-check-label" for="donation_{{ amount }}">
+                                            RM {{ amount }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                
+                                <div class="col-6 col-md-3 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="donation_amount" id="donation_custom" value="custom">
+                                        <label class="form-check-label" for="donation_custom">
+                                            Custom
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3" id="custom_donation_div" style="display: none;">
+                                <label for="custom_donation_amount" class="form-label">Custom Amount (RM)</label>
+                                <input type="number" class="form-control" id="custom_donation_amount" name="custom_donation_amount" 
+                                       min="{{ donation_settings.minimum_custom_amount }}" 
+                                       max="{{ donation_settings.maximum_custom_amount }}" 
+                                       step="0.01" placeholder="Enter amount">
+                                <div class="form-text">
+                                    Minimum: RM {{ donation_settings.minimum_custom_amount }}, 
+                                    Maximum: RM {{ donation_settings.maximum_custom_amount }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid">
+                        <a href="{% url 'myapp:checkout_cart' %}" class="btn btn-success btn-lg">
+                            <i class="fas fa-credit-card"></i> Proceed to Checkout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+    <div class="col-md-4">
+        <!-- Order Summary -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-receipt"></i> Order Summary</h5>
+            </div>
+            <div class="card-body">
+                <!-- Fee Statuses -->
+                {% for fee_status in fee_statuses %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <strong>{{ fee_status.fee_structure.category.name }}</strong>
+                        {% if fee_status.discount_info.has_discount %}
+                            <br><small class="text-success">{{ fee_status.discount_info.discount_percentage }}% discount applied</small>
+                        {% endif %}
+                    </div>
+                    <div class="text-end">
+                        {% if fee_status.discount_info.has_discount %}
+                            <small class="text-muted text-decoration-line-through">RM {{ fee_status.amount|floatformat:2 }}</small><br>
+                        {% endif %}
+                        <strong>RM {{ fee_status.discount_info.discounted_amount|floatformat:2 }}</strong>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <!-- Regular Fees -->
+                {% for fee in regular_fees %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <strong>{{ fee.category.name }}</strong>
+                    </div>
+                    <div>
+                        <strong>RM {{ fee.amount|floatformat:2 }}</strong>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <!-- Individual Fees -->
+                {% for fee in individual_fees %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <strong>{{ fee.name }}</strong>
+                    </div>
+                    <div>
+                        <strong>RM {{ fee.amount|floatformat:2 }}</strong>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <hr>
+                
+                <!-- PIBG Donation Display -->
+                <div class="d-flex justify-content-between align-items-center mb-2" id="donation_display" style="display: none !important;">
+                    <div>
+                        <strong>PIBG Donation</strong>
+                    </div>
+                    <div>
+                        <strong id="donation_amount_display">RM 0.00</strong>
+                    </div>
+                </div>
+                <hr id="donation_separator" style="display: none;">
+                
+                <!-- Total -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5>Total Amount:</h5>
+                    <h5 class="text-success" id="total_amount_display">RM {{ total|floatformat:2 }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Empty Cart -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-shopping-cart fa-4x text-muted mb-4"></i>
+                <h3>Your cart is empty</h3>
+                <p class="text-muted">Add some fees to your cart to proceed with payment.</p>
+                <a href="{% url 'myapp:school_fees_home' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Start Adding Fees
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cashRadio = document.getElementById('cash');
+    const cashNotice = document.getElementById('cash-notice');
+    const paymentMethodRadios = document.querySelectorAll('input[name="payment_method"]');
+    
+    // Show/hide cash payment notice
+    function toggleCashNotice() {
+        if (cashRadio.checked) {
+            cashNotice.style.display = 'block';
+        } else {
+            cashNotice.style.display = 'none';
+        }
+    }
+    
+    paymentMethodRadios.forEach(radio => {
+        radio.addEventListener('change', toggleCashNotice);
+    });
+    
+    // Initial check
+    toggleCashNotice();
+    
+    // PIBG Donation handling
+    const donationRadios = document.querySelectorAll('input[name="donation_amount"]');
+    if (donationRadios.length > 0) {
+        const customDonationDiv = document.getElementById('custom_donation_div');
+        const customDonationInput = document.getElementById('custom_donation_amount');
+        const donationDisplay = document.getElementById('donation_display');
+        const donationAmountDisplay = document.getElementById('donation_amount_display');
+        const donationSeparator = document.getElementById('donation_separator');
+        const totalAmountDisplay = document.getElementById('total_amount_display');
+        const baseTotal = parseFloat('{{ total|floatformat:2 }}');
+        
+        function updateDonationDisplay() {
+            let donationAmount = 0;
+            const selectedDonation = document.querySelector('input[name="donation_amount"]:checked');
+            
+            if (selectedDonation) {
+                if (selectedDonation.value === 'custom') {
+                    donationAmount = parseFloat(customDonationInput.value) || 0;
+                    customDonationDiv.style.display = 'block';
+                } else {
+                    donationAmount = parseFloat(selectedDonation.value) || 0;
+                    customDonationDiv.style.display = 'none';
+                }
+            } else {
+                customDonationDiv.style.display = 'none';
+            }
+            
+            if (donationAmount > 0) {
+                donationDisplay.style.display = 'flex';
+                donationSeparator.style.display = 'block';
+                donationAmountDisplay.textContent = 'RM ' + donationAmount.toFixed(2);
+            } else {
+                donationDisplay.style.display = 'none';
+                donationSeparator.style.display = 'none';
+            }
+            
+            const newTotal = baseTotal + donationAmount;
+            totalAmountDisplay.textContent = 'RM ' + newTotal.toFixed(2);
+        }
+        
+        donationRadios.forEach(radio => {
+            radio.addEventListener('change', updateDonationDisplay);
+        });
+        
+        if (customDonationInput) {
+            customDonationInput.addEventListener('input', updateDonationDisplay);
+        }
+    }
+});
+</script>
+{% endblock %}

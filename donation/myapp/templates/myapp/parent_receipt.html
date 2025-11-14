@@ -1,0 +1,105 @@
+{% extends 'myapp/base_ubac.html' %}
+{% load myapp_filters %}
+
+{% block title %}Payment Receipt - Parent Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="text-center mb-4">
+            <div class="alert alert-success">
+                <h2><i class="fas fa-check-circle text-success"></i> Payment Successful!</h2>
+                <p class="text-muted">Your payment has been processed successfully.</p>
+                {% if success_message %}
+                <p class="fw-bold">{{ success_message }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-receipt me-2"></i> Payment Receipt</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6>Parent Information:</h6>
+                        <p><strong>Name:</strong> {{ parent.user.get_full_name }}</p>
+                        <p><strong>Phone:</strong> {{ parent.phone_number }}</p>
+                        <p><strong>Payment Date:</strong> {{ payments.0.payment_date|date:"M d, Y" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Payment Summary:</h6>
+                        <p><strong>Total Payments:</strong> {{ payments|length }}</p>
+                        <p><strong>Total Amount:</strong> 
+                            <span class="text-success fs-5">RM {{ total_amount|floatformat:2 }}</span>
+                        </p>
+                        <p><strong>Status:</strong> <span class="badge bg-success">Completed</span></p>
+                    </div>
+                </div>
+                
+                <h6>Payment Details:</h6>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Fee Category</th>
+                                <th>Amount</th>
+                                <th>Payment Method</th>
+                                <th>Receipt Number</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                            <tr>
+                                <td>
+                                    <strong>{{ payment.student.first_name }} {{ payment.student.last_name }}</strong>
+                                    <br><small class="text-muted">{{ payment.student.student_id }}</small>
+                                </td>
+                                <td>{{ payment.fee_structure.category.name|default:"Individual Fee" }}</td>
+                                <td><strong>RM {{ payment.amount|floatformat:2 }}</strong></td>
+                                <td>{{ payment.payment_method|title }}</td>
+                                <td>{{ payment.receipt_number|default:"N/A" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Invoice Information -->
+                {% if invoices %}
+                <div class="alert alert-info mt-4">
+                    <h6><i class="fas fa-file-invoice me-2"></i>Invoices Generated:</h6>
+                    {% for invoice in invoices %}
+                    <p class="mb-1">
+                        <strong>Invoice #{{ invoice.invoice_number }}</strong> - 
+                        RM {{ invoice.total_amount|floatformat:2 }} 
+                        <span class="badge bg-success">{{ invoice.status|title }}</span>
+                    </p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer text-center">
+                <a href="{% url 'myapp:parent_dashboard' %}" class="btn btn-primary btn-lg me-2">
+                    <i class="fas fa-home"></i> Back to Dashboard (Cart Now Empty)
+                </a>
+                <a href="{% url 'myapp:parent_cart_invoice' %}" class="btn btn-info me-2">
+                    <i class="fas fa-file-invoice"></i> View Invoice
+                </a>
+                <a href="{% url 'myapp:parent_cart_invoice_pdf' %}" class="btn btn-success me-2">
+                    <i class="fas fa-download"></i> Download Invoice PDF
+                </a>
+                <a href="{% url 'myapp:parent_payment_history' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-history"></i> View All Payments
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

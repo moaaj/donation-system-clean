@@ -344,7 +344,8 @@
         <div class="container">
             <h2 class="text-center section-title">Our Modules</h2>
             <div class="row g-4">
-                <!-- School Fees Module -->
+                <!-- School Fees Module - Hidden for waqaf admin -->
+                {% if not is_waqaf_admin %}
                 <div class="col-md-4">
                     <div class="module-card card h-100">
                         <div class="card-body text-center p-4">
@@ -357,8 +358,10 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
                 
-                <!-- Donation Module -->
+                <!-- Donation Module - Hidden for waqaf admin -->
+                {% if not is_waqaf_admin %}
                 <div class="col-md-4">
                     <div class="module-card card h-100">
                         <div class="card-body text-center p-4">
@@ -371,9 +374,10 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
                 
-                <!-- Waqaf Module -->
-                <div class="col-md-4">
+                <!-- Waqaf Module - Always visible -->
+                <div class="{% if is_waqaf_admin %}col-md-12{% else %}col-md-4{% endif %}">
                     <div class="module-card card h-100">
                         <div class="card-body text-center p-4">
                             <div class="module-icon">
@@ -394,6 +398,8 @@
         <div class="container">
             <h2 class="text-center section-title">Our Impact</h2>
             <div class="row g-4">
+                <!-- Students Supported - Hidden for waqaf admin -->
+                {% if not is_waqaf_admin %}
                 <div class="col-md-4">
                     <div class="stat-card">
                         <div class="stat-number">1000+</div>
@@ -401,6 +407,10 @@
                         <p>Through school fees assistance</p>
                     </div>
                 </div>
+                {% endif %}
+                
+                <!-- Donations Raised - Hidden for waqaf admin -->
+                {% if not is_waqaf_admin %}
                 <div class="col-md-4">
                     <div class="stat-card">
                         <div class="stat-number">$500K+</div>
@@ -408,7 +418,10 @@
                         <p>For various charitable causes</p>
                     </div>
                 </div>
-                <div class="col-md-4">
+                {% endif %}
+                
+                <!-- Waqaf Properties - Always visible -->
+                <div class="{% if is_waqaf_admin %}col-md-12{% else %}col-md-4{% endif %}">
                     <div class="stat-card">
                         <div class="stat-number">50+</div>
                         <h4>Waqaf Properties</h4>

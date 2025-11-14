@@ -1,0 +1,214 @@
+{% extends 'myapp/base_ubac.html' %}
+{% load myapp_filters %}
+
+{% block title %}Invoice - Parent Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="text-center mb-4">
+            <h2><i class="fas fa-file-invoice text-info"></i> School Fees Invoice</h2>
+            <p class="text-muted">Official invoice for your payment</p>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="mb-0"><i class="fas fa-school me-2"></i> School Fees Management</h5>
+                        <small>Official Invoice</small>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        {% if invoices %}
+                        <h6 class="mb-0">Invoice #{{ invoices.0.invoice_number }}</h6>
+                        <small>Date: {{ invoices.0.issue_date|date:"M d, Y" }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Parent Information -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-user me-2"></i>Bill To:</h6>
+                        <address>
+                            <strong>{{ parent.user.get_full_name }}</strong><br>
+                            {{ parent.address|linebreaksbr }}<br>
+                            Phone: {{ parent.phone_number }}<br>
+                            Email: {{ parent.user.email }}
+                        </address>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-info-circle me-2"></i>Invoice Details:</h6>
+                        <p><strong>Payment Date:</strong> {{ payments.0.payment_date|date:"M d, Y" }}</p>
+                        <p><strong>Payment Method:</strong> {{ payments.0.payment_method|title }}</p>
+                        <p><strong>Total Payments:</strong> {{ payments|length }}</p>
+                        <p><strong>Status:</strong> <span class="badge bg-success">Paid</span></p>
+                    </div>
+                </div>
+                
+                <!-- Invoice Items -->
+                <h6><i class="fas fa-list me-2"></i>Payment Details:</h6>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Student</th>
+                                <th>Fee Category</th>
+                                <th>Description</th>
+                                <th>Amount (RM)</th>
+                                <th>Receipt #</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                            <tr>
+                                <td>
+                                    <strong>{{ payment.student.first_name }} {{ payment.student.last_name }}</strong>
+                                    <br><small class="text-muted">{{ payment.student.student_id }}</small>
+                                </td>
+                                <td>{{ payment.fee_structure.category.name|default:"Individual Fee" }}</td>
+                                <td>
+                                    {% if payment.fee_structure %}
+                                        Form {{ payment.fee_structure.form }} - {{ payment.fee_structure.frequency|title }}
+                                    {% else %}
+                                        Individual Student Fee
+                                    {% endif %}
+                                </td>
+                                <td><strong>RM {{ payment.amount|floatformat:2 }}</strong></td>
+                                <td>{{ payment.receipt_number|default:"N/A" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-success">
+                                <th colspan="3" class="text-end">Total Amount:</th>
+                                <th><strong>RM {{ payments|sum_amount|floatformat:2 }}</strong></th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                <!-- PIBG Muafakat Donations -->
+                {% if pibg_donations %}
+                <div class="mt-4">
+                    <h6><i class="fas fa-heart text-success me-2"></i>PIBG Muafakat Fund Donations:</h6>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead class="table-success">
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Donation Type</th>
+                                    <th>Date</th>
+                                    <th>Amount (RM)</th>
+                                    <th>Receipt #</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for donation in pibg_donations %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ donation.student.first_name }} {{ donation.student.last_name }}</strong>
+                                        <br><small class="text-muted">{{ donation.student.student_id }}</small>
+                                    </td>
+                                    <td>PIBG Muafakat Fund</td>
+                                    <td>{{ donation.created_at|date:"M d, Y H:i" }}</td>
+                                    <td><strong>RM {{ donation.amount|floatformat:2 }}</strong></td>
+                                    <td>{{ donation.receipt_number }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-success">
+                                    <th colspan="3" class="text-end">Total Donations:</th>
+                                    <th><strong>RM {% for donation in pibg_donations %}{{ donation.amount }}{% if not forloop.last %} + {% endif %}{% endfor %}</strong></th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div class="alert alert-success">
+                        <i class="fas fa-heart me-2"></i>
+                        <strong>Thank you for your generous contribution to the PIBG Muafakat Fund!</strong>
+                        Your donation helps improve school facilities and student programs.
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Invoice Summary -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6><i class="fas fa-info me-2"></i>Payment Summary</h6>
+                                <p><strong>School Fees:</strong> RM {{ payments|sum_amount|floatformat:2 }}</p>
+                                {% if pibg_donations %}
+                                <p><strong>PIBG Donations:</strong> RM {% for donation in pibg_donations %}{{ donation.amount }}{% if not forloop.last %} + {% endif %}{% endfor %}</p>
+                                {% endif %}
+                                <p><strong>Tax:</strong> RM 0.00</p>
+                                <hr>
+                                <p><strong>Total Paid:</strong> <span class="text-success fs-5">RM {{ payments|sum_amount|floatformat:2 }}{% if pibg_donations %} + {% for donation in pibg_donations %}{{ donation.amount }}{% if not forloop.last %} + {% endif %}{% endfor %}{% endif %}</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h6><i class="fas fa-check-circle me-2"></i>Payment Status</h6>
+                                <h4>PAID IN FULL</h4>
+                                <p class="mb-0">Thank you for your payment!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Terms and Conditions -->
+                <div class="mt-4">
+                    <h6><i class="fas fa-file-contract me-2"></i>Terms & Conditions:</h6>
+                    <small class="text-muted">
+                        Payment has been successfully processed. This invoice serves as proof of payment.
+                        For any queries regarding this invoice, please contact the school administration.
+                    </small>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{% url 'myapp:parent_dashboard' %}" class="btn btn-primary me-2">
+                    <i class="fas fa-home"></i> Back to Dashboard
+                </a>
+                <a href="{% url 'myapp:parent_cart_invoice_pdf' %}" class="btn btn-success me-2">
+                    <i class="fas fa-download"></i> Download PDF
+                </a>
+                <a href="{% url 'myapp:parent_payment_history' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-history"></i> Payment History
+                </a>
+                <button onclick="window.print()" class="btn btn-outline-dark">
+                    <i class="fas fa-print"></i> Print Invoice
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .card-footer, .btn, nav, .navbar {
+        display: none !important;
+    }
+    
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .card-header {
+        background: #f8f9fa !important;
+        color: #000 !important;
+    }
+}
+</style>
+{% endblock %}

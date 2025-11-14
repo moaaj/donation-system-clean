@@ -1,7 +1,13 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
-import dj_database_url
+
+# Try to import dj_database_url, but don't fail if it's not available
+try:
+    import dj_database_url
+    HAS_DJ_DATABASE_URL = True
+except ImportError:
+    HAS_DJ_DATABASE_URL = False
 
 # Load environment variables from .env file
 load_dotenv()
@@ -21,7 +27,14 @@ STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
 # In production, set ALLOWED_HOSTS to include your domain(s)
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = []
+if os.getenv('ALLOWED_HOSTS'):
+    ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS').split(',')]
+else:
+    ALLOWED_HOSTS = ['*']  # Allow all hosts in development
+
+# Add render.com domains for deployment
+ALLOWED_HOSTS.extend(['.onrender.com', '.render.com'])
 
 # Security settings for development
 SECURE_SSL_REDIRECT = False
@@ -103,7 +116,7 @@ WSGI_APPLICATION = 'donation.wsgi.application'
 
 # Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
-if DATABASE_URL:
+if DATABASE_URL and HAS_DJ_DATABASE_URL:
     # Use Railway's PostgreSQL database
     DATABASES = {
         'default': dj_database_url.config(

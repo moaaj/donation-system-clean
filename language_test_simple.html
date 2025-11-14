@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Switching Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .test-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .test-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .info-box {
+            background: #e8f4fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        .error-box {
+            background: #f8d7da;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 Language Switching Test</h1>
+        
+        <div class="info-box">
+            <h3>📋 How to Test Language Switching:</h3>
+            <ol>
+                <li>Make sure your Django server is running: <code>cd donation && python manage.py runserver</code></li>
+                <li>Click the buttons below to test language switching</li>
+                <li>Check if the page content changes between English and Malay</li>
+            </ol>
+        </div>
+        
+        <h3>Test Language Switching:</h3>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="http://127.0.0.1:8000/" class="test-button" target="_blank">🏠 Home Page (English)</a>
+            <a href="http://127.0.0.1:8000/i18n/setlang/?language=en" class="test-button" target="_blank">🇺🇸 Switch to English</a>
+            <a href="http://127.0.0.1:8000/i18n/setlang/?language=ms" class="test-button" target="_blank">🇲🇾 Switch to Malay</a>
+        </div>
+        
+        <div class="success-box">
+            <h3>✅ What Should Happen:</h3>
+            <ul>
+                <li><strong>English:</strong> "Charity Platform", "Make a Difference Today", "Home", "Donate", "Events"</li>
+                <li><strong>Malay:</strong> "Platform Amal", "Buat Perbezaan Hari Ini", "Utama", "Derma", "Acara"</li>
+                <li><strong>Language Buttons:</strong> Should show "ENGLISH" and "MALAY" in the navigation</li>
+            </ul>
+        </div>
+        
+        <div class="error-box">
+            <h3>❌ If Language Switching Still Doesn't Work:</h3>
+            <ol>
+                <li>Check if Django server is running on port 8000</li>
+                <li>Check browser console for errors (F12)</li>
+                <li>Try refreshing the page after clicking language buttons</li>
+                <li>The translation files might need to be compiled properly</li>
+            </ol>
+        </div>
+        
+        <h3>Manual Test Steps:</h3>
+        <ol>
+            <li>Click "Home Page (English)" - should show English content</li>
+            <li>Click "Switch to Malay" - should redirect and show Malay content</li>
+            <li>Click "Switch to English" - should redirect and show English content</li>
+            <li>Look for the language switcher buttons in the navigation bar</li>
+        </ol>
+        
+        <h3>Expected Content Changes:</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="background: #f8f9fa;">
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Element</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">English</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Malay</th>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;">Site Title</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Charity Platform</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Platform Amal</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;">Hero Title</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Make a Difference Today</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Buat Perbezaan Hari Ini</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;">Navigation - Home</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Home</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Utama</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;">Navigation - Donate</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Donate</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Derma</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;">Navigation - Events</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Events</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Acara</td>
+            </tr>
+        </table>
+        
+        <div id="testResults" style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+            <h3>Test Results:</h3>
+            <p>Click the buttons above and report what you see here.</p>
+        </div>
+    </div>
+
+    <script>
+        // Add click tracking
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.test-button');
+            const results = document.getElementById('testResults');
+            
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const url = this.href;
+                    const text = this.textContent;
+                    
+                    results.innerHTML = `
+                        <h3>Test Results:</h3>
+                        <p><strong>Clicked:</strong> ${text}</p>
+                        <p><strong>URL:</strong> ${url}</p>
+                        <p><strong>Status:</strong> Opening in new tab...</p>
+                        <p><em>Check the new tab to see if the language changed.</em></p>
+                    `;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -73,6 +73,33 @@
                             {% endif %}
                         </div>
 
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.level.id_for_label }}">Level Type</label>
+                                    {{ form.level }}
+                                    {% if form.level.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.level.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Select 'Form' to assign student to a specific form level</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.level_custom.id_for_label }}">Form Level</label>
+                                    {{ form.level_custom }}
+                                    {% if form.level_custom.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.level_custom.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Select the specific form (e.g., Form 1, Form 2)</small>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-group mb-3">
                             <div class="form-check">
                                 {{ form.is_active }}
@@ -85,6 +112,24 @@
                                 {{ form.is_active.errors }}
                             </div>
                             {% endif %}
+                        </div>
+
+                        <!-- Form Level Information Card -->
+                        <div class="card mb-3" id="form-info-card" style="display: none;">
+                            <div class="card-header bg-info text-white">
+                                <i class="fas fa-info-circle"></i> Form Level Information
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2"><strong>Selected Form:</strong> <span id="selected-form">-</span></p>
+                                <p class="mb-2"><strong>Available Fees:</strong></p>
+                                <ul id="available-fees" class="list-unstyled">
+                                    <li>Loading fees...</li>
+                                </ul>
+                                <div class="alert alert-success mt-2">
+                                    <i class="fas fa-check-circle"></i> 
+                                    <strong>Automatic Fee Assignment:</strong> When you save this student, they will automatically see the fees for the selected form level.
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -101,4 +146,90 @@
         </div>
     </div>
 </div>
+
+<!-- JavaScript for dynamic form handling -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const levelSelect = document.getElementById('id_level');
+    const levelCustomSelect = document.getElementById('id_level_custom');
+    const formInfoCard = document.getElementById('form-info-card');
+    const selectedFormSpan = document.getElementById('selected-form');
+    const availableFeesList = document.getElementById('available-fees');
+
+    // Function to show/hide form level field based on level selection
+    function toggleFormLevelField() {
+        const selectedLevel = levelSelect.value;
+        
+        if (selectedLevel === 'form') {
+            levelCustomSelect.parentElement.style.display = 'block';
+            levelCustomSelect.required = true;
+            formInfoCard.style.display = 'block';
+        } else if (selectedLevel === 'others') {
+            levelCustomSelect.parentElement.style.display = 'block';
+            levelCustomSelect.required = true;
+            formInfoCard.style.display = 'none';
+        } else {
+            levelCustomSelect.parentElement.style.display = 'none';
+            levelCustomSelect.required = false;
+            formInfoCard.style.display = 'none';
+        }
+    }
+
+    // Function to load and display fees for selected form
+    function loadFormFees() {
+        const selectedForm = levelCustomSelect.value;
+        
+        if (!selectedForm) {
+            selectedFormSpan.textContent = '-';
+            availableFeesList.innerHTML = '<li>Please select a form level</li>';
+            return;
+        }
+
+        selectedFormSpan.textContent = selectedForm;
+        availableFeesList.innerHTML = '<li>Loading fees...</li>';
+
+        // Make AJAX call to get fees for the selected form
+        fetch(`{% url 'myapp:get_form_fees' %}?form=${encodeURIComponent(selectedForm)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.fees.length > 0) {
+                    availableFeesList.innerHTML = '';
+                    data.fees.forEach(fee => {
+                        const li = document.createElement('li');
+                        li.className = 'mb-1';
+                        li.innerHTML = `<i class="fas fa-money-bill-wave text-success"></i> ${fee.category}: RM ${fee.amount} (${fee.frequency})`;
+                        availableFeesList.appendChild(li);
+                    });
+                } else {
+                    availableFeesList.innerHTML = '<li class="text-muted">No fees configured for this form level</li>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading fees:', error);
+                availableFeesList.innerHTML = '<li class="text-danger">Error loading fees</li>';
+            });
+    }
+
+    // Event listeners
+    levelSelect.addEventListener('change', function() {
+        toggleFormLevelField();
+        if (this.value === 'form') {
+            loadFormFees();
+        }
+    });
+
+    levelCustomSelect.addEventListener('change', function() {
+        if (levelSelect.value === 'form') {
+            loadFormFees();
+        }
+    });
+
+    // Initialize on page load
+    toggleFormLevelField();
+    if (levelSelect.value === 'form' && levelCustomSelect.value) {
+        loadFormFees();
+    }
+});
+</script>
+
 {% endblock %} 

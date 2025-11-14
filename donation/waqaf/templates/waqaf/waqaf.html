@@ -12,6 +12,9 @@
                         <a href="{% url 'waqaf:add_waqaf_asset' %}" class="btn btn-success me-2">
                             <i class="fas fa-plus me-2"></i>Add Asset
                         </a>
+                        <a href="{% url 'waqaf:view_archived_assets' %}" class="btn btn-warning me-2">
+                            <i class="fas fa-archive me-2"></i>Archived Assets
+                        </a>
                         {% endif %}
                         <a href="{% url 'waqaf:waqaf_ai_analytics' %}" class="btn btn-light">
                             <i class="fas fa-robot me-2"></i>AI Analytics
@@ -26,6 +29,7 @@
 
                     {% if is_admin %}
                         <!-- Admin View -->
+                        {% csrf_token %}
                         <div class="row g-4">
                             {% for asset in assets_progress %}
                             <div class="col-md-6 col-lg-4">
@@ -40,6 +44,10 @@
                                                 <ul class="dropdown-menu">
                                                     <li><a class="dropdown-item" href="{% url 'waqaf:asset_detail' asset.id %}">
                                                         <i class="fas fa-eye me-2"></i>View Details
+                                                    </a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item text-warning archive-asset-btn" href="#" data-asset-id="{{ asset.id }}" data-asset-name="{{ asset.name }}">
+                                                        <i class="fas fa-archive me-2"></i>Archive Asset
                                                     </a></li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li><a class="dropdown-item text-danger" href="{% url 'waqaf:delete_waqaf_asset' asset.id %}">
@@ -91,15 +99,23 @@
 
                         <!-- Admin Statistics -->
                         <div class="row mt-4">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="card text-center">
                                     <div class="card-body">
                                         <h3 class="text-primary">{{ total_assets }}</h3>
-                                        <p class="card-text">Total Assets</p>
+                                        <p class="card-text">Active Assets</p>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h3 class="text-warning">{{ archived_count }}</h3>
+                                        <p class="card-text">Archived Assets</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
                                 <div class="card text-center">
                                     <div class="card-body">
                                         <h3 class="text-success">{{ total_contributions }}</h3>
@@ -107,7 +123,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="card text-center">
                                     <div class="card-body">
                                         <h3 class="text-info">RM {{ total_amount|floatformat:2 }}</h3>
@@ -249,6 +265,73 @@
         transform: translateY(-2px);
     }
 </style>
+
+{% if is_admin %}
+<script>
+// Archive functionality for admin users
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle archive asset buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('archive-asset-btn') || e.target.closest('.archive-asset-btn')) {
+            e.preventDefault();
+            
+            const btn = e.target.classList.contains('archive-asset-btn') ? e.target : e.target.closest('.archive-asset-btn');
+            const assetId = btn.dataset.assetId;
+            const assetName = btn.dataset.assetName;
+            
+            if (confirm(`Are you sure you want to archive "${assetName}"? This will hide it from public view.`)) {
+                archiveAsset(assetId, assetName);
+            }
+        }
+    });
+    
+    // Archive asset function
+    function archiveAsset(assetId, assetName) {
+        fetch(`{% url 'waqaf:archive_asset' 0 %}`.replace('0', assetId), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage(`Successfully archived "${assetName}"`, 'success');
+                // Reload the page to reflect changes
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                showMessage(data.message || 'Failed to archive asset', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('An error occurred while archiving the asset', 'error');
+        });
+    }
+    
+    // Show message function
+    function showMessage(message, type) {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const alert = document.createElement('div');
+        alert.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+        alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alert);
+        
+        // Auto-dismiss after 3 seconds
+        setTimeout(() => {
+            alert.remove();
+        }, 3000);
+    }
+});
+</script>
+{% endif %}
 
 {% if not is_admin %}
 <script>

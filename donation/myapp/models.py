@@ -39,7 +39,8 @@ class Student(models.Model):
     program = models.CharField(max_length=100, blank=True, null=True, help_text="Student's program")
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, blank=True, null=True, help_text="Student's level (year/form/standard/others)")
     level_custom = models.CharField(max_length=50, blank=True, null=True, help_text="Custom level value when 'others' is selected")
-    year_batch = models.IntegerField()  # e.g., 2024
+    year_batch = models.IntegerField(null=True, blank=True)  # e.g., 2024
+    phone_number = models.CharField(max_length=15, blank=True, null=True, help_text="Student's phone number")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -48,9 +49,14 @@ class Student(models.Model):
         return f"{self.first_name} {self.last_name} ({self.student_id})"
     
     def get_level_display_value(self):
-        """Return the display value for level, including custom value if 'others' is selected"""
-        if self.level == 'others' and self.level_custom:
+        """Return the display value for level, including custom value if 'form' or 'others' is selected"""
+        print(f"DEBUG: get_level_display_value called for student {self.id}")
+        print(f"DEBUG: level={self.level}, level_custom={self.level_custom}")
+        
+        if self.level in ['form', 'others'] and self.level_custom:
+            print(f"DEBUG: Returning level_custom: {self.level_custom}")
             return self.level_custom
+        print(f"DEBUG: Returning get_level_display: {self.get_level_display()}")
         return self.get_level_display()
 
 class Parent(models.Model):
@@ -119,7 +125,7 @@ class IndividualStudentFee(models.Model):
 
 class FeeStructure(models.Model):
     category = models.ForeignKey(FeeCategory, on_delete=models.CASCADE)
-    form = models.CharField(max_length=10)
+    form = models.CharField(max_length=10, help_text="Form/grade level (e.g., Form 1, Form 2, Form 3)")
     amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     frequency = models.CharField(max_length=20, choices=[
         ('monthly', 'Monthly'),
@@ -148,6 +154,10 @@ class FeeStructure(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        unique_together = ['category', 'form']  # Ensure one fee structure per category per form
+        ordering = ['category__name', 'form']
+
     def __str__(self):
         if self.frequency == 'monthly' and self.monthly_duration:
             return f"{self.category.name} - {self.form} ({self.frequency}, {self.monthly_duration} months)"
@@ -160,6 +170,26 @@ class FeeStructure(models.Model):
             monthly_amount = (self.total_amount / self.monthly_duration).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
             return monthly_amount
         return self.amount or 0
+    
+    @classmethod
+    def get_for_student(cls, student, category=None):
+        """
+        Get the appropriate fee structure for a student based on their form/grade level.
+        This ensures all students in the same form pay the same amount.
+        """
+        # Get the student's form/grade level
+        student_level = student.get_level_display_value()
+        
+        # Filter by student's level and optionally by category
+        queryset = cls.objects.filter(
+            form__iexact=student_level,  # Case-insensitive match
+            is_active=True
+        )
+        
+        if category:
+            queryset = queryset.filter(category=category)
+        
+        return queryset.first()
     
     def generate_monthly_payments_for_student(self, student, start_date=None):
         """Generate monthly payment records for a specific student"""
@@ -400,7 +430,6 @@ class Donation(models.Model):
         ('credit_card', 'Credit Card'),
         ('debit_card', 'Debit Card'),
         ('bank_transfer', 'Bank Transfer'),
-        ('cash', 'Cash'),
     ]
     
     PAYMENT_STATUS = [
@@ -438,6 +467,137 @@ class Donation(models.Model):
         elif self.status == 'completed':
             self.event.current_amount += self.amount
             self.event.save()
+
+# PIBG Muafakat Donation Models
+class PibgDonationSettings(models.Model):
+    """Settings for PIBG Muafakat donation feature"""
+    banner_text = models.CharField(
+        max_length=200,
+        default="PIBG Muafakat Fund Donation",
+        help_text="Banner text displayed above the donation section"
+    )
+    donation_message = models.TextField(
+        default="Support our school's PIBG Muafakat fund to help improve facilities and student programs.",
+        help_text="Message shown to users about the donation"
+    )
+    preset_amounts = models.JSONField(
+        default=list,
+        help_text="Preset donation amounts in RM"
+    )
+    is_mandatory = models.BooleanField(
+        default=False,
+        help_text="Whether donation selection is mandatory during checkout"
+    )
+    is_enabled = models.BooleanField(
+        default=True,
+        help_text="Whether the donation feature is enabled"
+    )
+    minimum_custom_amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=5.00,
+        help_text="Minimum amount for custom donations"
+    )
+    maximum_custom_amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=1000.00,
+        help_text="Maximum amount for custom donations"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "PIBG Donation Settings"
+        verbose_name_plural = "PIBG Donation Settings"
+
+    def __str__(self):
+        return f"PIBG Donation Settings (Updated: {self.updated_at.strftime('%Y-%m-%d')})"
+
+    @classmethod
+    def get_settings(cls):
+        """Get the current donation settings, create default if none exists"""
+        settings, created = cls.objects.get_or_create(
+            pk=1,
+            defaults={
+                'preset_amounts': [10, 20, 30, 50, 100],
+                'donation_message': "Support our school's PIBG Muafakat fund to help improve facilities and student programs.",
+                'is_mandatory': False,
+                'is_enabled': True,
+                'minimum_custom_amount': 5.00,
+                'maximum_custom_amount': 1000.00,
+            }
+        )
+        return settings
+
+class PibgDonation(models.Model):
+    """Model to track PIBG Muafakat donations"""
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='pibg_donations')
+    parent = models.ForeignKey('Parent', on_delete=models.CASCADE, null=True, blank=True, related_name='pibg_donations')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS)
+    status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='completed')
+    transaction_id = models.CharField(max_length=100, null=True, blank=True)
+    receipt_number = models.CharField(max_length=50, unique=True)
+    
+    # Link to the main payment if part of fee payment
+    related_payment = models.ForeignKey('Payment', on_delete=models.CASCADE, null=True, blank=True, related_name='pibg_donations')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "PIBG Muafakat Donation"
+        verbose_name_plural = "PIBG Muafakat Donations"
+
+    def __str__(self):
+        return f"PIBG Donation - {self.student.first_name} {self.student.last_name} - RM{self.amount}"
+
+    def save(self, *args, **kwargs):
+        if not self.receipt_number:
+            import time
+            self.receipt_number = f'PIBG{timezone.now().strftime("%Y%m%d%H%M%S")}{int(time.time() * 1000000) % 1000:03d}'
+        super().save(*args, **kwargs)
+
+# Temporary placeholder models to prevent migration issues
+class ParentCart(models.Model):
+    parent = models.OneToOneField('Parent', on_delete=models.CASCADE, related_name='cart')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Parent Cart'
+        verbose_name_plural = 'Parent Carts'
+
+class ParentCartItem(models.Model):
+    cart = models.ForeignKey(ParentCart, on_delete=models.CASCADE, related_name='items')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    fee_structure = models.ForeignKey('FeeStructure', on_delete=models.CASCADE, null=True, blank=True)
+    individual_fee = models.ForeignKey('IndividualStudentFee', on_delete=models.CASCADE, null=True, blank=True)
+    fee_status = models.ForeignKey('FeeStatus', on_delete=models.CASCADE, null=True, blank=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.CharField(max_length=200)
+    quantity = models.PositiveIntegerField(default=1)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Cart Item'
+        verbose_name_plural = 'Cart Items'
+        unique_together = ('cart', 'student', 'fee_structure', 'individual_fee', 'fee_status')
+
+class ParentPaymentHistory(models.Model):
+    parent = models.ForeignKey('Parent', on_delete=models.CASCADE, related_name='payment_history')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    payment = models.ForeignKey('Payment', on_delete=models.CASCADE)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_date = models.DateTimeField(auto_now_add=True)
+    description = models.CharField(max_length=200)
+
+    class Meta:
+        verbose_name = 'Parent Payment History'
+        verbose_name_plural = 'Parent Payment Histories'
+        ordering = ['-payment_date']
 
 class EmailPreferences(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -483,6 +643,102 @@ class FeeStatus(models.Model):
             else:
                 self.status = 'pending'
             self.save()
+    
+    def save(self, *args, **kwargs):
+        """Ensure the amount is always consistent with the fee structure for the student's form level"""
+        if self.fee_structure:
+            # Get the correct amount from the fee structure for this student's form level
+            student_level = self.student.get_level_display_value()
+            if self.fee_structure.form.lower() == student_level.lower():
+                # Use the fee structure amount to ensure consistency
+                if self.fee_structure.frequency == 'monthly' and self.fee_structure.monthly_duration:
+                    self.amount = self.fee_structure.get_monthly_amount()
+                else:
+                    self.amount = self.fee_structure.amount or 0
+        super().save(*args, **kwargs)
+    
+    def get_original_amount(self):
+        """Get the original fee amount before any discounts"""
+        return self.amount
+    
+    def get_discounted_amount(self):
+        """Calculate the discounted amount based on approved waivers"""
+        from django.utils import timezone
+        today = timezone.now().date()
+        
+        # Get all active approved waivers for this student and fee category
+        active_waivers = FeeWaiver.objects.filter(
+            student=self.student,
+            category=self.fee_structure.category,
+            status='approved',
+            start_date__lte=today,
+            end_date__gte=today
+        )
+        
+        if not active_waivers.exists():
+            return self.amount
+        
+        # Calculate total discount
+        total_discount = 0
+        original_amount = self.amount
+        
+        for waiver in active_waivers:
+            if waiver.percentage:
+                # Percentage-based discount
+                discount_amount = (original_amount * waiver.percentage) / 100
+                total_discount += discount_amount
+            else:
+                # Fixed amount discount
+                total_discount += waiver.amount
+        
+        # Ensure discount doesn't exceed original amount
+        discounted_amount = max(0, original_amount - total_discount)
+        return discounted_amount
+    
+    def get_discount_info(self):
+        """Get information about applied discounts"""
+        from django.utils import timezone
+        today = timezone.now().date()
+        
+        active_waivers = FeeWaiver.objects.filter(
+            student=self.student,
+            category=self.fee_structure.category,
+            status='approved',
+            start_date__lte=today,
+            end_date__gte=today
+        )
+        
+        discount_info = {
+            'has_discount': False,
+            'original_amount': self.amount,
+            'discounted_amount': self.amount,
+            'total_discount': 0,
+            'waivers': []
+        }
+        
+        if active_waivers.exists():
+            discount_info['has_discount'] = True
+            total_discount = 0
+            
+            for waiver in active_waivers:
+                waiver_info = {
+                    'type': waiver.get_waiver_type_display(),
+                    'reason': waiver.reason,
+                    'amount': waiver.amount,
+                    'percentage': waiver.percentage,
+                    'discount_amount': waiver.calculate_discount_amount(self.amount)
+                }
+                discount_info['waivers'].append(waiver_info)
+                
+                if waiver.percentage:
+                    total_discount += (self.amount * waiver.percentage) / 100
+                else:
+                    total_discount += waiver.amount
+            
+            discount_info['total_discount'] = total_discount
+            discount_info['discounted_amount'] = max(0, self.amount - total_discount)
+        
+        return discount_info
 
 class FeeWaiver(models.Model):
     WAIVER_TYPES = [
@@ -585,9 +841,17 @@ class UserProfile(models.Model):
     """Extended user profile with role-based access"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='myapp_profile')
     role = models.CharField(
-        choices=[('admin', 'Admin'), ('student', 'Student')], 
+        choices=[
+            ('admin', 'Super Admin'), 
+            ('student', 'Student'), 
+            ('parent', 'Parent'),
+            ('donation_admin', 'Donation Module Admin'),
+            ('waqaf_admin', 'Waqaf Module Admin'),
+            ('school_fees_admin', 'School Fees Module Admin'),
+            ('school_fees_level_admin', 'School Fees Level Admin'),
+        ], 
         default='student', 
-        max_length=10
+        max_length=30
     )
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
@@ -607,3 +871,134 @@ class UserProfile(models.Model):
 
     def is_student(self):
         return self.role == 'student'
+
+    def is_parent(self):
+        return self.role == 'parent'
+    
+    def is_donation_admin(self):
+        return self.role == 'donation_admin'
+    
+    def is_waqaf_admin(self):
+        return self.role == 'waqaf_admin'
+    
+    def is_school_fees_admin(self):
+        return self.role == 'school_fees_admin'
+    
+    def is_school_fees_level_admin(self):
+        return self.role == 'school_fees_level_admin'
+    
+    def is_module_admin(self):
+        """Check if user is any type of module admin"""
+        return self.role in ['donation_admin', 'waqaf_admin', 'school_fees_admin', 'school_fees_level_admin']
+    
+    def is_form1_admin(self):
+        """Check if user is Form 1 admin"""
+        if self.role == 'school_fees_level_admin':
+            return self.level_assignments.filter(level='form1').exists()
+        return False
+    
+    def is_form3_admin(self):
+        """Check if user is Form 3 admin"""
+        if self.role == 'school_fees_level_admin':
+            return self.level_assignments.filter(level='form3').exists()
+        return False
+    
+    def get_assigned_levels(self):
+        """Get all levels assigned to this user"""
+        if self.role == 'school_fees_level_admin':
+            return [assignment.level for assignment in self.level_assignments.all()]
+        return []
+
+
+class ModulePermission(models.Model):
+    """Model for module-specific permissions"""
+    MODULE_CHOICES = [
+        ('donation', 'Donation Module'),
+        ('waqaf', 'Waqaf Module'),
+        ('school_fees', 'School Fees Module'),
+        ('pibg_donation', 'PIBG Donation'),
+    ]
+    
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='module_permissions')
+    module = models.CharField(max_length=20, choices=MODULE_CHOICES)
+    can_view = models.BooleanField(default=True)
+    can_add = models.BooleanField(default=False)
+    can_change = models.BooleanField(default=False)
+    can_delete = models.BooleanField(default=False)
+    can_manage_settings = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('user_profile', 'module')
+        verbose_name = 'Module Permission'
+        verbose_name_plural = 'Module Permissions'
+    
+    def __str__(self):
+        return f"{self.user_profile.user.username} - {self.get_module_display()}"
+
+
+class SchoolFeesLevelAdmin(models.Model):
+    """Model for school fees level-specific admin assignments"""
+    LEVEL_CHOICES = [
+        ('form1', 'Form 1'),
+        ('form2', 'Form 2'),
+        ('form3', 'Form 3'),
+        ('form4', 'Form 4'),
+        ('form5', 'Form 5'),
+        ('year1', 'Year 1'),
+        ('year2', 'Year 2'),
+        ('year3', 'Year 3'),
+        ('year4', 'Year 4'),
+        ('year5', 'Year 5'),
+        ('standard1', 'Standard 1'),
+        ('standard2', 'Standard 2'),
+        ('standard3', 'Standard 3'),
+        ('standard4', 'Standard 4'),
+        ('standard5', 'Standard 5'),
+        ('standard6', 'Standard 6'),
+        ('all', 'All Levels'),
+    ]
+    
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='level_assignments')
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES)
+    can_view = models.BooleanField(default=True)
+    can_add = models.BooleanField(default=False)
+    can_change = models.BooleanField(default=False)
+    can_delete = models.BooleanField(default=False)
+    can_manage_fees = models.BooleanField(default=False)
+    can_manage_payments = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('user_profile', 'level')
+        verbose_name = 'School Fees Level Admin'
+        verbose_name_plural = 'School Fees Level Admins'
+    
+    def __str__(self):
+        return f"{self.user_profile.user.username} - {self.get_level_display()}"
+
+
+class PredefinedDonationAmount(models.Model):
+    """Model for admin-configurable predefined donation amounts"""
+    amount = models.DecimalField(max_digits=10, decimal_places=2, help_text="Donation amount")
+    is_active = models.BooleanField(default=True, help_text="Whether this amount is available for selection")
+    display_order = models.PositiveIntegerField(default=0, help_text="Order in which amounts are displayed")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['display_order', 'amount']
+        verbose_name = 'Predefined Donation Amount'
+        verbose_name_plural = 'Predefined Donation Amounts'
+
+    def __str__(self):
+        return f"RM{self.amount}"
+
+    def formatted_amount(self):
+        return f"RM{self.amount:,.2f}"
+
+
+
+

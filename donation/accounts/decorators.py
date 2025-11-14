@@ -53,6 +53,89 @@ def student_required(view_func):
     return _wrapped_view
 
 
+def parent_required(view_func):
+    """
+    Decorator to check if user is a parent.
+    Redirects to home page with error message if not parent.
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('accounts:login')
+        
+        try:
+            profile = request.user.myapp_profile
+            print(f"DEBUG: parent_required - User: {request.user.username}, Role: {profile.role}")
+            if profile.role == 'parent':
+                return view_func(request, *args, **kwargs)
+            else:
+                print(f"DEBUG: Access denied - User {request.user.username} has role {profile.role}, not parent")
+                messages.error(request, 'Access denied. Parent privileges required.')
+                return redirect('home')
+        except Exception as e:
+            print(f"DEBUG: Exception in parent_required for user {request.user.username}: {str(e)}")
+            messages.error(request, 'User profile not found. Please contact administrator.')
+            return redirect('home')
+    
+    return _wrapped_view
+
+
+def form1_admin_required(view_func):
+    """
+    Decorator to check if user is a Form 1 admin.
+    Redirects to home page with error message if not Form 1 admin.
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('accounts:login')
+        
+        try:
+            # Check if user has profile
+            profile = getattr(request.user, 'profile', None)
+            
+            if profile and (profile.is_form1_admin() or profile.is_superuser()):
+                return view_func(request, *args, **kwargs)
+            else:
+                messages.error(request, 'Access denied. Form 1 admin privileges required.')
+                return redirect('home')
+        except Exception as e:
+            messages.error(request, f'User profile not found. Error: {str(e)}')
+            return redirect('home')
+    
+    return _wrapped_view
+
+
+def form3_admin_required(view_func):
+    """
+    Decorator to check if user is a Form 3 admin.
+    Redirects to home page with error message if not Form 3 admin.
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('accounts:login')
+        
+        try:
+            # Check if user has myapp_profile (the correct profile model)
+            if hasattr(request.user, 'myapp_profile'):
+                profile = request.user.myapp_profile
+            else:
+                # Fallback to regular profile
+                profile = request.user.profile
+            
+            if profile.is_form3_admin() or profile.is_superuser():
+                return view_func(request, *args, **kwargs)
+            else:
+                messages.error(request, 'Access denied. Form 3 admin privileges required.')
+                return redirect('home')
+        except Exception as e:
+            messages.error(request, f'User profile not found. Error: {str(e)}')
+            return redirect('home')
+    
+    return _wrapped_view
+
+
 def role_required(allowed_roles):
     """
     Decorator to check if user has one of the allowed roles.

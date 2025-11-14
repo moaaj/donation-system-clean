@@ -2,14 +2,14 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from .models import UserProfile
-from myapp.models import Student
+from myapp.models import Student, FeeStructure
 
 
 class EnhancedUserCreationForm(UserCreationForm):
     """Enhanced user registration form with additional fields"""
     email = forms.EmailField(required=True, help_text='Required. Enter a valid email address.')
     first_name = forms.CharField(max_length=30, required=True, help_text='Required.')
-    last_name = forms.CharField(max_length=30, required=True, help_text='Required.')
+    last_name = forms.CharField(max_length=30, required=True, help_text='Optional.')
     phone_number = forms.CharField(max_length=15, required=False, help_text='Optional.')
     address = forms.CharField(widget=forms.Textarea(attrs={'rows': 3}), required=False, help_text='Optional.')
     date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}), help_text='Optional.')
@@ -34,7 +34,7 @@ class EnhancedUserCreationForm(UserCreationForm):
 
 
 class RoleBasedRegistrationForm(UserCreationForm):
-    """Registration form with role-based validation"""
+    """Registration form with role-based validation and form selection for students"""
     email = forms.EmailField(
         required=True, 
         help_text='Required. Enter a valid email address.',
@@ -64,16 +64,58 @@ class RoleBasedRegistrationForm(UserCreationForm):
         help_text='Optional.'
     )
     role = forms.ChoiceField(
-        choices=[('admin', 'Admin'), ('student', 'Student')],
+        choices=[
+            ('admin', 'Super Admin'),
+            ('student', 'Student'),
+            ('parent', 'Parent'),
+            ('donation_admin', 'Donation Module Admin'),
+            ('waqaf_admin', 'Waqaf Module Admin'),
+            ('school_fees_admin', 'School Fees Module Admin'),
+            ('school_fees_level_admin', 'School Fees Level Admin'),
+        ],
         required=True,
         help_text='Select your role.',
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={'class': 'form-control', 'onchange': 'toggleRoleFields()'})
     )
     student_id = forms.CharField(
         max_length=20, 
         required=False, 
         help_text='Required for students. Enter your unique student ID.',
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., STU2024001'})
+    )
+    # New field for form selection
+    form_level = forms.ChoiceField(
+        choices=[('', '-- Select Form --')],
+        required=False,
+        help_text='Required for students. Select your form level.',
+        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_form_level'})
+    )
+    
+    # Level selection for school fees level admin
+    admin_level = forms.ChoiceField(
+        choices=[
+            ('', '-- Select Level --'),
+            ('form1', 'Form 1'),
+            ('form2', 'Form 2'),
+            ('form3', 'Form 3'),
+            ('form4', 'Form 4'),
+            ('form5', 'Form 5'),
+            ('year1', 'Year 1'),
+            ('year2', 'Year 2'),
+            ('year3', 'Year 3'),
+            ('year4', 'Year 4'),
+            ('year5', 'Year 5'),
+            ('standard1', 'Standard 1'),
+            ('standard2', 'Standard 2'),
+            ('standard3', 'Standard 3'),
+            ('standard4', 'Standard 4'),
+            ('standard5', 'Standard 5'),
+            ('standard6', 'Standard 6'),
+            ('all', 'All Levels'),
+        ],
+        required=False,
+        help_text='Required for School Fees Level Admin. Select the level you will manage.',
+        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_admin_level', 'style': 'display: none;'})
     )
     
     class Meta:
@@ -84,6 +126,24 @@ class RoleBasedRegistrationForm(UserCreationForm):
             'password1': forms.PasswordInput(attrs={'class': 'form-control'}),
             'password2': forms.PasswordInput(attrs={'class': 'form-control'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Get available forms from FeeStructure
+        try:
+            available_forms = FeeStructure.objects.values_list('form', flat=True).distinct().order_by('form')
+            form_choices = [('', '-- Select Form --')] + [(form, form) for form in available_forms]
+            self.fields['form_level'].choices = form_choices
+        except:
+            # If FeeStructure is not available, provide default choices
+            self.fields['form_level'].choices = [
+                ('', '-- Select Form --'),
+                ('Form 1', 'Form 1'),
+                ('Form 2', 'Form 2'),
+                ('Form 3', 'Form 3'),
+                ('Form 4', 'Form 4'),
+                ('Form 5', 'Form 5'),
+            ]
     
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -99,28 +159,29 @@ class RoleBasedRegistrationForm(UserCreationForm):
             raise forms.ValidationError('This username is already taken.')
         return username
     
-    def clean_student_id(self):
-        student_id = self.cleaned_data.get('student_id')
-        role = self.cleaned_data.get('role')
-        
-        if role == 'student':
-            if not student_id:
-                raise forms.ValidationError('Student ID is required for student registration.')
-            
-            # Check if student ID already exists
-            if Student.objects.filter(student_id=student_id).exists():
-                raise forms.ValidationError('This student ID is already registered.')
-        
-        return student_id
-    
     def clean(self):
         cleaned_data = super().clean()
         role = cleaned_data.get('role')
         student_id = cleaned_data.get('student_id')
+        form_level = cleaned_data.get('form_level')
+        admin_level = cleaned_data.get('admin_level')
         
-        # Additional validation for student role
-        if role == 'student' and not student_id:
-            self.add_error('student_id', 'Student ID is required for student registration.')
+        # Validate student-specific fields
+        if role == 'student':
+            if not student_id:
+                raise forms.ValidationError("Student ID is required for student registration.")
+            
+            if not form_level:
+                raise forms.ValidationError("Form level is required for student registration.")
+            
+            # Check if student ID already exists
+            if Student.objects.filter(student_id=student_id).exists():
+                raise forms.ValidationError("A student with this Student ID already exists.")
+        
+        # Validate school fees level admin fields
+        if role == 'school_fees_level_admin':
+            if not admin_level:
+                raise forms.ValidationError("Admin level is required for School Fees Level Admin registration.")
         
         return cleaned_data
 

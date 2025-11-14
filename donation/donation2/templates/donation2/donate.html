@@ -9,6 +9,8 @@
         max-width: 1200px;
         margin: 0 auto;
         padding: 20px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
     }
     
     .donation-header {
@@ -41,38 +43,77 @@
     }
     
     .event-card {
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+        border: 1px solid rgba(255,255,255,0.2);
         overflow: hidden;
-        transition: all 0.3s ease;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
+        backdrop-filter: blur(10px);
     }
     
     .event-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-8px) scale(1.02);
         box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        border-color: rgba(0,123,255,0.2);
     }
     
     .event-header {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 25px;
+        padding: 30px;
         position: relative;
+        overflow: hidden;
+    }
+    
+    .event-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+        pointer-events: none;
+    }
+    
+    .event-header::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        pointer-events: none;
     }
     
     .event-header h3 {
-        margin: 0 0 15px 0;
-        font-size: 1.4em;
-        font-weight: bold;
+        margin: 0 0 20px 0;
+        font-size: 1.5em;
+        font-weight: 700;
+        position: relative;
+        z-index: 2;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     
     .event-meta {
         display: flex;
-        flex-wrap: wrap;
-        gap: 15px;
-        font-size: 0.9em;
-        opacity: 0.9;
+        flex-direction: column;
+        gap: 12px;
+        font-size: 0.95em;
+        opacity: 0.95;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .event-meta span {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 500;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
     
     .event-content {
@@ -91,33 +132,256 @@
     
     .progress-bar {
         width: 100%;
-        height: 12px;
-        background: #e1e5e9;
-        border-radius: 10px;
+        height: 16px;
+        background: linear-gradient(90deg, #f1f3f4 0%, #e8eaed 100%);
+        border-radius: 12px;
         overflow: hidden;
-        margin: 15px 0;
+        margin: 20px 0;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        position: relative;
     }
     
     .progress-fill {
         height: 100%;
-        background: linear-gradient(90deg, #4CAF50, #45a049);
-        transition: width 0.3s ease;
-        border-radius: 10px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        border-radius: 12px;
+    }
+    
+    .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+        animation: shimmer 3s infinite;
+        border-radius: 12px;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
     }
     
     .progress-stats {
         display: flex;
         justify-content: space-between;
         font-size: 0.9em;
-        color: #666;
-        margin-top: 10px;
+        color: #555;
+        font-weight: 600;
+        margin-top: 12px;
+    }
+    
+    .progress-stats span {
+        padding: 6px 12px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 8px;
+        font-size: 0.85em;
+        transition: all 0.3s ease;
+    }
+    
+    .progress-stats span:hover {
+        background: rgba(102, 126, 234, 0.2);
+        transform: translateY(-1px);
+    }
+    
+    /* Quick Select Amount Buttons Styling */
+    .predefined-amounts {
+        margin-top: 20px;
+        padding: 20px;
+        background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+        border-radius: 16px;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+    
+    .predefined-amounts-label {
+        font-size: 14px;
+        color: #2d3748;
+        margin-bottom: 12px;
+        display: block;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        position: relative;
+    }
+    
+    .predefined-amounts-label::after {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 30px;
+        height: 2px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        border-radius: 1px;
+    }
+    
+    .amount-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+        justify-content: center;
+    }
+    
+    /* Responsive adjustments for different screen sizes */
+    @media (max-width: 768px) {
+        .amount-btn {
+            min-width: 60px;
+            max-width: 90px;
+            padding: 8px 10px;
+            font-size: 12px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .amount-btn {
+            min-width: 50px;
+            max-width: 70px;
+            padding: 6px 8px;
+            font-size: 11px;
+            gap: 6px;
+        }
+        
+        .amount-buttons {
+            gap: 6px;
+        }
+    }
+    
+    
+    .amount-btn {
+        padding: 10px 12px;
+        border: 2px solid #e2e8f0;
+        background: linear-gradient(145deg, #ffffff 0%, #f7fafc 100%);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        color: #4a5568;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        white-space: nowrap;
+        min-width: 70px;
+        max-width: 120px;
+    }
+    
+    .amount-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        transition: left 0.5s;
+    }
+    
+    .amount-btn:hover {
+        background: linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%);
+        border-color: #cbd5e0;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .amount-btn:hover::before {
+        left: 100%;
+    }
+    
+    .amount-btn.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+        color: white;
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .amount-btn.active::before {
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    }
+    
+    .amount-btn:active {
+        transform: scale(0.98);
+    }
+    
+    /* Ripple effect for amount buttons */
+    .amount-btn.ripple {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .amount-btn .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.6);
+        transform: scale(0);
+        animation: ripple-animation 0.6s linear;
+        pointer-events: none;
+    }
+    
+    @keyframes ripple-animation {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+    
+    /* Staggered animation for amount buttons on load */
+    .amount-btn {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.6s ease forwards;
+    }
+    
+    .amount-btn:nth-child(1) { animation-delay: 0.1s; }
+    .amount-btn:nth-child(2) { animation-delay: 0.2s; }
+    .amount-btn:nth-child(3) { animation-delay: 0.3s; }
+    .amount-btn:nth-child(4) { animation-delay: 0.4s; }
+    .amount-btn:nth-child(5) { animation-delay: 0.5s; }
+    .amount-btn:nth-child(6) { animation-delay: 0.6s; }
+    
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Enhanced focus states for accessibility */
+    .amount-btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+    }
+    
+    .amount-btn:focus-visible {
+        outline: 2px solid #667eea;
+        outline-offset: 2px;
     }
     
     .donation-form {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 15px;
-        margin-top: 20px;
+        background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+        padding: 25px;
+        border-radius: 20px;
+        margin-top: 25px;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .donation-form:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
     }
     
     .form-group {
@@ -133,18 +397,26 @@
     
     .form-group input, .form-group textarea, .form-group select {
         width: 100%;
-        padding: 12px 15px;
+        padding: 14px 18px;
         border: 2px solid #e1e5e9;
-        border-radius: 10px;
-        font-size: 14px;
-        transition: all 0.3s ease;
+        border-radius: 12px;
+        font-size: 15px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        font-weight: 500;
     }
     
     .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
         outline: none;
         border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15), 0 4px 12px rgba(102, 126, 234, 0.1);
+        transform: translateY(-1px);
+    }
+    
+    .form-group input:hover, .form-group textarea:hover, .form-group select:hover {
+        border-color: #a0aec0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
     
     .form-row {
@@ -154,16 +426,35 @@
     }
     
     .btn {
-        padding: 12px 25px;
+        padding: 14px 28px;
         border: none;
-        border-radius: 10px;
-        font-weight: 600;
+        border-radius: 12px;
+        font-weight: 700;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         text-decoration: none;
         display: inline-block;
         text-align: center;
-        font-size: 14px;
+        font-size: 15px;
+        position: relative;
+        overflow: hidden;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s;
+    }
+    
+    .btn:hover::before {
+        left: 100%;
     }
     
     .btn-primary {
@@ -197,15 +488,18 @@
     }
     
     .btn-outline {
-        background: transparent;
-        border: 2px solid #667eea;
-        color: #667eea;
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        color: white;
+        backdrop-filter: blur(10px);
     }
     
     .btn-outline:hover {
-        background: #667eea;
+        background: rgba(255, 255, 255, 0.3);
+        border-color: white;
         color: white;
         transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 255, 255, 0.2);
     }
     
     .cart-summary {
@@ -267,16 +561,24 @@
     }
     
     .admin-actions {
-        position: absolute;
-        top: 15px;
-        right: 15px;
+        margin-top: 20px;
         display: flex;
-        gap: 10px;
+        justify-content: center;
+        gap: 15px;
     }
     
     .admin-actions .btn {
-        padding: 8px 15px;
-        font-size: 12px;
+        padding: 12px 20px;
+        font-size: 14px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .admin-actions .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
     }
     
     .message-counter {
@@ -334,6 +636,87 @@
         {% endif %}
     </div>
     
+    <!-- Search and Filter Section -->
+    <div class="search-section" style="background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%); padding: 35px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); margin-bottom: 40px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px);">
+        <h3 style="text-align: center; margin-bottom: 25px; color: #333;">
+            <i class="fas fa-search"></i> Find Your Perfect Cause
+        </h3>
+        
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label for="search" class="form-label">Search Events</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="{{ search_query }}" placeholder="Search by title, description, or category...">
+            </div>
+            <div class="col-md-2">
+                <label for="category" class="form-label">Category</label>
+                <select class="form-select" id="category" name="category">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">All Status</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="sort" class="form-label">Sort By</label>
+                <select class="form-select" id="sort" name="sort">
+                    <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Date Created</option>
+                    <option value="title" {% if sort_by == 'title' %}selected{% endif %}>Title</option>
+                    <option value="target_amount" {% if sort_by == 'target_amount' %}selected{% endif %}>Target Amount</option>
+                    <option value="current_amount" {% if sort_by == 'current_amount' %}selected{% endif %}>Current Amount</option>
+                    <option value="start_date" {% if sort_by == 'start_date' %}selected{% endif %}>Start Date</option>
+                    <option value="end_date" {% if sort_by == 'end_date' %}selected{% endif %}>End Date</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="order" class="form-label">Order</label>
+                <select class="form-select" id="order" name="order">
+                    <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Descending</option>
+                    <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Ascending</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+        
+        <div class="row mt-3">
+            <div class="col-12 text-center">
+                <a href="{% url 'donate' %}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-times"></i> Clear Filters
+                </a>
+            </div>
+        </div>
+        
+        <!-- Results Count -->
+        <div class="row mt-3">
+            <div class="col-12 text-center">
+                <p class="text-muted">
+                    {% if search_query or category_filter or status_filter %}
+                        Found {{ donation_events.count }} event{{ donation_events.count|pluralize }} matching your criteria
+                    {% else %}
+                        Showing {{ donation_events.count }} current donation event{{ donation_events.count|pluralize }}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    
     {% if donation_events %}
     <div class="events-grid">
         {% for event in donation_events %}
@@ -342,7 +725,7 @@
                 <h3>{{ event.title }}</h3>
                 <div class="event-meta">
                     <span>📅 {{ event.start_date|date:"M d, Y" }} - {{ event.end_date|date:"M d, Y" }}</span>
-                    <span>💰 Target: ${{ event.target_amount|floatformat:2 }}</span>
+                    <span>💰 Target: RM{{ event.target_amount|floatformat:2 }}</span>
                 </div>
             </div>
             
@@ -353,12 +736,12 @@
                 
                 <div class="progress-section">
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: {{ event.get_progress_percentage|floatformat:1 }}%"></div>
+                        <div class="progress-fill" data-width="{{ event.get_progress_percentage|floatformat:1 }}"></div>
                     </div>
                     <div class="progress-stats">
-                        <span>Raised: ${{ event.current_amount|floatformat:2 }}</span>
+                        <span>Raised: RM{{ event.current_amount|floatformat:2 }}</span>
                         <span>{{ event.get_progress_percentage|floatformat:1 }}% Complete</span>
-                        <span>Target: ${{ event.target_amount|floatformat:2 }}</span>
+                        <span>Target: RM{{ event.target_amount|floatformat:2 }}</span>
                     </div>
                 </div>
                 
@@ -366,14 +749,33 @@
                     <form method="post" class="donation-form-inline" data-event-id="{{ event.id }}">
                         {% csrf_token %}
                         <input type="hidden" name="event" value="{{ event.id }}">
+                        
+                        {% if user.is_authenticated %}
                         <input type="hidden" name="donor_name" value="{{ user.get_full_name|default:user.username }}">
                         <input type="hidden" name="donor_email" value="{{ user.email }}">
+                        {% endif %}
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="amount_{{ event.id }}">Donation Amount ($)</label>
+                                <label for="amount_{{ event.id }}">Donation Amount (RM)</label>
                                 <input type="number" name="amount" id="amount_{{ event.id }}" 
                                        step="0.01" min="0.01" required placeholder="Enter amount">
+                                
+                                <!-- Predefined Amount Buttons -->
+                                {% if predefined_amounts %}
+                                <div class="predefined-amounts">
+                                    <label class="predefined-amounts-label">Quick Select</label>
+                                    <div class="amount-buttons">
+                                        {% for amount in predefined_amounts %}
+                                        <button type="button" class="amount-btn" 
+                                                data-amount="{{ amount.amount }}" 
+                                                data-target="amount_{{ event.id }}">
+                                            RM{{ amount.amount }}
+                                        </button>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
                             </div>
                             <div class="form-group">
                                 <label for="payment_method_{{ event.id }}">Payment Method</label>
@@ -382,10 +784,24 @@
                                     <option value="credit_card">Credit Card</option>
                                     <option value="bank_transfer">Bank Transfer</option>
                                     <option value="paypal">PayPal</option>
-                                    <option value="cash">Cash</option>
                                 </select>
                             </div>
                         </div>
+                        
+                        {% if not user.is_authenticated %}
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="donor_name_{{ event.id }}">Your Name</label>
+                                <input type="text" name="donor_name" id="donor_name_{{ event.id }}" 
+                                       required placeholder="Enter your full name">
+                            </div>
+                            <div class="form-group">
+                                <label for="donor_email_{{ event.id }}">Your Email</label>
+                                <input type="email" name="donor_email" id="donor_email_{{ event.id }}" 
+                                       required placeholder="Enter your email address">
+                            </div>
+                        </div>
+                        {% endif %}
                         
                         <div class="form-group">
                             <label for="message_{{ event.id }}">Message (Optional)</label>
@@ -402,15 +818,9 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-heart"></i> Donate Now
                             </button>
-                            {% if user.is_authenticated %}
-                            <button type="button" class="btn btn-success" onclick="addToCart({{ event.id }})">
+                            <button type="button" class="btn btn-success" onclick="addToCart('{{ event.id }}')">
                                 <i class="fas fa-cart-plus"></i> Add to Cart
                             </button>
-                            {% else %}
-                            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-success">
-                                <i class="fas fa-sign-in-alt"></i> Login to Add to Cart
-                            </a>
-                            {% endif %}
                         </div>
                     </form>
                 </div>
@@ -423,14 +833,13 @@
 
     <div class="cart-summary">
         <h3>🛒 Your Cart Summary</h3>
-        {% if user.is_authenticated %}
         <div class="cart-stats">
             <div class="stat-item">
                 <span class="stat-value" id="cart-count">0</span>
                 <span class="stat-label">Events in Cart</span>
             </div>
             <div class="stat-item">
-                <span class="stat-value" id="cart-total">$0.00</span>
+                <span class="stat-value" id="cart-total">RM0.00</span>
                 <span class="stat-label">Total Amount</span>
             </div>
         </div>
@@ -442,14 +851,6 @@
                 <i class="fas fa-calendar-alt"></i> All Events
             </a>
         </div>
-        {% else %}
-        <div style="text-align: center; padding: 20px;">
-            <p style="color: #666; margin-bottom: 20px;">Please log in to use the cart functionality</p>
-            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary">
-                <i class="fas fa-sign-in-alt"></i> Login
-            </a>
-        </div>
-        {% endif %}
     </div>
     
     {% else %}
@@ -468,6 +869,13 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Set progress bar widths
+    const progressFills = document.querySelectorAll('.progress-fill[data-width]');
+    progressFills.forEach(fill => {
+        const width = fill.getAttribute('data-width');
+        fill.style.width = width + '%';
+    });
+    
     // Initialize message counters
     const messageTextareas = document.querySelectorAll('textarea[name="message"]');
     messageTextareas.forEach(textarea => {
@@ -499,20 +907,38 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadCartCount() {
-    fetch('/donation/api/cart/count/')
+    fetch('{% url "get_cart_count" %}')
         .then(response => response.json())
         .then(data => {
             const cartCountElement = document.getElementById('cart-count');
             const cartTotalElement = document.getElementById('cart-total');
+            const cartBadge = document.querySelector('.cart-badge');
+            
             if (cartCountElement) {
                 cartCountElement.textContent = data.cart_count;
             }
             if (cartTotalElement && data.cart_total) {
-                cartTotalElement.textContent = `$${parseFloat(data.cart_total).toFixed(2)}`;
+                cartTotalElement.textContent = `RM${parseFloat(data.cart_total).toFixed(2)}`;
+            }
+            
+            // Handle cart badge visibility based on authentication
+            if (cartBadge) {
+                if (data.authenticated === false) {
+                    cartBadge.style.display = 'none';
+                } else if (data.cart_count > 0) {
+                    cartBadge.style.display = 'block';
+                } else {
+                    cartBadge.style.display = 'none';
+                }
             }
         })
         .catch(error => {
             console.error('Error loading cart count:', error);
+            // Hide cart badge on error
+            const cartBadge = document.querySelector('.cart-badge');
+            if (cartBadge) {
+                cartBadge.style.display = 'none';
+            }
         });
 }
 
@@ -523,6 +949,8 @@ function handleDonationSubmit(form) {
     // Validate form
     const amount = formData.get('amount');
     const paymentMethod = formData.get('payment_method');
+    const donorName = formData.get('donor_name');
+    const donorEmail = formData.get('donor_email');
     
     if (!amount || parseFloat(amount) <= 0) {
         showNotification('Please enter a valid donation amount.', 'error');
@@ -534,8 +962,14 @@ function handleDonationSubmit(form) {
         return;
     }
     
+    // For anonymous users, validate donor information
+    if (!donorName || !donorEmail) {
+        showNotification('Please fill in your name and email address.', 'error');
+        return;
+    }
+    
     // Submit donation
-    fetch('/donation/donate/', {
+    fetch('/donation/', {
         method: 'POST',
         body: formData,
         headers: {
@@ -600,10 +1034,21 @@ function addToCart(eventId) {
     const message = formData.get('message') || '';
     console.log('Message:', message);
     
+    // Get donor information for anonymous users
+    const donorName = formData.get('donor_name');
+    const donorEmail = formData.get('donor_email');
+    
+    if (!donorName || !donorEmail) {
+        showNotification('Please fill in your name and email address.', 'error');
+        return;
+    }
+    
     // Create data for cart
     const cartData = new FormData();
     cartData.append('amount', amount);
     cartData.append('message', message);
+    cartData.append('donor_name', donorName);
+    cartData.append('donor_email', donorEmail);
     
     // Debug: Log the form data
     console.log('Form data being sent:');
@@ -612,7 +1057,7 @@ function addToCart(eventId) {
     }
     
     // Send to cart
-    const url = `/donation/cart/add/${eventId}/`;
+    const url = `{% url 'add_to_cart' 0 %}`.replace('0', eventId);
     console.log('Sending request to:', url);
     console.log('CSRF Token:', getCookie('csrftoken'));
     
@@ -705,9 +1150,112 @@ function showNotification(message, type) {
                             break;
                         }
                     }
-                }
-                return cookieValue;
             }
+            return cookieValue;
+        }
+
+        // Search and Filter Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-submit form on filter changes
+            const filterForm = document.querySelector('form');
+            const filterInputs = filterForm.querySelectorAll('select');
+            
+            filterInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    filterForm.submit();
+                });
+            });
+            
+            // Search input with debounce
+            const searchInput = document.getElementById('search');
+            let searchTimeout;
+            
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    filterForm.submit();
+                }, 500); // 500ms delay
+            });
+            
+            // Highlight search terms in results
+            const searchQuery = '{{ search_query }}';
+            if (searchQuery) {
+                const eventCards = document.querySelectorAll('.event-card h3, .event-card .event-description');
+                eventCards.forEach(card => {
+                    const text = card.innerHTML;
+                    const highlightedText = text.replace(
+                        new RegExp(searchQuery, 'gi'), 
+                        '<mark style="background-color: #fff3cd; padding: 0.1em 0.2em; border-radius: 0.2em;">$&</mark>'
+                    );
+                    card.innerHTML = highlightedText;
+                });
+            }
+            
+            // Add loading state to search button
+            const searchButton = document.querySelector('button[type="submit"]');
+            if (searchButton) {
+                filterForm.addEventListener('submit', function() {
+                    searchButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    searchButton.disabled = true;
+                });
+            }
+            
+            // Predefined amount buttons functionality
+            document.querySelectorAll('.amount-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const amount = this.getAttribute('data-amount');
+                    const targetInput = document.getElementById(this.getAttribute('data-target'));
+                    
+                    if (targetInput) {
+                        targetInput.value = amount;
+                        
+                        // Add active class for CSS styling
+                        this.classList.add('active');
+                        
+                        // Create ripple effect
+                        const ripple = document.createElement('span');
+                        ripple.classList.add('ripple-effect');
+                        
+                        // Calculate ripple position
+                        const rect = this.getBoundingClientRect();
+                        const size = Math.max(rect.width, rect.height);
+                        const x = event.clientX - rect.left - size / 2;
+                        const y = event.clientY - rect.top - size / 2;
+                        
+                        ripple.style.width = ripple.style.height = size + 'px';
+                        ripple.style.left = x + 'px';
+                        ripple.style.top = y + 'px';
+                        
+                        this.appendChild(ripple);
+                        
+                        // Remove ripple after animation
+                        setTimeout(() => {
+                            if (ripple.parentNode) {
+                                ripple.parentNode.removeChild(ripple);
+                            }
+                        }, 600);
+                        
+                        // Reset other buttons in the same group
+                        const allButtons = document.querySelectorAll(`[data-target="${this.getAttribute('data-target')}"]`);
+                        allButtons.forEach(btn => {
+                            if (btn !== this) {
+                                btn.classList.remove('active');
+                            }
+                        });
+                        
+                        // Focus the input field
+                        targetInput.focus();
+                        
+                        // Add a subtle animation to the input field
+                        targetInput.style.transform = 'scale(1.02)';
+                        setTimeout(() => {
+                            targetInput.style.transform = 'scale(1)';
+                        }, 200);
+                    }
+                });
+            });
+            
+        });
 
 
 </script>

@@ -1,0 +1,110 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+    {{ block.super }}
+    
+    {% if original %}
+        {% if original.is_archived %}
+            <li>
+                <a href="#" onclick="unarchiveAsset({{ original.id }})" class="unarchive-btn" style="background: #28a745; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none;">
+                    {% trans 'Unarchive Asset' %}
+                </a>
+            </li>
+        {% else %}
+            <li>
+                <a href="#" onclick="archiveAsset({{ original.id }})" class="archive-btn" style="background: #ffc107; color: #212529; padding: 8px 16px; border-radius: 4px; text-decoration: none;">
+                    {% trans 'Archive Asset' %}
+                </a>
+            </li>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script>
+        function archiveAsset(assetId) {
+            if (confirm('{% trans "Are you sure you want to archive this asset? It will be hidden from public view." %}')) {
+                // Create a form to submit the archive action
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{% url "admin:waqaf_waqafasset_changelist" %}';
+                
+                // Add CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+                
+                // Add action
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'archive_assets';
+                form.appendChild(actionInput);
+                
+                // Add asset selection
+                const selectInput = document.createElement('input');
+                selectInput.type = 'hidden';
+                selectInput.name = '_selected_action';
+                selectInput.value = assetId;
+                form.appendChild(selectInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        
+        function unarchiveAsset(assetId) {
+            if (confirm('{% trans "Are you sure you want to unarchive this asset? It will be visible to the public again." %}')) {
+                // Create a form to submit the unarchive action
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{% url "admin:waqaf_waqafasset_changelist" %}';
+                
+                // Add CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+                
+                // Add action
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'unarchive_assets';
+                form.appendChild(actionInput);
+                
+                // Add asset selection
+                const selectInput = document.createElement('input');
+                selectInput.type = 'hidden';
+                selectInput.name = '_selected_action';
+                selectInput.value = assetId;
+                form.appendChild(selectInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+    
+    <style>
+        .archive-btn:hover, .unarchive-btn:hover {
+            opacity: 0.8;
+            text-decoration: none;
+        }
+        
+        .archive-btn {
+            margin-right: 10px;
+        }
+        
+        .unarchive-btn {
+            margin-right: 10px;
+        }
+    </style>
+{% endblock %}

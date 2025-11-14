@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load number_filters %}
+
+{% block title %}Form 1 Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-section {
+        background: #f8f9fa;
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    .dashboard-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    .dashboard-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        border: none;
+    }
+    .card-header {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        border-radius: 10px 10px 0 0 !important;
+        border: none;
+    }
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+        border-left: 4px solid #007bff;
+    }
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #007bff;
+    }
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .btn-outline-primary {
+        border: 2px solid #007bff;
+        color: #007bff;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-outline-primary:hover {
+        background: #007bff;
+        color: white;
+        transform: translateY(-1px);
+    }
+    .table {
+        margin-bottom: 0;
+    }
+    .table th {
+        background: #f8f9fa;
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+    }
+    .badge {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+    .badge-success {
+        background-color: #28a745;
+        color: white;
+    }
+    .badge-warning {
+        background-color: #ffc107;
+        color: #212529;
+    }
+    .badge-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+    .welcome-message {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    .data-isolation-notice {
+        background: #e3f2fd;
+        border: 1px solid #2196f3;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        color: #1976d2;
+    }
+    .data-isolation-notice i {
+        color: #2196f3;
+        margin-right: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+    <div class="container">
+        <!-- Welcome Message -->
+        <div class="welcome-message">
+            <h2><i class="fas fa-user-shield"></i> Form 1 Admin Dashboard</h2>
+            <p class="mb-0">Welcome, {{ user.get_full_name|default:user.username }}! Manage Form 1 students and their fees.</p>
+        </div>
+
+        <!-- Data Isolation Notice -->
+        <div class="data-isolation-notice">
+            <i class="fas fa-shield-alt"></i>
+            <strong>Data Isolation Active:</strong> You can only view and manage Form 1 student data. All analytics, reports, and management functions are restricted to Form 1 students only.
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_students }}</div>
+                    <div class="stat-label">Form 1 Students Only</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_payments }}</div>
+                    <div class="stat-label">Form 1 Payments Only</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">RM {{ total_revenue|floatformat:2 }}</div>
+                    <div class="stat-label">Form 1 Revenue Only</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">{{ pending_payments }}</div>
+                    <div class="stat-label">Form 1 Pending Fees</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions - Form 1 Only</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'form1_admin:student_list' %}" class="btn btn-primary btn-block">
+                                    <i class="fas fa-users"></i><br>Manage Form 1 Students
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'form1_admin:fee_management' %}" class="btn btn-success btn-block">
+                                    <i class="fas fa-money-bill-wave"></i><br>Manage Form 1 Fees
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'form1_admin:payment_management' %}" class="btn btn-info btn-block">
+                                    <i class="fas fa-credit-card"></i><br>View Form 1 Payments
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'form1_admin:analytics' %}" class="btn btn-warning btn-block">
+                                    <i class="fas fa-chart-bar"></i><br>Form 1 Analytics
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Tools -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-tools"></i> Additional Tools - Form 1 Only</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <a href="{% url 'form1_admin:payment_receipts' %}" class="btn btn-outline-dark btn-block">
+                                    <i class="fas fa-receipt"></i><br>Form 1 Payment Receipts
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <a href="{% url 'form1_admin:add_individual_fee' %}" class="btn btn-outline-primary btn-block">
+                                    <i class="fas fa-plus"></i><br>Add Form 1 Individual Fee
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <a href="{% url 'form1_admin:add_fee_structure' %}" class="btn btn-outline-success btn-block">
+                                    <i class="fas fa-plus-circle"></i><br>Add Form 1 Fee Structure
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Payments -->
+            <div class="col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Form 1 Payments</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_payments %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Form 1 Student</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for payment in recent_payments %}
+                                        <tr>
+                                            <td>{{ payment.student.first_name }} {{ payment.student.last_name }}</td>
+                                            <td>RM {{ payment.amount|floatformat:2 }}</td>
+                                            <td>
+                                                {% if payment.status == 'completed' %}
+                                                    <span class="badge badge-success">Completed</span>
+                                                {% elif payment.status == 'pending' %}
+                                                    <span class="badge badge-warning">Pending</span>
+                                                {% else %}
+                                                    <span class="badge badge-danger">{{ payment.status|title }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ payment.created_at|date:"M d, Y" }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No recent Form 1 payments found.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Fees -->
+        {% if pending_fees %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Pending Form 1 Fees</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Form 1 Student</th>
+                                        <th>Fee Structure</th>
+                                        <th>Amount</th>
+                                        <th>Due Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for fee in pending_fees %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'form1_admin:student_detail' fee.student.id %}" class="text-primary">
+                                                {{ fee.student.first_name }} {{ fee.student.last_name }}
+                                            </a>
+                                        </td>
+                                        <td>{{ fee.fee_structure.name }}</td>
+                                        <td>RM {{ fee.amount|floatformat:2 }}</td>
+                                        <td>{{ fee.due_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if fee.status == 'overdue' %}
+                                                <span class="badge badge-danger">Overdue</span>
+                                            {% else %}
+                                                <span class="badge badge-warning">Pending</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,208 @@
+# Malay translation file for Django
+# Copyright (C) 2024 Charity Platform
+# This file is distributed under the same license as the Django project.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Charity Platform 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-01 12:00+0000\n"
+"PO-Revision-Date: 2024-01-01 12:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ms\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+# Navigation
+msgid "Home"
+msgstr "Utama"
+
+msgid "Donate"
+msgstr "Derma"
+
+msgid "Events"
+msgstr "Acara"
+
+msgid "School Fees"
+msgstr "Yuran Sekolah"
+
+msgid "AI Analytics"
+msgstr "Analisis AI"
+
+msgid "Waqaf Analytics"
+msgstr "Analisis Waqaf"
+
+# Cart related
+msgid "Donation Cart"
+msgstr "Troli Derma"
+
+msgid "Total Amount"
+msgstr "Jumlah Keseluruhan"
+
+msgid "Your Donation"
+msgstr "Derma Anda"
+
+msgid "Your Message"
+msgstr "Mesej Anda"
+
+msgid "Update"
+msgstr "Kemaskini"
+
+msgid "Remove"
+msgstr "Buang"
+
+msgid "Clear Cart"
+msgstr "Kosongkan Troli"
+
+msgid "Add More Events"
+msgstr "Tambah Acara Lagi"
+
+msgid "Proceed to Checkout"
+msgstr "Teruskan ke Bayaran"
+
+msgid "Your cart is empty"
+msgstr "Troli anda kosong"
+
+msgid "Start making a difference by adding donation events to your cart!"
+msgstr "Mula membuat perbezaan dengan menambah acara derma ke troli anda!"
+
+msgid "Browse Events"
+msgstr "Layari Acara"
+
+# Common actions
+msgid "Save"
+msgstr "Simpan"
+
+msgid "Cancel"
+msgstr "Batal"
+
+msgid "Delete"
+msgstr "Padam"
+
+msgid "Edit"
+msgstr "Edit"
+
+msgid "Add"
+msgstr "Tambah"
+
+msgid "Search"
+msgstr "Cari"
+
+msgid "Submit"
+msgstr "Hantar"
+
+msgid "Back"
+msgstr "Kembali"
+
+msgid "Next"
+msgstr "Seterusnya"
+
+msgid "Previous"
+msgstr "Sebelumnya"
+
+# Messages
+msgid "Are you sure you want to remove this item from your cart?"
+msgstr "Adakah anda pasti mahu membuang item ini dari troli anda?"
+
+msgid "Are you sure you want to clear your entire cart?"
+msgstr "Adakah anda pasti mahu mengosongkan keseluruhan troli anda?"
+
+msgid "An error occurred while updating the cart item."
+msgstr "Ralat berlaku semasa mengemas kini item troli."
+
+# Footer
+msgid "Charity Platform"
+msgstr "Platform Amal"
+
+msgid "Making a difference one contribution at a time."
+msgstr "Membuat perbezaan satu sumbangan pada satu masa."
+
+msgid "All rights reserved."
+msgstr "Hak cipta terpelihara."
+
+# Language switcher
+msgid "Language"
+msgstr "Bahasa"
+
+msgid "English"
+msgstr "Bahasa Inggeris"
+
+msgid "Malay"
+msgstr "Bahasa Melayu"
+
+# Additional cart strings
+msgid "Donation Amount"
+msgstr "Jumlah Derma"
+
+msgid "Message"
+msgstr "Mesej"
+
+msgid "Optional"
+msgstr "Pilihan"
+
+msgid "Leave a message for this cause..."
+msgstr "Tinggalkan mesej untuk tujuan ini..."
+
+msgid "Total Donation Amount"
+msgstr "Jumlah Derma Keseluruhan"
+
+# Home page strings
+msgid "Make a Difference Today"
+msgstr "Buat Perbezaan Hari Ini"
+
+msgid "Join us in our mission to support education, provide donations, and manage waqaf properties for a better tomorrow."
+msgstr "Sertai kami dalam misi untuk menyokong pendidikan, memberikan derma, dan menguruskan harta waqaf untuk masa depan yang lebih baik."
+
+msgid "Explore Modules"
+msgstr "Terokai Modul"
+
+msgid "Our Modules"
+msgstr "Modul Kami"
+
+msgid "Support students' education by contributing to their school fees. Help shape the future of our youth."
+msgstr "Sokong pendidikan pelajar dengan menyumbang kepada yuran sekolah mereka. Bantu membentuk masa depan generasi muda kita."
+
+msgid "Learn More"
+msgstr "Ketahui Lebih Lanjut"
+
+msgid "Donations"
+msgstr "Derma"
+
+msgid "Make a direct impact through your generous donations. Every contribution makes a difference."
+msgstr "Buat impak langsung melalui derma murah hati anda. Setiap sumbangan membuat perbezaan."
+
+msgid "Donate Now"
+msgstr "Derma Sekarang"
+
+msgid "Waqaf"
+msgstr "Waqaf"
+
+msgid "Contribute to sustainable development through waqaf properties. Create lasting benefits for the community."
+msgstr "Sumbang kepada pembangunan mampan melalui harta waqaf. Cipta faedah berkekalan untuk komuniti."
+
+msgid "Explore Waqaf"
+msgstr "Terokai Waqaf"
+
+msgid "Our Impact"
+msgstr "Impak Kami"
+
+msgid "Students Supported"
+msgstr "Pelajar Disokong"
+
+msgid "Through school fees assistance"
+msgstr "Melalui bantuan yuran sekolah"
+
+msgid "Donations Raised"
+msgstr "Derma Dikumpul"
+
+msgid "For various charitable causes"
+msgstr "Untuk pelbagai tujuan amal"
+
+msgid "Waqaf Properties"
+msgstr "Harta Waqaf"
+
+msgid "Managed for community benefit"
+msgstr "Dikelola untuk faedah komuniti"

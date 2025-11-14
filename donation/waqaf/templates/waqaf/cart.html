@@ -28,18 +28,23 @@
                                 </thead>
                                 <tbody>
                                     {% for item in cart_items %}
-                                    <tr data-item-id="{{ item.id }}">
+                                    <tr data-item-id="{% if item.id %}{{ item.id }}{% else %}{{ forloop.counter0 }}{% endif %}">
                                         <td>
                                             <div>
-                                                <h6 class="mb-1">{{ item.asset.name }}</h6>
-                                                <small class="text-muted">{{ item.asset.description|truncatewords:20 }}</small>
+                                                {% if user.is_authenticated %}
+                                                    <h6 class="mb-1">{{ item.asset.name }}</h6>
+                                                    <small class="text-muted">{{ item.asset.description|truncatewords:20 }}</small>
+                                                {% else %}
+                                                    <h6 class="mb-1">{{ item.asset_name }}</h6>
+                                                    <small class="text-muted">Waqaf Asset</small>
+                                                {% endif %}
                                             </div>
                                         </td>
                                         <td>
                                             <div class="input-group" style="width: 120px;">
                                                 <button class="btn btn-outline-secondary btn-sm decrease-quantity" type="button">-</button>
                                                 <input type="number" class="form-control form-control-sm text-center quantity-input" 
-                                                       value="{{ item.number_of_slots }}" min="1" max="{{ item.asset.slots_available }}">
+                                                       value="{{ item.number_of_slots }}" min="1" max="{% if user.is_authenticated %}{{ item.asset.slots_available }}{% else %}999{% endif %}">
                                                 <button class="btn btn-outline-secondary btn-sm increase-quantity" type="button">+</button>
                                             </div>
                                         </td>

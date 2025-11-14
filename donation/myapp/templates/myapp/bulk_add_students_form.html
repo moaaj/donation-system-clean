@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bulk Add Students{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Bulk Add Students</h3>
+                    <p class="mb-0 text-muted">Add multiple students at once with automatic user account creation</p>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Note:</strong> You can add multiple students at once. Each student will automatically get:
+                        <ul class="mb-0 mt-2">
+                            <li><strong>User Account:</strong> student_[student_id] / [student_id]123</li>
+                            <li><strong>Form Number:</strong> Auto-assigned if level is 'form'</li>
+                            <li><strong>School Fees:</strong> Based on their form level</li>
+                        </ul>
+                    </div>
+                    
+                    <form method="post" id="bulkStudentForm">
+                        {% csrf_token %}
+                        <div id="studentsContainer">
+                            <!-- Student entries will be added here -->
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <button type="button" class="btn btn-success" onclick="addStudentEntry()">
+                                    <i class="fas fa-plus"></i> Add Another Student
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Save All Students
+                                </button>
+                                <a href="{% url 'myapp:student_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Back to Student List
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let studentCount = 0;
+
+function addStudentEntry() {
+    studentCount++;
+    const container = document.getElementById('studentsContainer');
+    
+    const studentDiv = document.createElement('div');
+    studentDiv.className = 'card mb-3';
+    studentDiv.innerHTML = `
+        <div class="card-header">
+            <h5>Student ${studentCount}</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Student ID *</label>
+                    <input type="text" class="form-control" name="student_id_${studentCount}" required>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">NRIC *</label>
+                    <input type="text" class="form-control" name="nric_${studentCount}" required>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">First Name *</label>
+                    <input type="text" class="form-control" name="first_name_${studentCount}" required>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Last Name *</label>
+                    <input type="text" class="form-control" name="last_name_${studentCount}" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Year Batch *</label>
+                    <input type="number" class="form-control" name="year_batch_${studentCount}" required>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Class</label>
+                    <input type="text" class="form-control" name="class_name_${studentCount}">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Program</label>
+                    <input type="text" class="form-control" name="program_${studentCount}">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Level</label>
+                    <select class="form-control" name="level_${studentCount}" onchange="toggleFormNumber(${studentCount})">
+                        <option value="">Select Level</option>
+                        <option value="year">Year</option>
+                        <option value="form" selected>Form</option>
+                        <option value="standard">Standard</option>
+                        <option value="others">Others</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Form Number</label>
+                    <select class="form-control" name="level_custom_${studentCount}" id="level_custom_${studentCount}">
+                        <option value="">Select Form Number</option>
+                        <option value="Form 1">Form 1</option>
+                        <option value="Form 2">Form 2</option>
+                        <option value="Form 3">Form 3</option>
+                        <option value="Form 4">Form 4</option>
+                        <option value="Form 5">Form 5</option>
+                        <option value="Form 6">Form 6</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" name="is_active_${studentCount}" checked>
+                        <label class="form-check-label">Active Student</label>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <button type="button" class="btn btn-danger mt-4" onclick="removeStudentEntry(this)">
+                        <i class="fas fa-trash"></i> Remove Student
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(studentDiv);
+}
+
+function removeStudentEntry(button) {
+    button.closest('.card').remove();
+    updateStudentNumbers();
+}
+
+function updateStudentNumbers() {
+    const cards = document.querySelectorAll('#studentsContainer .card');
+    cards.forEach((card, index) => {
+        const header = card.querySelector('.card-header h5');
+        header.textContent = `Student ${index + 1}`;
+    });
+}
+
+function toggleFormNumber(studentNum) {
+    const levelSelect = document.querySelector(`select[name="level_${studentNum}"]`);
+    const formNumberSelect = document.getElementById(`level_custom_${studentNum}`);
+    
+    if (levelSelect.value === 'form') {
+        formNumberSelect.style.display = 'block';
+        formNumberSelect.required = true;
+    } else if (levelSelect.value === 'others') {
+        formNumberSelect.style.display = 'block';
+        formNumberSelect.required = true;
+    } else {
+        formNumberSelect.style.display = 'none';
+        formNumberSelect.required = false;
+        formNumberSelect.value = '';
+    }
+}
+
+// Add first student entry when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    addStudentEntry();
+});
+</script>
+{% endblock %}

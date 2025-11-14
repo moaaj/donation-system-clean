@@ -12,12 +12,38 @@
                 </div>
                 <div class="card-body">
                     <p class="lead">Are you sure you want to delete this student?</p>
+                    <p class="text-danger"><strong>Warning:</strong> This action will permanently delete the student and all associated data including:</p>
+                    <ul class="text-danger">
+                        <li>Student account and login credentials</li>
+                        <li>All payment records</li>
+                        <li>All fee records and statuses</li>
+                        <li>All invoices and receipts</li>
+                        <li>All fee waivers and discounts</li>
+                        <li>All individual student fees</li>
+                        <li>Parent associations</li>
+                    </ul>
+                    
                     <div class="alert alert-info">
                         <h5>Student Details:</h5>
                         <p><strong>Name:</strong> {{ student.first_name }} {{ student.last_name }}</p>
                         <p><strong>Student ID:</strong> {{ student.student_id }}</p>
                         <p><strong>NRIC:</strong> {{ student.nric }}</p>
                         <p><strong>Year Batch:</strong> {{ student.year_batch }}</p>
+                        <p><strong>Level:</strong> {{ student.get_level_display_value }}</p>
+                        {% if student.user_profile.all %}
+                            <p><strong>User Account:</strong> 
+                                {% for profile in student.user_profile.all %}
+                                    {{ profile.user.username }}
+                                {% endfor %}
+                            </p>
+                        {% endif %}
+                        {% if student.parents.all %}
+                            <p><strong>Linked Parents:</strong> 
+                                {% for parent in student.parents.all %}
+                                    {{ parent.user.get_full_name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
+                        {% endif %}
                     </div>
                     <form method="post">
                         {% csrf_token %}

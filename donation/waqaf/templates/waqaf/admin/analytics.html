@@ -1,0 +1,199 @@
+{% extends "waqaf/admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Waqaf Analytics{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .analytics-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .analytics-card {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-top: 20px;
+    }
+    
+    .analytics-section {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .section-title {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #007cba;
+    }
+    
+    @media (max-width: 768px) {
+        .analytics-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics">
+    <h1>Waqaf Analytics</h1>
+    
+    <!-- Charts Section -->
+    <div class="analytics-container">
+        <div class="analytics-card">
+            <h3>Contributions Over Time</h3>
+            <div class="chart-container">
+                <canvas id="contributionsChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="analytics-card">
+            <h3>Asset Funding Progress</h3>
+            <div class="chart-container">
+                <canvas id="fundingChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Payment Analytics -->
+    <div class="analytics-section">
+        <h2 class="section-title">Payment Analytics</h2>
+        <div class="analytics-container">
+            <div class="analytics-card">
+                <h3>Payment Status Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="paymentStatusChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="analytics-card">
+                <h3>Monthly Revenue</h3>
+                <div class="chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Analytics -->
+    <div class="analytics-section">
+        <h2 class="section-title">Detailed Analytics</h2>
+        <p>Advanced analytics features will be implemented here, including:</p>
+        <ul>
+            <li>Contributor behavior analysis</li>
+            <li>Asset performance metrics</li>
+            <li>Payment pattern analysis</li>
+            <li>Geographic distribution of contributors</li>
+            <li>Seasonal trends analysis</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+// Sample data for charts - replace with actual data from backend
+document.addEventListener('DOMContentLoaded', function() {
+    // Contributions Over Time Chart
+    const contributionsCtx = document.getElementById('contributionsChart').getContext('2d');
+    new Chart(contributionsCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Contributions',
+                data: [12, 19, 3, 5, 2, 3],
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+    
+    // Asset Funding Progress Chart
+    const fundingCtx = document.getElementById('fundingChart').getContext('2d');
+    new Chart(fundingCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'In Progress', 'Available'],
+            datasets: [{
+                data: [30, 45, 25],
+                backgroundColor: [
+                    'rgb(40, 167, 69)',
+                    'rgb(255, 193, 7)',
+                    'rgb(23, 162, 184)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+    
+    // Payment Status Chart
+    const paymentCtx = document.getElementById('paymentStatusChart').getContext('2d');
+    new Chart(paymentCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Completed', 'Pending', 'Failed', 'Cancelled'],
+            datasets: [{
+                data: [60, 25, 10, 5],
+                backgroundColor: [
+                    'rgb(40, 167, 69)',
+                    'rgb(255, 193, 7)',
+                    'rgb(220, 53, 69)',
+                    'rgb(108, 117, 125)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+    
+    // Monthly Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Revenue (RM)',
+                data: [12000, 19000, 3000, 5000, 2000, 3000],
+                backgroundColor: 'rgba(0, 123, 186, 0.8)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

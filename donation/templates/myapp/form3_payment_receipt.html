@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Form 3 Admin - Payment Receipt{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-section {
+        background: #f8f9fa;
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    .dashboard-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    .dashboard-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        border: none;
+    }
+    .card-header {
+        background: linear-gradient(135deg, #343a40 0%, #212529 100%);
+        color: white;
+        border-radius: 10px 10px 0 0 !important;
+        border: none;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .receipt-details {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+    .receipt-details h5 {
+        color: #495057;
+        margin-bottom: 15px;
+    }
+    .receipt-details .row {
+        margin-bottom: 10px;
+    }
+    .receipt-details .col-sm-4 {
+        font-weight: 600;
+        color: #6c757d;
+    }
+    .receipt-details .col-sm-8 {
+        color: #495057;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container dashboard-section">
+    <div class="dashboard-title">
+        <i class="fas fa-receipt"></i>
+        Payment Receipt
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="dashboard-card card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-file-invoice"></i>
+                        Payment Receipt Details
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="receipt-details">
+                        <h5>Payment Information</h5>
+                        <div class="row">
+                            <div class="col-sm-4">Payment ID:</div>
+                            <div class="col-sm-8">{{ payment.payment_id }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4">Student:</div>
+                            <div class="col-sm-8">{{ payment.student.first_name }} {{ payment.student.last_name }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4">Student ID:</div>
+                            <div class="col-sm-8">{{ payment.student.student_id }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4">Amount:</div>
+                            <div class="col-sm-8">RM {{ payment.amount|floatformat:2 }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4">Status:</div>
+                            <div class="col-sm-8">
+                                {% if payment.status == 'completed' %}
+                                    <span class="badge badge-success">Completed</span>
+                                {% elif payment.status == 'pending' %}
+                                    <span class="badge badge-warning">Pending</span>
+                                {% else %}
+                                    <span class="badge badge-secondary">{{ payment.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4">Payment Date:</div>
+                            <div class="col-sm-8">{{ payment.created_at|date:"M d, Y H:i" }}</div>
+                        </div>
+                        {% if payment.payment_method %}
+                        <div class="row">
+                            <div class="col-sm-4">Payment Method:</div>
+                            <div class="col-sm-8">{{ payment.payment_method }}</div>
+                        </div>
+                        {% endif %}
+                        {% if payment.transaction_id %}
+                        <div class="row">
+                            <div class="col-sm-4">Transaction ID:</div>
+                            <div class="col-sm-8">{{ payment.transaction_id }}</div>
+                        </div>
+                        {% endif %}
+                        {% if payment.notes %}
+                        <div class="row">
+                            <div class="col-sm-4">Notes:</div>
+                            <div class="col-sm-8">{{ payment.notes }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="{% url 'form3_admin:payment_receipts' %}" class="btn btn-primary">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Receipts
+                        </a>
+                        <a href="{% url 'form3_admin:student_detail' payment.student.id %}" class="btn btn-outline-primary ml-2">
+                            <i class="fas fa-user"></i>
+                            View Student
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="dashboard-card card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'form3_admin:dashboard' %}" class="btn btn-outline-primary btn-block">
+                                <i class="fas fa-home"></i>
+                                Back to Dashboard
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'form3_admin:payment_receipts' %}" class="btn btn-outline-info btn-block">
+                                <i class="fas fa-list"></i>
+                                View Receipts
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'form3_admin:payment_management' %}" class="btn btn-outline-success btn-block">
+                                <i class="fas fa-credit-card"></i>
+                                View Payments
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'form3_admin:student_list' %}" class="btn btn-outline-warning btn-block">
+                                <i class="fas fa-users"></i>
+                                View Students
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

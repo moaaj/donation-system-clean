@@ -1,14 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Charity Platform</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Charity Platform" %}{% endblock %}
+
+{% block extra_css %}
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -120,16 +115,17 @@
             background-color: var(--primary-color);
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <!-- Hero Section -->
     <section class="hero-section">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
-                    <h1 class="display-4 fw-bold mb-4">Make a Difference Today</h1>
-                    <p class="lead mb-4">Join us in our mission to support education, provide donations, and manage waqaf properties for a better tomorrow.</p>
-                    <a href="#modules" class="btn btn-light btn-lg">Explore Modules</a>
+                    <h1 class="display-4 fw-bold mb-4">{% trans "Make a Difference Today" %}</h1>
+                    <p class="lead mb-4">{% trans "Join us in our mission to support education, provide donations, and manage waqaf properties for a better tomorrow." %}</p>
+                    <a href="#modules" class="btn btn-light btn-lg">{% trans "Explore Modules" %}</a>
                 </div>
                 <div class="col-lg-6">
                     <img src="https://images.unsplash.com/photo-1577896851231-70ef18881754?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
@@ -144,7 +140,7 @@
     <!-- Modules Section -->
     <section id="modules" class="py-5">
         <div class="container">
-            <h2 class="text-center section-title">Our Modules</h2>
+            <h2 class="text-center section-title">{% trans "Our Modules" %}</h2>
             <div class="row g-4">
                 <!-- School Fees Module -->
                 <div class="col-md-4">
@@ -153,9 +149,9 @@
                             <div class="module-icon">
                                 <i class="fas fa-graduation-cap"></i>
                             </div>
-                            <h3 class="card-title">School Fees</h3>
-                            <p class="card-text">Support students' education by contributing to their school fees. Help shape the future of our youth.</p>
-                            <a href="/school-fees" class="btn btn-custom">Learn More</a>
+                            <h3 class="card-title">{% trans "School Fees" %}</h3>
+                            <p class="card-text">{% trans "Support students' education by contributing to their school fees. Help shape the future of our youth." %}</p>
+                            <a href="/school-fees" class="btn btn-custom">{% trans "Learn More" %}</a>
                         </div>
                     </div>
                 </div>
@@ -167,9 +163,9 @@
                             <div class="module-icon">
                                 <i class="fas fa-hand-holding-heart"></i>
                             </div>
-                            <h3 class="card-title">Donations</h3>
-                            <p class="card-text">Make a direct impact through your generous donations. Every contribution makes a difference.</p>
-                            <a href="{% url 'donate' %}" class="btn btn-custom">Donate Now</a>
+                            <h3 class="card-title">{% trans "Donations" %}</h3>
+                            <p class="card-text">{% trans "Make a direct impact through your generous donations. Every contribution makes a difference." %}</p>
+                            <a href="{% url 'donate' %}" class="btn btn-custom">{% trans "Donate Now" %}</a>
                         </div>
                     </div>
                 </div>
@@ -181,9 +177,9 @@
                             <div class="module-icon">
                                 <i class="fas fa-mosque"></i>
                             </div>
-                            <h3 class="card-title">Waqaf</h3>
-                            <p class="card-text">Contribute to sustainable development through waqaf properties. Create lasting benefits for the community.</p>
-                            <a href="/waqaf" class="btn btn-custom">Explore Waqaf</a>
+                            <h3 class="card-title">{% trans "Waqaf" %}</h3>
+                            <p class="card-text">{% trans "Contribute to sustainable development through waqaf properties. Create lasting benefits for the community." %}</p>
+                            <a href="/waqaf" class="btn btn-custom">{% trans "Explore Waqaf" %}</a>
                         </div>
                     </div>
                 </div>
@@ -194,27 +190,27 @@
     <!-- Features Section -->
     <section class="feature-section">
         <div class="container">
-            <h2 class="text-center section-title">Our Impact</h2>
+            <h2 class="text-center section-title">{% trans "Our Impact" %}</h2>
             <div class="row g-4">
                 <div class="col-md-4">
                     <div class="stat-card">
                         <div class="stat-number">1000+</div>
-                        <h4>Students Supported</h4>
-                        <p>Through school fees assistance</p>
+                        <h4>{% trans "Students Supported" %}</h4>
+                        <p>{% trans "Through school fees assistance" %}</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stat-card">
                         <div class="stat-number">$500K+</div>
-                        <h4>Donations Raised</h4>
-                        <p>For various charitable causes</p>
+                        <h4>{% trans "Donations Raised" %}</h4>
+                        <p>{% trans "For various charitable causes" %}</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stat-card">
                         <div class="stat-number">50+</div>
-                        <h4>Waqaf Properties</h4>
-                        <p>Managed for community benefit</p>
+                        <h4>{% trans "Waqaf Properties" %}</h4>
+                        <p>{% trans "Managed for community benefit" %}</p>
                     </div>
                 </div>
             </div>
@@ -251,22 +247,4 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="text-white py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>Charity Platform</h5>
-                    <p>Making a difference one contribution at a time.</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p>&copy; 2024 Charity Platform. All rights reserved.</p>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html> 
+{% endblock %} 

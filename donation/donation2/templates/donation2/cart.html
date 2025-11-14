@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Donation Cart{% endblock %}
+{% block title %}{% trans "Donation Cart" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -272,15 +273,15 @@
 {% block content %}
 <div class="cart-container">
     <div class="cart-header">
-        <h1>🛒 Donation Cart</h1>
+        <h1>🛒 {% trans "Donation Cart" %}</h1>
         <div class="cart-summary">
             <div class="summary-item">
                 <span class="value">{{ total_items }}</span>
-                <span class="label">Events</span>
+                <span class="label">{% trans "Events" %}</span>
             </div>
             <div class="summary-item">
-                <span class="value">${{ total_amount|floatformat:2 }}</span>
-                <span class="label">Total Amount</span>
+                <span class="value">RM{{ total_amount|floatformat:2 }}</span>
+                <span class="label">{% trans "Total Amount" %}</span>
             </div>
         </div>
     </div>
@@ -292,7 +293,7 @@
                 <h3>{{ item.event.title }}</h3>
                 <div class="event-meta">
                     <span>📅 {{ item.event.start_date|date:"M d, Y" }} - {{ item.event.end_date|date:"M d, Y" }}</span>
-                    <span>💰 Target: ${{ item.event.target_amount|floatformat:2 }}</span>
+                    <span>💰 Target: RM{{ item.event.target_amount|floatformat:2 }}</span>
                     <span>📊 {{ item.get_progress_percentage|floatformat:1 }}% Complete</span>
                 </div>
             </div>
@@ -300,47 +301,55 @@
             <div class="cart-item-content">
                 <div class="progress-section">
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: {{ item.get_progress_percentage|floatformat:1 }}%"></div>
+                        <div class="progress-fill" data-width="{{ item.get_progress_percentage|floatformat:1 }}"></div>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-top: 10px;">
-                        <span>Raised: ${{ item.event.current_amount|floatformat:2 }}</span>
+                        <span>Raised: RM{{ item.event.current_amount|floatformat:2 }}</span>
                         <span>{{ item.get_progress_percentage|floatformat:1 }}% of target</span>
-                        <span>Target: ${{ item.event.target_amount|floatformat:2 }}</span>
+                        <span>Target: RM{{ item.event.target_amount|floatformat:2 }}</span>
                     </div>
                 </div>
                 
                 <div class="amount-display">
-                    Your Donation: ${{ item.amount|floatformat:2 }}
+                    {% trans "Your Donation" %}: RM{{ item.amount|floatformat:2 }}
                 </div>
                 
                 {% if item.message %}
                 <div class="message-display">
-                    <strong>Your Message:</strong> {{ item.message }}
+                    <strong>{% trans "Your Message" %}:</strong> {{ item.message }}
                 </div>
                 {% endif %}
                 
+                {% if is_authenticated %}
                 <form method="post" action="{% url 'update_cart_item' item.id %}" class="form-group">
+                {% else %}
+                <form method="post" action="{% url 'update_cart_item' forloop.counter0 %}" class="form-group">
+                {% endif %}
                     {% csrf_token %}
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="amount_{{ item.id }}">Donation Amount ($)</label>
-                            <input type="number" name="amount" id="amount_{{ item.id }}" 
+                            <label for="amount_{{ item.id|default:forloop.counter0 }}">{% trans "Donation Amount" %} (RM)</label>
+                            <input type="number" name="amount" id="amount_{{ item.id|default:forloop.counter0 }}" 
                                    value="{{ item.amount|floatformat:2 }}" step="0.01" min="0.01" required>
                         </div>
                         <div class="form-group">
-                            <label for="message_{{ item.id }}">Message (Optional)</label>
-                            <textarea name="message" id="message_{{ item.id }}" rows="3" 
-                                      placeholder="Leave a message for this cause...">{{ item.message }}</textarea>
+                            <label for="message_{{ item.id|default:forloop.counter0 }}">{% trans "Message" %} ({% trans "Optional" %})</label>
+                            <textarea name="message" id="message_{{ item.id|default:forloop.counter0 }}" rows="3" 
+                                      placeholder="{% trans 'Leave a message for this cause...' %}">{{ item.message }}</textarea>
                         </div>
                     </div>
                     
                     <div class="cart-actions">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Update
+                            <i class="fas fa-save"></i> {% trans "Update" %}
                         </button>
-                        <a href="{% url 'remove_from_cart' item.id %}" class="btn btn-danger" 
-                           onclick="return confirm('Are you sure you want to remove this item from your cart?')">
-                            <i class="fas fa-trash"></i> Remove
+                        {% if is_authenticated %}
+                        <a href="{% url 'remove_from_cart' item.id %}" class="btn btn-danger"
+                        {% else %}
+                        <a href="{% url 'remove_from_cart' forloop.counter0 %}" class="btn btn-danger"
+                        {% endif %} 
+                           onclick="return confirmRemoveItem()">
+                            <i class="fas fa-trash"></i> {% trans "Remove" %}
                         </a>
                     </div>
                 </form>
@@ -350,8 +359,8 @@
         
         <div class="cart-footer">
             <div class="cart-total">
-                <span class="total-label">Total Donation Amount:</span>
-                <span class="total-amount">${{ total_amount|floatformat:2 }}</span>
+                <span class="total-label">{% trans "Total Donation Amount" %}:</span>
+                <span class="total-amount">RM{{ total_amount|floatformat:2 }}</span>
             </div>
             
             <div class="footer-actions">
@@ -359,34 +368,50 @@
                     <form method="post" action="{% url 'clear_cart' %}" style="display: inline;">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-warning" 
-                                onclick="return confirm('Are you sure you want to clear your entire cart?')">
-                            <i class="fas fa-trash-alt"></i> Clear Cart
+                                onclick="return confirmClearCart()">
+                            <i class="fas fa-trash-alt"></i> {% trans "Clear Cart" %}
                         </button>
                     </form>
                     <a href="{% url 'donation_events' %}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Add More Events
+                        <i class="fas fa-plus"></i> {% trans "Add More Events" %}
                     </a>
                 </div>
                 <a href="{% url 'checkout_cart' %}" class="btn btn-success">
-                    <i class="fas fa-credit-card"></i> Proceed to Checkout
+                    <i class="fas fa-credit-card"></i> {% trans "Proceed to Checkout" %}
                 </a>
             </div>
         </div>
     {% else %}
         <div class="empty-cart">
             <i class="fas fa-shopping-cart"></i>
-            <h3>Your cart is empty</h3>
-            <p>Start making a difference by adding donation events to your cart!</p>
+            <h3>{% trans "Your cart is empty" %}</h3>
+            <p>{% trans "Start making a difference by adding donation events to your cart!" %}</p>
             <a href="{% url 'donation_events' %}" class="btn btn-primary">
-                <i class="fas fa-search"></i> Browse Events
+                <i class="fas fa-search"></i> {% trans "Browse Events" %}
             </a>
         </div>
     {% endif %}
 </div>
 
 <script>
+// Confirmation functions
+function confirmRemoveItem() {
+    return confirm('{% trans "Are you sure you want to remove this item from your cart?" %}');
+}
+
+function confirmClearCart() {
+    return confirm('{% trans "Are you sure you want to clear your entire cart?" %}');
+}
+
 // Auto-update cart items with AJAX
 document.addEventListener('DOMContentLoaded', function() {
+    // Set progress bar widths
+    const progressFills = document.querySelectorAll('.progress-fill[data-width]');
+    progressFills.forEach(fill => {
+        const width = fill.getAttribute('data-width');
+        fill.style.width = width + '%';
+    });
+    
     const updateForms = document.querySelectorAll('form[action*="update_cart_item"]');
     
     updateForms.forEach(form => {
@@ -409,7 +434,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Update the amount display
                     const amountDisplay = form.querySelector('.amount-display');
                     const amountInput = form.querySelector('input[name="amount"]');
-                    amountDisplay.textContent = `Your Donation: $${parseFloat(amountInput.value).toFixed(2)}`;
+                    amountDisplay.textContent = `Your Donation: RM${parseFloat(amountInput.value).toFixed(2)}`;
                     
                     // Show success message
                     alert(data.message);
@@ -418,7 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data.cart_total !== undefined) {
                         const totalAmount = document.querySelector('.total-amount');
                         if (totalAmount) {
-                            totalAmount.textContent = `$${data.cart_total.toFixed(2)}`;
+                            totalAmount.textContent = `RM${data.cart_total.toFixed(2)}`;
                         }
                     }
                 }

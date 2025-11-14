@@ -108,7 +108,7 @@ class DonationChatbot:
         
     def _handle_payment_query(self, message):
         """Handle payment-related queries"""
-        payment_methods = ['Cash', 'Bank Transfer', 'Online Payment']
+        payment_methods = ['Bank Transfer', 'Online Payment']
         return {
             'type': 'payment_info',
             'message': f"We accept the following payment methods:\n" + "\n".join([f"- {method}" for method in payment_methods]),

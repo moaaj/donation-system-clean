@@ -1,0 +1,249 @@
+{% extends "waqaf/admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Waqaf Reports{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    .reports-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .report-card {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-left: 4px solid #007cba;
+    }
+    
+    .report-card h3 {
+        margin-top: 0;
+        color: #333;
+    }
+    
+    .report-description {
+        color: #666;
+        margin-bottom: 15px;
+    }
+    
+    .report-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .report-btn {
+        padding: 8px 16px;
+        background: #007cba;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 0.9em;
+        transition: background-color 0.3s;
+    }
+    
+    .report-btn:hover {
+        background: #005a87;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .report-btn.success {
+        background: #28a745;
+    }
+    
+    .report-btn.success:hover {
+        background: #1e7e34;
+    }
+    
+    .report-btn.warning {
+        background: #ffc107;
+        color: #333;
+    }
+    
+    .report-btn.warning:hover {
+        background: #e0a800;
+        color: #333;
+    }
+    
+    .reports-section {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .section-title {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #007cba;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reports">
+    <h1>Waqaf Reports</h1>
+    
+    <!-- Financial Reports -->
+    <div class="reports-section">
+        <h2 class="section-title">Financial Reports</h2>
+        <div class="reports-container">
+            <div class="report-card">
+                <h3>Revenue Summary</h3>
+                <p class="report-description">Comprehensive overview of all revenue generated from waqaf contributions.</p>
+                <div class="report-actions">
+                    <a href="#" class="report-btn">View Report</a>
+                    <a href="#" class="report-btn success">Export PDF</a>
+                    <a href="#" class="report-btn warning">Export Excel</a>
+                </div>
+            </div>
+            
+            <div class="report-card">
+                <h3>Payment Status Report</h3>
+                <p class="report-description">Detailed breakdown of payment statuses including pending, completed, and overdue payments.</p>
+                <div class="report-actions">
+                    <a href="#" class="report-btn">View Report</a>
+                    <a href="#" class="report-btn success">Export PDF</a>
+                    <a href="#" class="report-btn warning">Export Excel</a>
+                </div>
+            </div>
+            
+            <div class="report-card">
+                <h3>Monthly Financial Report</h3>
+                <p class="report-description">Monthly financial performance with revenue, expenses, and net income.</p>
+                <div class="report-actions">
+                    <a href="#" class="report-btn">View Report</a>
+                    <a href="#" class="report-btn success">Export PDF</a>
+                    <a href="#" class="report-btn warning">Export Excel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Asset Reports -->
+    <div class="reports-section">
+        <h2 class="section-title">Asset Reports</h2>
+        <div class="reports-container">
+            <div class="report-card">
+                <h3>Asset Performance Report</h3>
+                <p class="report-description">Analysis of asset performance including funding progress and contribution patterns.</p>
+                <div class="report-actions">
+                    <a href="#" class="report-btn">View Report</a>
+                    <a href="#" class="report-btn success">Export PDF</a>
+                    <a href="#" class="report-btn warning">Export Excel</a>
+                </div>
+            </div>
+            
+            <div class="report-card">
+                <h3>Asset Inventory Report</h3>
+                <p class="report-description">Complete inventory of all waqaf assets with their current status and funding levels.</p>
+                <div class="report-actions">
+                    <a href="#" class="report-btn">View Report</a>
+                    <a href="#" class="report-btn success">Export PDF</a>
+                    <a href="#" class="report-btn warning">Export Excel</a>
+                </div>
+            </div>
+            
+            <div class="report-card">
+                <h3>Completed Assets Report</h3>
+                <p class="report-description">Report on fully funded assets and their contribution history.</p>
+                <div class="report-actions">
+                    <a href="#" class="report-btn">View Report</a>
+                    <a href="#" class="report-btn success">Export PDF</a>
+                    <a href="#" class="report-btn warning">Export Excel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Contributor Reports -->
+    <div class="reports-section">
+        <h2 class="section-title">Contributor Reports</h2>
+        <div class="reports-container">
+            <div class="report-card">
+                <h3>Contributor List</h3>
+                <p class="report-description">Complete list of all contributors with their contact information and contribution history.</p>
+                <div class="report-actions">
+                    <a href="#" class="report-btn">View Report</a>
+                    <a href="#" class="report-btn success">Export PDF</a>
+                    <a href="#" class="report-btn warning">Export Excel</a>
+                </div>
+            </div>
+            
+            <div class="report-card">
+                <h3>Top Contributors Report</h3>
+                <p class="report-description">List of top contributors ranked by total contribution amount.</p>
+                <div class="report-actions">
+                    <a href="#" class="report-btn">View Report</a>
+                    <a href="#" class="report-btn success">Export PDF</a>
+                    <a href="#" class="report-btn warning">Export Excel</a>
+                </div>
+            </div>
+            
+            <div class="report-card">
+                <h3>Contributor Activity Report</h3>
+                <p class="report-description">Analysis of contributor activity patterns and engagement levels.</p>
+                <div class="report-actions">
+                    <a href="#" class="report-btn">View Report</a>
+                    <a href="#" class="report-btn success">Export PDF</a>
+                    <a href="#" class="report-btn warning">Export Excel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Custom Reports -->
+    <div class="reports-section">
+        <h2 class="section-title">Custom Reports</h2>
+        <div class="reports-container">
+            <div class="report-card">
+                <h3>Date Range Report</h3>
+                <p class="report-description">Generate custom reports for specific date ranges with detailed filtering options.</p>
+                <div class="report-actions">
+                    <a href="#" class="report-btn">Create Report</a>
+                </div>
+            </div>
+            
+            <div class="report-card">
+                <h3>Asset-Specific Report</h3>
+                <p class="report-description">Generate detailed reports for specific assets including all contributions and payments.</p>
+                <div class="report-actions">
+                    <a href="#" class="report-btn">Create Report</a>
+                </div>
+            </div>
+            
+            <div class="report-card">
+                <h3>Audit Trail Report</h3>
+                <p class="report-description">Complete audit trail of all administrative actions and system changes.</p>
+                <div class="report-actions">
+                    <a href="#" class="report-btn">View Report</a>
+                    <a href="#" class="report-btn success">Export PDF</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Report Generation Status -->
+    <div class="reports-section">
+        <h2 class="section-title">Report Generation Status</h2>
+        <p>Report generation features are currently in development. The following functionality will be available:</p>
+        <ul>
+            <li>Real-time report generation with custom date ranges</li>
+            <li>Export to PDF, Excel, and CSV formats</li>
+            <li>Scheduled report generation and email delivery</li>
+            <li>Interactive report filters and sorting</li>
+            <li>Report templates and customization options</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

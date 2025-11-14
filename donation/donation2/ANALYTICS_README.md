@@ -26,7 +26,7 @@ For each donation event, the dashboard provides:
 - **How Many Donated**: Total number of unique donors
 - **How Much Donated**: Total amount raised
 - **Average Donation**: Mean contribution per donor
-- **Payment Methods**: Breakdown by payment type (Cash, Bank Transfer, Online Payment)
+- **Payment Methods**: Breakdown by payment type (Bank Transfer, Online Payment)
 
 #### Campaign Timeline
 - **Days Remaining**: Time left in active campaigns

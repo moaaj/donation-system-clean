@@ -1,0 +1,410 @@
+{% extends 'myapp/base_ubac.html' %}
+{% load myapp_filters %}
+
+{% block title %}Checkout - Parent Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-credit-card"></i> Secure Checkout</h2>
+            <div>
+                <a href="{% url 'myapp:parent_view_cart' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Cart
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if fee_statuses or regular_fees or individual_fees %}
+<form method="post" action="{% url 'myapp:parent_checkout_cart' %}">
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-md-8">
+            <!-- PIBG Muafakat Donation Section -->
+            {% if donation_settings.is_enabled %}
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-heart"></i> PIBG Muafakat Fund Donation</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">{{ donation_settings.donation_message }}</p>
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <label class="form-label">
+                                {% if donation_settings.is_mandatory %}
+                                    <strong>Select Donation Amount <span class="text-danger">*</span></strong>
+                                {% else %}
+                                    <strong>Optional Donation Amount</strong>
+                                {% endif %}
+                            </label>
+                            
+                            <!-- Preset amounts -->
+                            <div class="row mb-3">
+                                {% if not donation_settings.is_mandatory %}
+                                <div class="col-6 col-md-4 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="donation_amount" id="no_donation" value="0" checked>
+                                        <label class="form-check-label btn btn-outline-secondary w-100 text-center" for="no_donation">
+                                            No Donation
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% for amount in donation_settings.preset_amounts %}
+                                <div class="col-6 col-md-4 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="donation_amount" id="preset_{{ amount }}" value="{{ amount }}" 
+                                               {% if donation_settings.is_mandatory and forloop.first %}checked{% endif %}>
+                                        <label class="form-check-label btn btn-outline-primary w-100 text-center" for="preset_{{ amount }}">
+                                            RM {{ amount }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                <div class="col-6 col-md-4 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="donation_amount" id="custom_amount" value="custom">
+                                        <label class="form-check-label btn btn-outline-success w-100 text-center" for="custom_amount">
+                                            Custom Amount
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Custom amount input -->
+                            <div id="custom_amount_input" style="display: none;">
+                                <div class="input-group">
+                                    <span class="input-group-text">RM</span>
+                                    <input type="number" class="form-control" name="custom_donation_amount" 
+                                           min="{{ donation_settings.minimum_custom_amount }}" 
+                                           max="{{ donation_settings.maximum_custom_amount }}" 
+                                           step="0.01" placeholder="Enter amount">
+                                </div>
+                                <small class="form-text text-muted">
+                                    Minimum: RM {{ donation_settings.minimum_custom_amount }}, 
+                                    Maximum: RM {{ donation_settings.maximum_custom_amount }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Payment Method -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-credit-card"></i> Payment Method</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="payment_method" id="cash" value="cash" checked>
+                        <label class="form-check-label" for="cash">
+                            <i class="fas fa-money-bill text-success me-2"></i>
+                            <strong>Cash Payment</strong>
+                            <br><small class="text-muted">Pay in cash at school office</small>
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="payment_method" id="online" value="online">
+                        <label class="form-check-label" for="online">
+                            <i class="fas fa-globe text-primary me-2"></i>
+                            <strong>Online Payment</strong>
+                            <br><small class="text-muted">Secure online payment gateway</small>
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="payment_method" id="bank_transfer" value="bank_transfer">
+                        <label class="form-check-label" for="bank_transfer">
+                            <i class="fas fa-university text-info me-2"></i>
+                            <strong>Bank Transfer</strong>
+                            <br><small class="text-muted">Direct bank transfer payment</small>
+                        </label>
+                    </div>
+                    
+                </div>
+            </div>
+            
+            <!-- Security Notice -->
+            <div class="alert alert-info">
+                <i class="fas fa-shield-alt me-2"></i>
+                Your payment information is secure and encrypted. All transactions are processed safely.
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Order Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-receipt"></i> Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Fee Statuses -->
+                    {% for fee_status in fee_statuses %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ fee_status.fee_structure.category.name }}</strong>
+                            <br><small class="text-muted">{{ fee_status.student.first_name }} {{ fee_status.student.last_name }}</small>
+                            {% if fee_status.discount_info.has_discount %}
+                                <br><small class="text-success">{{ fee_status.discount_info.discount_percentage }}% discount applied</small>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            {% if fee_status.discount_info.has_discount %}
+                                <small class="text-muted text-decoration-line-through">RM {{ fee_status.amount|floatformat:2 }}</small><br>
+                            {% endif %}
+                            <strong>RM {{ fee_status.discount_info.discounted_amount|floatformat:2 }}</strong>
+                        </div>
+                    </div>
+                    <hr>
+                    {% endfor %}
+                    
+                    <!-- Regular Fees -->
+                    {% for fee in regular_fees %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ fee.category.name }}</strong>
+                            <br><small class="text-muted">Form {{ fee.form }} - {{ fee.frequency|title }}</small>
+                        </div>
+                        <div>
+                            <strong>RM {{ fee.amount|floatformat:2 }}</strong>
+                        </div>
+                    </div>
+                    <hr>
+                    {% endfor %}
+                    
+                    <!-- Individual Fees -->
+                    {% for fee in individual_fees %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ fee.name }}</strong>
+                            <br><small class="text-muted">{{ fee.student.first_name }} {{ fee.student.last_name }}</small>
+                        </div>
+                        <div>
+                            <strong>RM {{ fee.amount|floatformat:2 }}</strong>
+                        </div>
+                    </div>
+                    <hr>
+                    {% endfor %}
+                    
+                    <!-- Donation Amount (if applicable) -->
+                    <div class="d-flex justify-content-between align-items-center mb-2" id="donation_summary" style="display: none;">
+                        <div>
+                            <strong>PIBG Donation</strong>
+                            <br><small class="text-muted">Supporting school programs</small>
+                        </div>
+                        <div>
+                            <strong id="donation_amount_display">RM 0.00</strong>
+                        </div>
+                    </div>
+                    <hr id="donation_separator" style="display: none;">
+                    
+                    <!-- Total -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5>Total Amount:</h5>
+                        <h5 class="text-success" id="total_amount_display">RM {{ total|floatformat:2 }}</h5>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-success w-100 btn-lg" id="paymentButton">
+                        <i class="fas fa-lock me-2"></i> Complete Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% else %}
+<!-- Empty Cart -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-shopping-cart fa-4x text-muted mb-4"></i>
+                <h3>Your cart is empty</h3>
+                <p class="text-muted">Add some fees to your cart to proceed with payment.</p>
+                <a href="{% url 'myapp:parent_dashboard' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Start Adding Fees
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<!-- Hidden data for JavaScript -->
+<script type="application/json" id="checkout-data">
+{
+    "baseTotal": {{ total|floatformat:2 }},
+    "donationSettings": {
+        "isEnabled": {{ donation_settings.is_enabled|yesno:"true,false" }},
+        "isMandatory": {{ donation_settings.is_mandatory|yesno:"true,false" }},
+        "minimumCustomAmount": {{ donation_settings.minimum_custom_amount }},
+        "maximumCustomAmount": {{ donation_settings.maximum_custom_amount }}
+    }
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get data from JSON script tag
+    const checkoutData = JSON.parse(document.getElementById('checkout-data').textContent);
+    const baseTotal = checkoutData.baseTotal;
+    let currentDonation = 0;
+    
+    // Handle donation amount selection
+    const donationRadios = document.querySelectorAll('input[name="donation_amount"]');
+    const customAmountInput = document.querySelector('input[name="custom_donation_amount"]');
+    const customAmountDiv = document.getElementById('custom_amount_input');
+    const donationSummary = document.getElementById('donation_summary');
+    const donationSeparator = document.getElementById('donation_separator');
+    const donationAmountDisplay = document.getElementById('donation_amount_display');
+    const totalAmountDisplay = document.getElementById('total_amount_display');
+    
+    function updateTotal() {
+        const newTotal = baseTotal + currentDonation;
+        totalAmountDisplay.textContent = 'RM ' + newTotal.toFixed(2);
+        
+        if (currentDonation > 0) {
+            donationAmountDisplay.textContent = 'RM ' + currentDonation.toFixed(2);
+            donationSummary.style.display = 'flex';
+            donationSeparator.style.display = 'block';
+        } else {
+            donationSummary.style.display = 'none';
+            donationSeparator.style.display = 'none';
+        }
+    }
+    
+    donationRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customAmountDiv.style.display = 'block';
+                customAmountInput.focus();
+                currentDonation = parseFloat(customAmountInput.value) || 0;
+            } else {
+                customAmountDiv.style.display = 'none';
+                currentDonation = parseFloat(this.value) || 0;
+            }
+            updateTotal();
+        });
+    });
+    
+    if (customAmountInput) {
+        customAmountInput.addEventListener('input', function() {
+            const customRadio = document.getElementById('custom_amount');
+            if (customRadio && customRadio.checked) {
+                currentDonation = parseFloat(this.value) || 0;
+                updateTotal();
+            }
+        });
+    }
+    
+    // Form submission handling
+    const form = document.querySelector('form[action*="parent_checkout_cart"]');
+    const paymentButton = document.getElementById('paymentButton');
+    
+    if (form && paymentButton) {
+        console.log('Parent checkout form initialized');
+        
+        // Remove any existing event listeners that might interfere
+        const newForm = form.cloneNode(true);
+        form.parentNode.replaceChild(newForm, form);
+        
+        // Re-attach donation listeners to the new form
+        const newDonationRadios = newForm.querySelectorAll('input[name="donation_amount"]');
+        const newCustomAmountInput = newForm.querySelector('input[name="custom_donation_amount"]');
+        
+        newDonationRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customAmountDiv.style.display = 'block';
+                    if (newCustomAmountInput) newCustomAmountInput.focus();
+                    currentDonation = parseFloat(newCustomAmountInput?.value) || 0;
+                } else {
+                    customAmountDiv.style.display = 'none';
+                    currentDonation = parseFloat(this.value) || 0;
+                }
+                updateTotal();
+            });
+        });
+        
+        if (newCustomAmountInput) {
+            newCustomAmountInput.addEventListener('input', function() {
+                const customRadio = newForm.querySelector('#custom_amount');
+                if (customRadio && customRadio.checked) {
+                    currentDonation = parseFloat(this.value) || 0;
+                    updateTotal();
+                }
+            });
+        }
+        
+        // Add form submission handler
+        newForm.addEventListener('submit', function(e) {
+            console.log('Parent payment form submitted');
+            
+            // Validate mandatory donation if required
+            if (checkoutData.donationSettings.isEnabled && checkoutData.donationSettings.isMandatory) {
+                const selectedDonation = newForm.querySelector('input[name="donation_amount"]:checked');
+                if (!selectedDonation || (selectedDonation.value === 'custom' && (!newCustomAmountInput || !newCustomAmountInput.value))) {
+                    e.preventDefault();
+                    alert('Please select a donation amount to continue.');
+                    return false;
+                }
+            }
+            
+            // Validate custom amount if selected
+            const customRadio = newForm.querySelector('#custom_amount');
+            if (customRadio && customRadio.checked && newCustomAmountInput) {
+                const customValue = parseFloat(newCustomAmountInput.value);
+                const minAmount = checkoutData.donationSettings.minimumCustomAmount;
+                const maxAmount = checkoutData.donationSettings.maximumCustomAmount;
+                
+                if (customValue < minAmount || customValue > maxAmount) {
+                    e.preventDefault();
+                    alert(`Custom donation amount must be between RM ${minAmount} and RM ${maxAmount}.`);
+                    return false;
+                }
+            }
+            
+            // Prevent double submission
+            const submitButton = newForm.querySelector('#paymentButton');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Processing Payment...';
+            }
+            
+            return true;
+        });
+        
+        console.log('Parent checkout form ready');
+    }
+    
+    // Override any problematic global functions
+    window.updateMessageCount = function() {
+        // Do nothing for parent users
+    };
+    
+    window.updateCartCount = function() {
+        // Do nothing for parent users  
+    };
+    
+    window.updateWaqafCartCount = function() {
+        // Do nothing for parent users
+    };
+});
+
+// Prevent any fetch errors from interfering with form submission
+window.addEventListener('unhandledrejection', function(e) {
+    console.log('Prevented unhandled promise rejection:', e.reason);
+    e.preventDefault();
+});
+</script>
+{% endblock %}

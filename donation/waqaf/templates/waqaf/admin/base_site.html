@@ -1,0 +1,150 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Waqaf Admin') }}{% endblock %}
+
+{% block branding %}
+<div id="site-name">
+    <a href="/waqaf-admin/">
+        <img src="{% static 'admin/img/icon-waqaf.svg' %}" alt="Waqaf" style="height: 20px; margin-right: 10px;">
+        {{ site_header|default:_('Waqaf Administration') }}
+    </a>
+</div>
+{% endblock %}
+
+{% block nav-breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="/waqaf-admin/">Home</a>
+    {% if title %} &rsaquo; {{ title }}{% endif %}
+</div>
+{% endblock %}
+
+{% block nav-sidebar %}
+<div id="nav-sidebar">
+    <div class="module">
+        <h2>Waqaf Management</h2>
+        <ul>
+            <li><a href="/waqaf-admin/">Dashboard</a></li>
+            <li><a href="/waqaf-admin/analytics/">Analytics</a></li>
+            <li><a href="/waqaf-admin/reports/">Reports</a></li>
+        </ul>
+    </div>
+    
+    <div class="module">
+        <h2>Waqaf Assets</h2>
+        <ul>
+            <li><a href="/waqaf-admin/waqaf/waqafasset/">View Assets</a></li>
+            <li><a href="/waqaf-admin/waqaf/waqafasset/add/">Add Asset</a></li>
+        </ul>
+    </div>
+    
+    <div class="module">
+        <h2>Contributions</h2>
+        <ul>
+            <li><a href="/waqaf-admin/waqaf/contribution/">View Contributions</a></li>
+            <li><a href="/waqaf-admin/waqaf/contribution/add/">Add Contribution</a></li>
+        </ul>
+    </div>
+    
+    <div class="module">
+        <h2>Payments</h2>
+        <ul>
+            <li><a href="/waqaf-admin/waqaf/payment/">View Payments</a></li>
+            <li><a href="/waqaf-admin/waqaf/payment/add/">Add Payment</a></li>
+        </ul>
+    </div>
+    
+    <div class="module">
+        <h2>Contributors</h2>
+        <ul>
+            <li><a href="/waqaf-admin/waqaf/contributor/">View Contributors</a></li>
+            <li><a href="/waqaf-admin/waqaf/contributor/add/">Add Contributor</a></li>
+        </ul>
+    </div>
+    
+    <div class="module">
+        <h2>Fund Distributions</h2>
+        <ul>
+            <li><a href="/waqaf-admin/waqaf/funddistribution/">View Distributions</a></li>
+            <li><a href="/waqaf-admin/waqaf/funddistribution/add/">Add Distribution</a></li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    /* Hide any non-waqaf related navigation */
+    #user-tools a[href*="/admin/"]:not([href*="/waqaf-admin/"]),
+    #user-tools a[href*="/accounts/"],
+    .breadcrumbs a[href*="/admin/"]:not([href*="/waqaf-admin/"]),
+    .breadcrumbs a[href*="/accounts/"] {
+        display: none !important;
+    }
+    
+    /* Custom waqaf admin styling */
+    #site-name a {
+        color: #2c5530;
+        font-weight: bold;
+    }
+    
+    #nav-sidebar {
+        background: #f8f9fa;
+        border-right: 1px solid #dee2e6;
+        padding: 20px;
+        min-height: 100vh;
+    }
+    
+    #nav-sidebar .module {
+        margin-bottom: 20px;
+    }
+    
+    #nav-sidebar .module h2 {
+        background: #2c5530;
+        color: white;
+        padding: 10px;
+        margin: 0 0 10px 0;
+        font-size: 14px;
+        border-radius: 4px;
+    }
+    
+    #nav-sidebar .module ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    #nav-sidebar .module li {
+        margin-bottom: 5px;
+    }
+    
+    #nav-sidebar .module a {
+        display: block;
+        padding: 8px 12px;
+        color: #333;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+    
+    #nav-sidebar .module a:hover {
+        background: #e9ecef;
+        color: #2c5530;
+    }
+    
+    /* Ensure main content area is properly positioned */
+    #content {
+        margin-left: 250px;
+    }
+    
+    @media (max-width: 768px) {
+        #nav-sidebar {
+            display: none;
+        }
+        #content {
+            margin-left: 0;
+        }
+    }
+</style>
+{% endblock %}

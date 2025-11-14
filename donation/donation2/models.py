@@ -11,7 +11,6 @@ from myapp.models import DonationEvent
 
 class Donation(models.Model):
     DONATION_METHODS = [
-        ('Cash', 'Cash'),
         ('Bank Transfer', 'Bank Transfer'),
         ('Online Payment', 'Online Payment'),
     ]

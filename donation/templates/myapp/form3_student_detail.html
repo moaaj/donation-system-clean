@@ -1,0 +1,493 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Form 3 Student Detail{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-user-graduate text-primary"></i>
+                    {{ student.first_name }} {{ student.last_name }}
+                </h1>
+                <div class="text-muted">
+                    <i class="fas fa-user-shield"></i>
+                    Form 3 Administrator
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Information -->
+    <div class="row mb-4">
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user"></i>
+                        Student Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-user-circle fa-5x text-gray-300"></i>
+                        </div>
+                        <h4 class="mb-1">{{ student.first_name }} {{ student.last_name }}</h4>
+                        <p class="text-muted mb-3">{{ student.student_id }}</p>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p class="mb-1"><strong>Student ID:</strong></p>
+                            <p class="text-muted">{{ student.student_id }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="mb-1"><strong>NRIC:</strong></p>
+                            <p class="text-muted">{{ student.nric }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p class="mb-1"><strong>Class:</strong></p>
+                            <p class="text-muted">{{ student.class_name|default:"-" }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="mb-1"><strong>Program:</strong></p>
+                            <p class="text-muted">{{ student.program|default:"-" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p class="mb-1"><strong>Level:</strong></p>
+                            <p class="text-muted">{{ student.get_level_display_value }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="mb-1"><strong>Year Batch:</strong></p>
+                            <p class="text-muted">{{ student.year_batch }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p class="mb-1"><strong>Status:</strong></p>
+                            {% if student.is_active %}
+                                <span class="badge badge-success">Active</span>
+                            {% else %}
+                                <span class="badge badge-secondary">Inactive</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="mb-1"><strong>Created:</strong></p>
+                            <p class="text-muted">{{ student.created_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fee Status Overview -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-money-bill-wave"></i>
+                        Fee Status Overview
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if fee_statuses %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Fee Category</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Due Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for fee_status in fee_statuses %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ fee_status.fee_structure.category.name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ fee_status.fee_structure.category.description }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="font-weight-bold text-success">
+                                                RM {{ fee_status.amount|floatformat:2 }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if fee_status.status == 'paid' %}
+                                                <span class="badge badge-success">Paid</span>
+                                            {% elif fee_status.status == 'pending' %}
+                                                <span class="badge badge-warning">Pending</span>
+                                            {% elif fee_status.status == 'overdue' %}
+                                                <span class="badge badge-danger">Overdue</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">{{ fee_status.get_status_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if fee_status.due_date %}
+                                                {{ fee_status.due_date|date:"M d, Y" }}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                {% if fee_status.status != 'paid' %}
+                                                    <button class="btn btn-outline-success" 
+                                                            onclick="markFeeAsPaid({{ fee_status.id }})"
+                                                            title="Mark as Paid">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                {% endif %}
+                                                <button class="btn btn-outline-primary" 
+                                                        onclick="viewFeeDetails({{ fee_status.id }})"
+                                                        title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-money-bill-wave fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Fee Status Records</h5>
+                            <p class="text-muted">No fee status records found for this student.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Individual Fees -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list"></i>
+                        Individual Student Fees
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if individual_fees %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Fee Name</th>
+                                        <th>Category</th>
+                                        <th>Amount</th>
+                                        <th>Due Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for fee in individual_fees %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ fee.name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ fee.description }}</small>
+                                        </td>
+                                        <td>{{ fee.category.name }}</td>
+                                        <td>
+                                            <span class="font-weight-bold text-success">
+                                                RM {{ fee.amount|floatformat:2 }}
+                                            </span>
+                                        </td>
+                                        <td>{{ fee.due_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if fee.is_paid %}
+                                                <span class="badge badge-success">Paid</span>
+                                            {% elif fee.is_overdue %}
+                                                <span class="badge badge-danger">Overdue</span>
+                                            {% else %}
+                                                <span class="badge badge-warning">Pending</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                {% if not fee.is_paid %}
+                                                    <button class="btn btn-outline-success" 
+                                                            onclick="markIndividualFeeAsPaid({{ fee.id }})"
+                                                            title="Mark as Paid">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                {% endif %}
+                                                <button class="btn btn-outline-primary" 
+                                                        onclick="viewIndividualFee({{ fee.id }})"
+                                                        title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-list fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Individual Fees</h5>
+                            <p class="text-muted">No individual fees have been assigned to this student.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment History -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-history"></i>
+                        Payment History
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if payments %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Payment ID</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Reference</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in payments %}
+                                    <tr>
+                                        <td><strong>#{{ payment.id }}</strong></td>
+                                        <td>
+                                            <span class="font-weight-bold text-success">
+                                                RM {{ payment.amount|floatformat:2 }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-info">
+                                                {{ payment.get_payment_method_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if payment.status == 'completed' %}
+                                                <span class="badge badge-success">Completed</span>
+                                            {% elif payment.status == 'pending' %}
+                                                <span class="badge badge-warning">Pending</span>
+                                            {% elif payment.status == 'failed' %}
+                                                <span class="badge badge-danger">Failed</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">{{ payment.get_status_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ payment.created_at|date:"M d, Y" }}
+                                            <br>
+                                            <small class="text-muted">{{ payment.created_at|time:"H:i" }}</small>
+                                        </td>
+                                        <td>
+                                            {% if payment.reference_number %}
+                                                <code>{{ payment.reference_number }}</code>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-outline-primary" 
+                                                        onclick="viewPayment({{ payment.id }})"
+                                                        title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-info" 
+                                                        onclick="printReceipt({{ payment.id }})"
+                                                        title="Print Receipt">
+                                                    <i class="fas fa-print"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Payment History</h5>
+                            <p class="text-muted">No payments have been recorded for this student.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-bolt"></i>
+                        Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'form3_admin:add_individual_fee' %}?student={{ student.id }}" 
+                               class="btn btn-success btn-block">
+                                <i class="fas fa-plus"></i>
+                                Add Individual Fee
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-primary btn-block" onclick="addPayment()">
+                                <i class="fas fa-credit-card"></i>
+                                Record Payment
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-info btn-block" onclick="generateStudentReport()">
+                                <i class="fas fa-file-pdf"></i>
+                                Generate Report
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-warning btn-block" onclick="sendReminder()">
+                                <i class="fas fa-envelope"></i>
+                                Send Reminder
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Student List -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="{% url 'form3_admin:student_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Student List
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for interactive features -->
+<script>
+function markFeeAsPaid(feeStatusId) {
+    if (confirm('Are you sure you want to mark this fee as paid?')) {
+        // Send AJAX request to mark fee status as paid
+        fetch(`/myapp/fee-status/${feeStatusId}/mark-paid/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while marking the fee as paid.');
+        });
+    }
+}
+
+function viewFeeDetails(feeStatusId) {
+    alert('View fee details for ID: ' + feeStatusId);
+}
+
+function markIndividualFeeAsPaid(feeId) {
+    if (confirm('Are you sure you want to mark this individual fee as paid?')) {
+        // Send AJAX request to mark individual fee as paid
+        fetch(`/myapp/individual-fees/${feeId}/mark-paid/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while marking the fee as paid.');
+        });
+    }
+}
+
+function viewIndividualFee(feeId) {
+    alert('View individual fee details for ID: ' + feeId);
+}
+
+function viewPayment(paymentId) {
+    alert('View payment details for ID: ' + paymentId);
+}
+
+function printReceipt(paymentId) {
+    alert('Printing receipt for payment ID: ' + paymentId);
+}
+
+function addPayment() {
+    alert('Add new payment for student: {{ student.first_name }} {{ student.last_name }}');
+}
+
+function generateStudentReport() {
+    alert('Generating student report for: {{ student.first_name }} {{ student.last_name }}');
+}
+
+function sendReminder() {
+    alert('Sending payment reminder to: {{ student.first_name }} {{ student.last_name }}');
+}
+</script>
+{% endblock %}

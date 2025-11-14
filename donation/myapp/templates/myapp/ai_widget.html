@@ -1,0 +1,407 @@
+<!-- AI Assistant Quick Access Widget -->
+<div class="ai-widget" id="aiWidget">
+    <div class="ai-widget-button" onclick="toggleAIWidget()" id="aiWidgetButton">
+        <div class="ai-widget-icon">🤖</div>
+        <div class="ai-widget-text">AI Help</div>
+        <div class="ai-widget-pulse"></div>
+    </div>
+    
+    <div class="ai-widget-chat" id="aiWidgetChat" style="display: none;">
+        <div class="ai-widget-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="ai-widget-avatar">🤖</div>
+                    <div>
+                        <strong>AI Assistant</strong>
+                        <div class="ai-widget-status">Online • Ready to help</div>
+                    </div>
+                </div>
+                <button class="ai-widget-close" onclick="toggleAIWidget()">×</button>
+            </div>
+        </div>
+        
+        <div class="ai-widget-body">
+            <div class="ai-widget-messages" id="aiWidgetMessages">
+                <div class="ai-widget-welcome">
+                    <div class="ai-widget-avatar">🤖</div>
+                    <div class="ai-widget-message">
+                        <strong>Hi there! 👋</strong><br>
+                        I'm your AI assistant! I can help you with:
+                        <ul>
+                            <li>🏫 School fees & payments</li>
+                            <li>💰 Donations & events</li>
+                            <li>🕌 Waqaf information</li>
+                            <li>👨‍🎓 Student services</li>
+                        </ul>
+                        What can I help you with? 😊
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ai-widget-quick-actions">
+                <button class="ai-quick-btn" onclick="sendQuickMessage('Check my fees')">
+                    🔍 Check Fees
+                </button>
+                <button class="ai-quick-btn" onclick="sendQuickMessage('Show donation events')">
+                    💰 Donations
+                </button>
+                <button class="ai-quick-btn" onclick="sendQuickMessage('Help me')">
+                    ❓ Help
+                </button>
+            </div>
+            
+            <div class="ai-widget-input">
+                <form id="aiWidgetForm">
+                    <div class="input-group">
+                        <input type="text" id="aiWidgetInput" placeholder="Ask me anything..." class="form-control">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="ai-widget-footer">
+            <small class="text-muted">
+                💖 Powered by AI • <a href="{% url 'myapp:chatbot_interface' %}" target="_blank">Full Chat</a>
+            </small>
+        </div>
+    </div>
+</div>
+
+<style>
+/* AI Widget Styles */
+.ai-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.ai-widget-button {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-widget-button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+}
+
+.ai-widget-icon {
+    font-size: 28px;
+    animation: bounce 2s infinite;
+}
+
+.ai-widget-text {
+    font-size: 10px;
+    font-weight: 600;
+    color: white;
+    margin-top: 2px;
+}
+
+.ai-widget-pulse {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    animation: pulse-ring 2s infinite;
+}
+
+.ai-widget-chat {
+    position: absolute;
+    bottom: 80px;
+    right: 0;
+    width: 350px;
+    max-height: 500px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    animation: slideInUp 0.3s ease-out;
+}
+
+.ai-widget-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 20px 20px 0 0;
+}
+
+.ai-widget-avatar {
+    width: 35px;
+    height: 35px;
+    background: linear-gradient(135deg, #00cec9 0%, #55a3ff 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+.ai-widget-status {
+    font-size: 0.8em;
+    opacity: 0.9;
+}
+
+.ai-widget-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.ai-widget-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.ai-widget-body {
+    padding: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.ai-widget-welcome {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.ai-widget-message {
+    background: #f8f9fa;
+    padding: 12px 15px;
+    border-radius: 15px;
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+.ai-widget-quick-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.ai-quick-btn {
+    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+    min-width: 80px;
+}
+
+.ai-quick-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(116, 185, 255, 0.3);
+}
+
+.ai-widget-input .form-control {
+    border-radius: 20px;
+    border: 1px solid #e9ecef;
+    padding: 10px 15px;
+    font-size: 0.9em;
+}
+
+.ai-widget-input .btn {
+    border-radius: 20px;
+    padding: 10px 15px;
+}
+
+.ai-widget-footer {
+    padding: 10px 20px;
+    border-top: 1px solid #e9ecef;
+    text-align: center;
+    background: #f8f9fa;
+    border-radius: 0 0 20px 20px;
+}
+
+/* Animations */
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-5px); }
+    60% { transform: translateY(-3px); }
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1.3);
+        opacity: 0;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .ai-widget-chat {
+        width: 300px;
+        bottom: 70px;
+        right: -10px;
+    }
+    
+    .ai-widget-button {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .ai-widget-icon {
+        font-size: 24px;
+    }
+}
+</style>
+
+<script>
+function toggleAIWidget() {
+    const chat = document.getElementById('aiWidgetChat');
+    const button = document.getElementById('aiWidgetButton');
+    
+    if (chat.style.display === 'none') {
+        chat.style.display = 'block';
+        button.style.transform = 'scale(0.9)';
+        
+        // Add welcome animation
+        setTimeout(() => {
+            const welcome = chat.querySelector('.ai-widget-welcome');
+            if (welcome) {
+                welcome.style.animation = 'slideInUp 0.5s ease-out';
+            }
+        }, 100);
+    } else {
+        chat.style.display = 'none';
+        button.style.transform = 'scale(1)';
+    }
+}
+
+async function sendQuickMessage(message) {
+    const messagesContainer = document.getElementById('aiWidgetMessages');
+    
+    // Add user message
+    const userMsg = document.createElement('div');
+    userMsg.className = 'ai-widget-user-message';
+    userMsg.innerHTML = `
+        <div class="d-flex justify-content-end mb-2">
+            <div class="ai-widget-message" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; max-width: 80%;">
+                ${message}
+            </div>
+        </div>
+    `;
+    messagesContainer.appendChild(userMsg);
+    
+    // Show typing
+    const typingMsg = document.createElement('div');
+    typingMsg.className = 'ai-widget-typing';
+    typingMsg.innerHTML = `
+        <div class="d-flex align-items-center mb-2">
+            <div class="ai-widget-avatar">🤖</div>
+            <div class="ai-widget-message">
+                <div class="typing-indicator">
+                    <span></span><span></span><span></span>
+                    <span class="typing-text">Thinking...</span>
+                </div>
+            </div>
+        </div>
+    `;
+    messagesContainer.appendChild(typingMsg);
+    
+    try {
+        const response = await fetch('/donation2/chat/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: `message=${encodeURIComponent(message)}`
+        });
+        
+        const data = await response.json();
+        
+        // Remove typing indicator
+        typingMsg.remove();
+        
+        // Add AI response
+        const aiMsg = document.createElement('div');
+        aiMsg.innerHTML = `
+            <div class="d-flex align-items-start mb-2">
+                <div class="ai-widget-avatar">🤖</div>
+                <div class="ai-widget-message">
+                    ${data.message || 'I\'m here to help! 😊'}
+                </div>
+            </div>
+        `;
+        messagesContainer.appendChild(aiMsg);
+        
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+    } catch (error) {
+        typingMsg.remove();
+        console.error('Widget error:', error);
+    }
+}
+
+// Initialize widget
+document.addEventListener('DOMContentLoaded', function() {
+    // Add subtle entrance animation
+    setTimeout(() => {
+        const widget = document.getElementById('aiWidget');
+        if (widget) {
+            widget.style.animation = 'slideInUp 0.5s ease-out';
+        }
+    }, 2000);
+    
+    // Handle widget form submission
+    const widgetForm = document.getElementById('aiWidgetForm');
+    if (widgetForm) {
+        widgetForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = document.getElementById('aiWidgetInput');
+            if (input.value.trim()) {
+                sendQuickMessage(input.value.trim());
+                input.value = '';
+            }
+        });
+    }
+});
+</script>

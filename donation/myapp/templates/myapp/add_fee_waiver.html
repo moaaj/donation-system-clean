@@ -34,39 +34,34 @@
                     <form method="post">
                         {% csrf_token %}
                         
-                        <!-- Student Information -->
+                        <!-- Student and Category Selection -->
                         <div class="mb-4">
-                            <h5>Student Information</h5>
+                            <h5>Student and Fee Category</h5>
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        {{ form.student_name.label_tag }}
-                                        {{ form.student_name }}
-                                        {% if form.student_name.errors %}
+                                        {{ form.student.label_tag }}
+                                        {{ form.student }}
+                                        {% if form.student.help_text %}
+                                            <small class="form-text text-muted">{{ form.student.help_text }}</small>
+                                        {% endif %}
+                                        {% if form.student.errors %}
                                             <div class="invalid-feedback d-block">
-                                                {{ form.student_name.errors }}
+                                                {{ form.student.errors }}
                                             </div>
                                         {% endif %}
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        {{ form.student_class.label_tag }}
-                                        {{ form.student_class }}
-                                        {% if form.student_class.errors %}
-                                            <div class="invalid-feedback d-block">
-                                                {{ form.student_class.errors }}
-                                            </div>
+                                        {{ form.category.label_tag }}
+                                        {{ form.category }}
+                                        {% if form.category.help_text %}
+                                            <small class="form-text text-muted">{{ form.category.help_text }}</small>
                                         {% endif %}
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        {{ form.student_id.label_tag }}
-                                        {{ form.student_id }}
-                                        {% if form.student_id.errors %}
+                                        {% if form.category.errors %}
                                             <div class="invalid-feedback d-block">
-                                                {{ form.student_id.errors }}
+                                                {{ form.category.errors }}
                                             </div>
                                         {% endif %}
                                     </div>
@@ -89,15 +84,6 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        {{ form.category.label_tag }}
-                                        {{ form.category }}
-                                        {% if form.category.errors %}
-                                            <div class="invalid-feedback d-block">
-                                                {{ form.category.errors }}
-                                            </div>
-                                        {% endif %}
                                     </div>
                                 </div>
                             </div>

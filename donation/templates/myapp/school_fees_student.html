@@ -7,7 +7,7 @@
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="fas fa-money-bill-wave"></i> School Fees - Student Portal</h2>
+            <h2><i class="fas fa-money-bill-wave"></i> My School Fees - Student Portal</h2>
             <div>
                 <a href="{% url 'myapp:student_payment_history' %}" class="btn btn-outline-secondary">
                     <i class="fas fa-history"></i> Payment History
@@ -20,9 +20,16 @@
     </div>
 </div>
 
-{% if is_tamim %}
-    {# Removed info message for tamim123 #}
-{% else %}
+<!-- Student Welcome Message -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5><i class="fas fa-info-circle"></i> Student Payment Portal</h5>
+            <p class="mb-0">Welcome to your personal fee payment portal. Here you can view your outstanding fees, add them to your cart, and make payments. Use the "Add to Cart" buttons to select fees for payment, then proceed to checkout.</p>
+        </div>
+    </div>
+</div>
+
     <!-- Student Information Card -->
     <div class="row mb-4">
         <div class="col-md-6">
@@ -129,62 +136,83 @@
     </div>
     {% endif %}
 
-    <!-- Available Fee Structures -->
+    <!-- Fee Statuses with Discounts -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5><i class="fas fa-list"></i> Available Fee Structures</h5>
+                    <h5><i class="fas fa-list"></i> Your Fees</h5>
                 </div>
                 <div class="card-body">
-                    {% if available_fees %}
+                    {% if fee_statuses %}
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th>Category</th>
-                                    <th>Form</th>
-                                    <th>Amount</th>
-                                    <th>Frequency</th>
+                                    <th>Due Date</th>
+                                    <th>Original Amount</th>
+                                    <th>Discount</th>
+                                    <th>Amount to Pay</th>
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for fee in available_fees %}
+                                {% for fee_status in fee_statuses %}
                                 <tr>
-                                    <td>{{ fee.category.name }}</td>
-                                    <td>{{ fee.form }}</td>
-                                    <td>RM {{ fee.amount }}</td>
-                                    <td>{{ fee.get_frequency_display }}</td>
+                                    <td>{{ fee_status.fee_structure.category.name }}</td>
+                                    <td>{{ fee_status.due_date|date:"d M Y" }}</td>
                                     <td>
-                                        {% with status=fee_statuses|get_fee_status:fee.id %}
-                                            {% if status == 'paid' %}
-                                                <span class="badge bg-success">Paid</span>
-                                            {% elif status == 'overdue' %}
-                                                <span class="badge bg-danger">Overdue</span>
-                                            {% else %}
-                                                <span class="badge bg-warning">Pending</span>
-                                            {% endif %}
-                                        {% endwith %}
+                                        {% if fee_status.discount_info.has_discount %}
+                                            <span class="text-decoration-line-through text-muted">RM {{ fee_status.discount_info.original_amount|floatformat:2 }}</span>
+                                        {% else %}
+                                            RM {{ fee_status.amount|floatformat:2 }}
+                                        {% endif %}
                                     </td>
                                     <td>
-                                        {% with status=fee_statuses|get_fee_status:fee.id %}
-                                            {% if status == 'paid' %}
-                                                <button class="btn btn-sm btn-success" disabled>
-                                                    <i class="fas fa-check"></i> Paid
-                                                </button>
-                                            {% else %}
-                                                <form method="post" action="{% url 'myapp:add_to_cart' %}" style="display:inline;">
-                                                    {% csrf_token %}
-                                                    <input type="hidden" name="fee_id" value="{{ fee.id }}">
-                                                    <input type="hidden" name="next" value="{% url 'myapp:view_cart' %}">
-                                                    <button type="submit" class="btn btn-sm btn-warning">
-                                                        <i class="fas fa-cart-plus"></i> Add to Cart
-                                                    </button>
-                                                </form>
+                                        {% if fee_status.discount_info.has_discount %}
+                                            <span class="badge bg-success">
+                                                -RM {{ fee_status.discount_info.total_discount|floatformat:2 }}
+                                            </span>
+                                            {% if fee_status.discount_info.waivers %}
+                                                <br><small class="text-muted">
+                                                    {% for waiver in fee_status.discount_info.waivers %}
+                                                        {{ waiver.type }}{% if not forloop.last %}, {% endif %}
+                                                    {% endfor %}
+                                                </small>
                                             {% endif %}
-                                        {% endwith %}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong class="text-primary">RM {{ fee_status.discount_info.discounted_amount|floatformat:2 }}</strong>
+                                    </td>
+                                    <td>
+                                        {% if fee_status.status == 'paid' %}
+                                            <span class="badge bg-success">Paid</span>
+                                        {% elif fee_status.status == 'overdue' %}
+                                            <span class="badge bg-danger">Overdue</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if fee_status.status == 'paid' %}
+                                            <button class="btn btn-sm btn-success" disabled>
+                                                <i class="fas fa-check"></i> Paid
+                                            </button>
+                                        {% else %}
+                                            <form method="post" action="{% url 'myapp:add_to_cart' %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="fee_status_id" value="{{ fee_status.id }}">
+                                                <input type="hidden" name="next" value="{% url 'myapp:view_cart' %}">
+                                                <button type="submit" class="btn btn-sm btn-warning">
+                                                    <i class="fas fa-cart-plus"></i> Add to Cart
+                                                </button>
+                                            </form>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -194,12 +222,11 @@
                     {% else %}
                     <div class="text-center py-4">
                         <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No fee structures available at the moment.</p>
+                        <p class="text-muted">No fees available at the moment.</p>
                     </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
-{% endif %}
 {% endblock %} 

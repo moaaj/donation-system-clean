@@ -1,0 +1,459 @@
+{% extends 'myapp/base_ubac.html' %}
+{% load myapp_filters %}
+
+{% block title %}School Fees - Student Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-graduation-cap text-primary"></i> Your School Fees</h2>
+                    <p class="text-muted">{{ student.first_name }} {{ student.last_name }} ({{ student.student_id }}) - {{ student_level }}</p>
+                </div>
+                <div>
+                    <a href="{% url 'myapp:view_cart' %}" class="btn btn-primary">
+                        <i class="fas fa-shopping-cart"></i> View Cart
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Info Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="card-title mb-1">{{ student.first_name }} {{ student.last_name }}</h5>
+                            <p class="card-text mb-0">
+                                <strong>Student ID:</strong> {{ student.student_id }} | 
+                                <strong>Level:</strong> {{ student_level }} | 
+                                <strong>Year Batch:</strong> {{ student.year_batch|default:"2024" }}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <span class="badge bg-success fs-6">Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if fee_statuses or individual_fees %}
+    <!-- Outstanding Fees -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-exclamation-triangle text-warning"></i> Your Fees</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Due Date</th>
+                                    <th>Original Amount</th>
+                                    <th>Discount</th>
+                                    <th>Amount to Pay</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Fee Statuses -->
+                                {% for fee_status in fee_statuses %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ fee_status.fee_structure.category.name }}</strong>
+                                        <br><small class="text-muted">{{ fee_status.fee_structure.form }} - {{ fee_status.fee_structure.frequency|title }}</small>
+                                    </td>
+                                    <td>{{ fee_status.due_date|date:"d M Y" }}</td>
+                                    <td>RM {{ fee_status.amount|floatformat:2 }}</td>
+                                    <td>
+                                        {% if fee_status.discount_info.has_discount %}
+                                            <span class="badge bg-success">{{ fee_status.discount_info.discount_percentage }}% OFF</span>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong class="text-primary">
+                                            RM {{ fee_status.discount_info.discounted_amount|floatformat:2 }}
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        {% if fee_status.status == 'overdue' %}
+                                            <span class="badge bg-danger">Overdue</span>
+                                        {% elif fee_status.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% else %}
+                                            <span class="badge bg-success">{{ fee_status.status|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-vertical" role="group">
+                                            <form method="post" action="{% url 'myapp:add_to_cart' %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="fee_status_id" value="{{ fee_status.id }}">
+                                                <button type="submit" class="btn btn-warning btn-sm mb-1">
+                                                    <i class="fas fa-shopping-cart"></i> Add to Cart
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-outline-primary btn-sm quick-pay-btn" 
+                                                    data-fee-status-id="{{ fee_status.id }}"
+                                                    data-fee-name="{{ fee_status.fee_structure.category.name }}"
+                                                    data-fee-amount="{{ fee_status.discount_info.discounted_amount|floatformat:2 }}">
+                                                <i class="fas fa-bolt"></i> Quick Pay
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                
+                                <!-- Individual Fees -->
+                                {% for fee in individual_fees %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ fee.name }}</strong>
+                                        <br><small class="text-muted">{{ fee.description|truncatewords:8 }}</small>
+                                    </td>
+                                    <td>{{ fee.due_date|date:"d M Y" }}</td>
+                                    <td>RM {{ fee.amount|floatformat:2 }}</td>
+                                    <td>-</td>
+                                    <td>
+                                        <strong class="text-primary">RM {{ fee.amount|floatformat:2 }}</strong>
+                                    </td>
+                                    <td>
+                                        {% if fee.is_overdue %}
+                                            <span class="badge bg-danger">Overdue</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-vertical" role="group">
+                                            <form method="post" action="{% url 'myapp:add_to_cart' %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="individual_fee_id" value="{{ fee.id }}">
+                                                <button type="submit" class="btn btn-warning btn-sm mb-1">
+                                                    <i class="fas fa-shopping-cart"></i> Add to Cart
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-outline-primary btn-sm quick-pay-individual-btn" 
+                                                    data-individual-fee-id="{{ fee.id }}"
+                                                    data-fee-name="{{ fee.name }}"
+                                                    data-fee-amount="{{ fee.amount|floatformat:2 }}">
+                                                <i class="fas fa-bolt"></i> Quick Pay
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Instructions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h6><i class="fas fa-info-circle"></i> How to Pay Your Fees</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-shopping-cart fa-2x text-warning mb-2"></i>
+                                <h6>1. Add to Cart</h6>
+                                <p class="small text-muted">Click "Add to Cart" for the fees you want to pay</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-credit-card fa-2x text-primary mb-2"></i>
+                                <h6>2. Choose Payment Method</h6>
+                                <p class="small text-muted">Select Cash, Bank Transfer, or Online Payment</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                                <h6>3. Complete Payment</h6>
+                                <p class="small text-muted">For cash payments, visit the school office</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- No Outstanding Fees -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-check-circle fa-4x text-success mb-4"></i>
+                    <h3>All Fees Paid!</h3>
+                    <p class="text-muted">You have no outstanding fees at this time.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Payments -->
+    {% if recent_payments %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-history text-info"></i> Recent Payments</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in recent_payments %}
+                                <tr>
+                                    <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                                    <td>{{ payment.fee_structure.category.name|default:"Individual Fee" }}</td>
+                                    <td>RM {{ payment.amount|floatformat:2 }}</td>
+                                    <td>{{ payment.payment_method|title }}</td>
+                                    <td>
+                                        {% if payment.status == 'completed' %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% elif payment.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ payment.status|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick Payment Modal -->
+<div class="modal fade" id="quickPaymentModal" tabindex="-1" aria-labelledby="quickPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickPaymentModalLabel">
+                    <i class="fas fa-bolt text-primary"></i> Quick Payment
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="quickPaymentForm" method="post" action="{% url 'myapp:checkout_cart' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Quick Payment:</strong> This will add the fee to your cart and proceed directly to payment.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Fee Details:</strong></label>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 id="modalFeeName" class="card-title"></h6>
+                                <p class="card-text">
+                                    <strong>Amount: </strong><span id="modalFeeAmount" class="text-success"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Payment Method:</strong></label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="payment_method" id="quickCash" value="cash" checked>
+                            <label class="form-check-label" for="quickCash">
+                                <i class="fas fa-money-bill text-success me-2"></i>
+                                <strong>Cash Payment</strong>
+                                <br><small class="text-muted">Pay in cash at school office (requires admin confirmation)</small>
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="payment_method" id="quickBank" value="bank_transfer">
+                            <label class="form-check-label" for="quickBank">
+                                <i class="fas fa-university text-info me-2"></i>
+                                <strong>Bank Transfer</strong>
+                                <br><small class="text-muted">Direct bank transfer payment</small>
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="payment_method" id="quickOnline" value="online">
+                            <label class="form-check-label" for="quickOnline">
+                                <i class="fas fa-globe text-primary me-2"></i>
+                                <strong>Online Payment</strong>
+                                <br><small class="text-muted">Secure online payment gateway</small>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning" id="cashNotice">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Cash Payment Notice:</strong> 
+                        Your payment will be marked as "pending" until you make the actual cash payment at the school office and an admin confirms it.
+                    </div>
+                    
+                    <input type="hidden" id="quickFeeStatusId" name="fee_status_id" value="">
+                    <input type="hidden" id="quickIndividualFeeId" name="individual_fee_id" value="">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-credit-card"></i> Proceed to Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add confirmation for adding to cart
+    const addToCartForms = document.querySelectorAll('form[action*="add-to-cart"]');
+    addToCartForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const feeAmount = this.closest('tr').querySelector('td:nth-child(5)').textContent.trim();
+            const feeName = this.closest('tr').querySelector('td:nth-child(1) strong').textContent.trim();
+            
+            if (!confirm(`Add ${feeName} (${feeAmount}) to cart?`)) {
+                e.preventDefault();
+            }
+        });
+    });
+    
+    // Payment method change handler
+    const paymentMethodRadios = document.querySelectorAll('input[name="payment_method"]');
+    const cashNotice = document.getElementById('cashNotice');
+    
+    function toggleCashNotice() {
+        const cashRadio = document.getElementById('quickCash');
+        if (cashRadio.checked) {
+            cashNotice.style.display = 'block';
+        } else {
+            cashNotice.style.display = 'none';
+        }
+    }
+    
+    paymentMethodRadios.forEach(radio => {
+        radio.addEventListener('change', toggleCashNotice);
+    });
+    
+    // Initial check
+    toggleCashNotice();
+    
+    // Quick payment button handlers
+    document.querySelectorAll('.quick-pay-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const feeStatusId = this.getAttribute('data-fee-status-id');
+            const feeName = this.getAttribute('data-fee-name');
+            const feeAmount = this.getAttribute('data-fee-amount');
+            showQuickPayment(feeStatusId, feeName, feeAmount);
+        });
+    });
+    
+    document.querySelectorAll('.quick-pay-individual-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const individualFeeId = this.getAttribute('data-individual-fee-id');
+            const feeName = this.getAttribute('data-fee-name');
+            const feeAmount = this.getAttribute('data-fee-amount');
+            showQuickPaymentIndividual(individualFeeId, feeName, feeAmount);
+        });
+    });
+    
+    // Quick payment form submission
+    document.getElementById('quickPaymentForm').addEventListener('submit', function(e) {
+        // First add to cart, then submit for checkout
+        const feeStatusId = document.getElementById('quickFeeStatusId').value;
+        const individualFeeId = document.getElementById('quickIndividualFeeId').value;
+        
+        if (feeStatusId || individualFeeId) {
+            // Add to cart first via AJAX
+            const formData = new FormData();
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+            if (feeStatusId) {
+                formData.append('fee_status_id', feeStatusId);
+            }
+            if (individualFeeId) {
+                formData.append('individual_fee_id', individualFeeId);
+            }
+            
+            fetch('{% url "myapp:add_to_cart" %}', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    // Now submit the checkout form
+                    this.submit();
+                } else {
+                    alert('Error adding fee to cart. Please try again.');
+                    e.preventDefault();
+                }
+            }).catch(error => {
+                alert('Error adding fee to cart. Please try again.');
+                e.preventDefault();
+            });
+            
+            e.preventDefault(); // Prevent default submission until AJAX completes
+        }
+    });
+});
+
+// Global functions for quick payment buttons
+function showQuickPayment(feeStatusId, feeName, amount) {
+    document.getElementById('modalFeeName').textContent = feeName;
+    document.getElementById('modalFeeAmount').textContent = 'RM ' + parseFloat(amount).toFixed(2);
+    document.getElementById('quickFeeStatusId').value = feeStatusId;
+    document.getElementById('quickIndividualFeeId').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('quickPaymentModal'));
+    modal.show();
+}
+
+function showQuickPaymentIndividual(individualFeeId, feeName, amount) {
+    document.getElementById('modalFeeName').textContent = feeName;
+    document.getElementById('modalFeeAmount').textContent = 'RM ' + parseFloat(amount).toFixed(2);
+    document.getElementById('quickFeeStatusId').value = '';
+    document.getElementById('quickIndividualFeeId').value = individualFeeId;
+    
+    const modal = new bootstrap.Modal(document.getElementById('quickPaymentModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

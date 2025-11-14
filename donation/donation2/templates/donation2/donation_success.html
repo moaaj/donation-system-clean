@@ -242,6 +242,44 @@
         line-height: 1.6;
         margin: 0;
     }
+    
+    /* Print styles */
+    @media print {
+        .action-buttons, .next-steps {
+            display: none !important;
+        }
+        
+        .success-container {
+            max-width: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .success-header {
+            background: #4CAF50 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
+        .donations-list {
+            box-shadow: none;
+            border: 1px solid #ddd;
+        }
+        
+        .donation-item {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+        
+        body {
+            font-size: 12pt;
+            line-height: 1.4;
+        }
+        
+        h1, h2, h3 {
+            color: #000 !important;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -251,6 +289,23 @@
         <div class="success-icon">🎉</div>
         <h1>Thank You for Your Generosity!</h1>
         <p>Your donations have been successfully processed and will make a real difference.</p>
+        
+        {% if not is_authenticated %}
+        <div class="donor-info" style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <h3 style="margin: 0 0 10px 0; color: white;">Donation Receipt</h3>
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                <div style="margin: 5px 0;">
+                    <strong>Donor:</strong> {{ donor_info.name }}
+                </div>
+                <div style="margin: 5px 0;">
+                    <strong>Email:</strong> {{ donor_info.email }}
+                </div>
+                <div style="margin: 5px 0;">
+                    <strong>Date:</strong> {% now "M d, Y H:i" %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
         
         <div class="success-summary">
             <div class="summary-item">
@@ -330,18 +385,32 @@
     </div>
     
     <div class="action-buttons">
-                 <a href="{% url 'donation_events' %}" class="btn btn-primary">
+        {% if not is_authenticated %}
+        <button onclick="window.print()" class="btn btn-primary">
+            <i class="fas fa-print"></i> Print Receipt
+        </button>
+        <button onclick="downloadReceipt()" class="btn btn-success">
+            <i class="fas fa-download"></i> Download Receipt
+        </button>
+        {% endif %}
+        <a href="{% url 'home' %}" class="btn btn-primary">
+            <i class="fas fa-home"></i> Back to Homepage
+        </a>
+        <a href="{% url 'donation_events' %}" class="btn btn-success">
             <i class="fas fa-search"></i> Browse More Events
         </a>
-                 <a href="{% url 'donation_history' %}" class="btn btn-success">
+        {% if is_authenticated %}
+        <a href="{% url 'donation_history' %}" class="btn btn-primary">
             <i class="fas fa-history"></i> View Donation History
         </a>
-                 <a href="{% url 'donation_analytics' %}" class="btn btn-primary">
+        <a href="{% url 'donation_analytics' %}" class="btn btn-primary">
             <i class="fas fa-chart-bar"></i> View Impact Analytics
         </a>
-                 <a href="{% url 'view_cart' %}" class="btn btn-secondary">
-            <i class="fas fa-shopping-cart"></i> Back to Cart
+        {% else %}
+        <a href="{% url 'accounts:login' %}" class="btn btn-secondary">
+            <i class="fas fa-sign-in-alt"></i> Login to View History
         </a>
+        {% endif %}
     </div>
 </div>
 
@@ -349,11 +418,51 @@
 // Auto-scroll to top
 window.scrollTo(0, 0);
 
+// Download receipt function
+function downloadReceipt() {
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    const currentContent = document.documentElement.outerHTML;
+    
+    // Modify content for download
+    const modifiedContent = currentContent
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '') // Remove all scripts
+        .replace(/action-buttons[\s\S]*?<\/div>/gi, '') // Remove action buttons
+        .replace(/next-steps[\s\S]*?<\/div>/gi, ''); // Remove next steps
+    
+    printWindow.document.write(modifiedContent);
+    printWindow.document.close();
+    
+    // Wait for content to load then print
+    printWindow.onload = function() {
+        printWindow.print();
+        printWindow.close();
+    };
+}
+
 // Show a thank you message after a short delay
 setTimeout(function() {
     if (typeof toastr !== 'undefined') {
         toastr.success('Thank you for your generous donations! 🎉');
     }
 }, 1000);
+
 </script>
+
+{% if not is_authenticated %}
+<script>
+// Auto-redirect anonymous users to homepage after 30 seconds (give them time to print receipt)
+setTimeout(function() {
+    // Show a notification about the redirect
+    if (typeof toastr !== 'undefined') {
+        toastr.info('You can print your receipt now. Redirecting to homepage in 10 seconds...', '', {timeOut: 10000});
+    }
+    
+    // Redirect after 10 more seconds
+    setTimeout(function() {
+        window.location.href = '{% url "home" %}';
+    }, 10000);
+}, 30000);
+</script>
+{% endif %}
 {% endblock %}

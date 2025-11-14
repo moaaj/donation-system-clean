@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Form 3 Students{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-users text-primary"></i>
+                    Form 3 Students
+                </h1>
+                <div class="text-muted">
+                    <i class="fas fa-user-shield"></i>
+                    Form 3 Administrator
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Options -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h6 class="mb-0">Filter Students:</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="btn-group" role="group">
+                                <a href="?show=active" class="btn btn-outline-primary {% if show == 'active' %}active{% endif %}">
+                                    Active Only
+                                </a>
+                                <a href="?show=all" class="btn btn-outline-primary {% if show == 'all' %}active{% endif %}">
+                                    All Students
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list"></i>
+                        Form 3 Students List
+                        <span class="badge badge-primary ml-2">{{ students.count }}</span>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if students %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Name</th>
+                                        <th>NRIC</th>
+                                        <th>Class</th>
+                                        <th>Program</th>
+                                        <th>Year Batch</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student in students %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ student.student_id }}</strong>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'form3_admin:student_detail' student.id %}" class="text-decoration-none">
+                                                {{ student.first_name }} {{ student.last_name }}
+                                            </a>
+                                        </td>
+                                        <td>{{ student.nric }}</td>
+                                        <td>{{ student.class_name|default:"-" }}</td>
+                                        <td>{{ student.program|default:"-" }}</td>
+                                        <td>{{ student.year_batch }}</td>
+                                        <td>
+                                            {% if student.is_active %}
+                                                <span class="badge badge-success">Active</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{% url 'form3_admin:student_detail' student.id %}" 
+                                                   class="btn btn-outline-primary" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'form3_admin:add_individual_fee' %}?student={{ student.id }}" 
+                                                   class="btn btn-outline-success" title="Add Fee">
+                                                    <i class="fas fa-plus"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Form 3 students found</h5>
+                            <p class="text-muted">
+                                {% if show == 'active' %}
+                                    No active Form 3 students in the system.
+                                {% else %}
+                                    No Form 3 students in the system.
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Dashboard -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="{% url 'form3_admin:dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

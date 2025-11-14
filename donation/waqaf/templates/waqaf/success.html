@@ -3,45 +3,259 @@
 
 {% block title %}Waqaf Contribution Success{% endblock %}
 
+{% block extra_css %}
+<style>
+    .success-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+    }
+    
+    .success-header {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .success-icon {
+        font-size: 4em;
+        margin-bottom: 20px;
+        animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+    
+    .success-header h1 {
+        margin: 0;
+        font-size: 2.5em;
+        font-weight: bold;
+    }
+    
+    .contribution-details {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: left;
+    }
+    
+    .contribution-details h3 {
+        margin-bottom: 20px;
+        color: #333;
+        border-bottom: 2px solid #e1e5e9;
+        padding-bottom: 10px;
+    }
+    
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .detail-value {
+        color: #666;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        font-size: 1.1em;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+    
+    .certificate-notice {
+        background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+        border: 2px solid #4CAF50;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .certificate-notice h4 {
+        color: #4CAF50;
+        margin-bottom: 15px;
+    }
+    
+    .certificate-notice p {
+        color: #333;
+        line-height: 1.6;
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card text-center">
-                <div class="card-body py-5">
-                    <div class="mb-4">
-                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
-                    </div>
-                    
-                    <h2 class="card-title text-success mb-3">Thank You!</h2>
-                    <h4 class="card-subtitle mb-4">Your Waqaf Contribution Has Been Submitted</h4>
-                    
-                    <p class="card-text mb-4">
-                        Your waqaf contribution has been successfully submitted and is now being processed. 
-                        You will receive a confirmation once the payment is completed.
-                    </p>
-                    
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Next Steps:</strong>
-                        <ul class="mb-0 mt-2 text-start">
-                            <li>Your contribution will be reviewed by our team</li>
-                            <li>You will receive payment instructions via email</li>
-                            <li>Once payment is confirmed, you'll receive a certificate</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="d-flex justify-content-center gap-3 mt-4">
-                        <a href="{% url 'waqaf:waqaf_dashboard' %}" class="btn btn-primary">
-                            <i class="fas fa-home"></i> Back to Dashboard
-                        </a>
-                        <a href="{% url 'waqaf:view_waqaf_cart' %}" class="btn btn-outline-secondary">
-                            <i class="fas fa-shopping-cart"></i> View Cart
-                        </a>
-                    </div>
-                </div>
-            </div>
+<div class="success-container">
+    <div class="success-header">
+        <div class="success-icon">🎉</div>
+        <h1>Thank You for Your Waqaf Contribution!</h1>
+        <p>Your waqaf contribution has been successfully processed and your certificate is ready for download.</p>
+    </div>
+    
+    {% if contribution %}
+    <div class="contribution-details">
+        <h3>📋 Contribution Details</h3>
+        <div class="detail-item">
+            <span class="detail-label">Contributor Name:</span>
+            <span class="detail-value">{{ contribution.contributor.name }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Asset:</span>
+            <span class="detail-value">{{ contribution.asset.name }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Number of Slots:</span>
+            <span class="detail-value">{{ contribution.number_of_slots }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Total Amount:</span>
+            <span class="detail-value">RM {{ contribution.amount|floatformat:2 }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Date:</span>
+            <span class="detail-value">{{ contribution.date_contributed|date:"M d, Y H:i" }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Status:</span>
+            <span class="detail-value" style="color: #4CAF50; font-weight: bold;">{{ contribution.get_payment_status_display }}</span>
         </div>
     </div>
+    {% endif %}
+    
+    <div class="certificate-notice">
+        <h4>📜 Your Waqaf Certificate</h4>
+        <p>Your waqaf certificate has been generated and will be automatically downloaded. This certificate serves as proof of your waqaf contribution and can be used for tax purposes.</p>
+    </div>
+    
+    <div class="action-buttons">
+        <a href="{% url 'home' %}" class="btn btn-primary">
+            <i class="fas fa-home"></i> Back to Homepage
+        </a>
+        <a href="{% url 'waqaf:waqaf' %}" class="btn btn-success">
+            <i class="fas fa-mosque"></i> Browse More Waqaf
+        </a>
+        {% if contribution %}
+        <a href="{% url 'waqaf:download_certificate' contribution.id %}" class="btn btn-secondary" id="download-certificate">
+            <i class="fas fa-download"></i> Download Certificate
+        </a>
+        {% endif %}
+        {% if not is_anonymous %}
+        <a href="{% url 'waqaf:waqaf_dashboard' %}" class="btn btn-primary">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        {% else %}
+        <a href="{% url 'accounts:login' %}" class="btn btn-secondary">
+            <i class="fas fa-sign-in-alt"></i> Login to View History
+        </a>
+        {% endif %}
+    </div>
 </div>
+
+<script>
+// Auto-scroll to top
+window.scrollTo(0, 0);
+
+// Auto-download certificate for anonymous users
+{% if is_anonymous and contribution %}
+setTimeout(function() {
+    // Show a notification about the download
+    if (typeof toastr !== 'undefined') {
+        toastr.info('Downloading your waqaf certificate...', '', {timeOut: 3000});
+    }
+    
+    // Trigger certificate download
+    const downloadLink = document.getElementById('download-certificate');
+    if (downloadLink) {
+        downloadLink.click();
+    }
+}, 2000);
+
+// Auto-redirect anonymous users to homepage after 15 seconds
+setTimeout(function() {
+    // Show a notification about the redirect
+    if (typeof toastr !== 'undefined') {
+        toastr.info('Redirecting to homepage in 5 seconds...', '', {timeOut: 5000});
+    }
+    
+    // Redirect after 5 more seconds
+    setTimeout(function() {
+        window.location.href = '{% url "home" %}';
+    }, 5000);
+}, 10000);
+{% endif %}
+
+// Show a thank you message after a short delay
+setTimeout(function() {
+    if (typeof toastr !== 'undefined') {
+        toastr.success('Thank you for your waqaf contribution! 🎉');
+    }
+}, 1000);
+</script>
 {% endblock %}

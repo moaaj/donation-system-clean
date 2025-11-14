@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Toggle Visibility Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .navbar {
+            background-color: #2c3e50;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .navbar-brand {
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .nav-link {
+            color: #ecf0f1;
+            margin: 0 10px;
+            text-decoration: none;
+        }
+        
+        .nav-link:hover {
+            color: #3498db;
+        }
+        
+        /* Language Toggle Switch Styles */
+        .language-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            margin-left: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .language-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffffff;
+            min-width: 25px;
+            text-align: center;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .language-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .language-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ffffff;
+            transition: .4s;
+            border-radius: 30px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: #2c3e50;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        input:checked + .slider {
+            background-color: #3498db;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(30px);
+            background-color: #ffffff;
+        }
+        
+        .slider.round {
+            border-radius: 30px;
+        }
+        
+        .slider.round:before {
+            border-radius: 50%;
+        }
+        
+        /* Hover effects */
+        .language-toggle-container:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .language-toggle-container:hover .language-label {
+            color: #3498db;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .language-switch:hover .slider {
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 8px rgba(52, 152, 219, 0.6);
+        }
+        
+        /* Language Links Styles */
+        .language-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 10px;
+        }
+        
+        .language-link {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .language-link:hover {
+            background-color: rgba(52, 152, 219, 0.8);
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .language-link.active {
+            background-color: #3498db;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .language-separator {
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: bold;
+        }
+        
+        .test-info {
+            background: #e8f4fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        .debug-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Language Toggle Visibility Test</h1>
+        
+        <div class="test-info">
+            <h3>🔍 What to Look For:</h3>
+            <ul>
+                <li><strong>Toggle Switch:</strong> A white rounded switch with "EN" and "MS" labels</li>
+                <li><strong>Language Links:</strong> "EN | MS" clickable buttons as backup</li>
+                <li><strong>Position:</strong> Both should be visible in the navigation bar</li>
+                <li><strong>Functionality:</strong> Clicking should switch between languages</li>
+            </ul>
+        </div>
+        
+        <!-- Navigation Bar with Toggle -->
+        <nav class="navbar">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="navbar-brand">Charity Platform</div>
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <a href="#" class="nav-link">Home</a>
+                    <a href="#" class="nav-link">Donate</a>
+                    <a href="#" class="nav-link">Events</a>
+                    <a href="#" class="nav-link">School Fees</a>
+                    
+                    <!-- Language Toggle -->
+                    <div class="language-toggle-container">
+                        <span class="language-label">EN</span>
+                        <label class="language-switch">
+                            <input type="checkbox" id="languageToggle" onchange="toggleLanguage()">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="language-label">MS</span>
+                    </div>
+                    
+                    <!-- Language Links -->
+                    <div class="language-links">
+                        <a href="#" class="nav-link language-link active">EN</a>
+                        <span class="language-separator">|</span>
+                        <a href="#" class="nav-link language-link">MS</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="debug-info">
+            <strong>Debug Information:</strong><br>
+            Toggle Switch Element: <span id="toggleStatus">Checking...</span><br>
+            Language Links Element: <span id="linksStatus">Checking...</span><br>
+            Current Language: <span id="currentLang">English</span>
+        </div>
+        
+        <h3>Test Results:</h3>
+        <div id="testResults">
+            <p>✅ Toggle switch should be visible with white background and dark slider</p>
+            <p>✅ Language links should show "EN | MS" with active state highlighting</p>
+            <p>✅ Both elements should be clickable and responsive</p>
+        </div>
+    </div>
+
+    <script>
+        // Debug information
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggle = document.getElementById('languageToggle');
+            const links = document.querySelector('.language-links');
+            
+            document.getElementById('toggleStatus').textContent = toggle ? 'Found ✓' : 'Not Found ✗';
+            document.getElementById('linksStatus').textContent = links ? 'Found ✓' : 'Not Found ✗';
+            
+            // Test toggle functionality
+            if (toggle) {
+                toggle.addEventListener('change', function() {
+                    const currentLang = this.checked ? 'Malay' : 'English';
+                    document.getElementById('currentLang').textContent = currentLang;
+                    
+                    // Update language links
+                    const enLink = document.querySelector('.language-link[href="#"]');
+                    const msLink = document.querySelectorAll('.language-link[href="#"]')[1];
+                    
+                    if (this.checked) {
+                        enLink.classList.remove('active');
+                        msLink.classList.add('active');
+                    } else {
+                        enLink.classList.add('active');
+                        msLink.classList.remove('active');
+                    }
+                });
+            }
+        });
+        
+        function toggleLanguage() {
+            console.log('Language toggle clicked!');
+            // In real implementation, this would redirect to language switching URL
+            alert('Language toggle clicked! In the real app, this would switch languages.');
+        }
+    </script>
+</body>
+</html>

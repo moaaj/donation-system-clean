@@ -66,23 +66,23 @@ class Command(BaseCommand):
         ]
         
         # Payment methods
-        payment_methods = ['cash', 'bank_transfer', 'online']
+        payment_methods = ['bank_transfer', 'online']
         
         # Add donations for Ramadan event
         ramadan_donations = [
-            {'name': 'Ahmad bin Abdullah', 'amount': Decimal('500.00'), 'method': 'cash'},
+            {'name': 'Ahmad bin Abdullah', 'amount': Decimal('500.00'), 'method': 'bank_transfer'},
             {'name': 'Fatima binti Omar', 'amount': Decimal('750.00'), 'method': 'bank_transfer'},
             {'name': 'Mohammed Al-Rashid', 'amount': Decimal('1000.00'), 'method': 'online'},
-            {'name': 'Aisha binti Hassan', 'amount': Decimal('300.00'), 'method': 'cash'},
+            {'name': 'Aisha binti Hassan', 'amount': Decimal('300.00'), 'method': 'online'},
             {'name': 'Omar bin Khalid', 'amount': Decimal('1200.00'), 'method': 'bank_transfer'},
             {'name': 'Khadijah binti Ali', 'amount': Decimal('450.00'), 'method': 'online'},
-            {'name': 'Yusuf bin Ibrahim', 'amount': Decimal('800.00'), 'method': 'cash'},
+            {'name': 'Yusuf bin Ibrahim', 'amount': Decimal('800.00'), 'method': 'bank_transfer'},
             {'name': 'Zainab binti Ahmed', 'amount': Decimal('650.00'), 'method': 'bank_transfer'},
             {'name': 'Hassan bin Mustafa', 'amount': Decimal('900.00'), 'method': 'online'},
-            {'name': 'Mariam binti Yusuf', 'amount': Decimal('400.00'), 'method': 'cash'},
+            {'name': 'Mariam binti Yusuf', 'amount': Decimal('400.00'), 'method': 'online'},
             {'name': 'Ali bin Rashid', 'amount': Decimal('1100.00'), 'method': 'bank_transfer'},
             {'name': 'Aminah binti Khalil', 'amount': Decimal('550.00'), 'method': 'online'},
-            {'name': 'Khalid bin Omar', 'amount': Decimal('700.00'), 'method': 'cash'},
+            {'name': 'Khalid bin Omar', 'amount': Decimal('700.00'), 'method': 'bank_transfer'},
             {'name': 'Noor binti Ahmed', 'amount': Decimal('850.00'), 'method': 'bank_transfer'},
             {'name': 'Ibrahim bin Hassan', 'amount': Decimal('600.00'), 'method': 'online'},
         ]
@@ -92,19 +92,19 @@ class Command(BaseCommand):
             {'name': 'Layla binti Yusuf', 'amount': Decimal('2000.00'), 'method': 'bank_transfer'},
             {'name': 'Mustafa bin Ali', 'amount': Decimal('1500.00'), 'method': 'online'},
             {'name': 'Huda binti Khalid', 'amount': Decimal('3000.00'), 'method': 'bank_transfer'},
-            {'name': 'Rashid bin Omar', 'amount': Decimal('1200.00'), 'method': 'cash'},
+            {'name': 'Rashid bin Omar', 'amount': Decimal('1200.00'), 'method': 'online'},
             {'name': 'Sara binti Ibrahim', 'amount': Decimal('1800.00'), 'method': 'online'},
             {'name': 'Ahmad bin Abdullah', 'amount': Decimal('2500.00'), 'method': 'bank_transfer'},
-            {'name': 'Fatima binti Omar', 'amount': Decimal('900.00'), 'method': 'cash'},
+            {'name': 'Fatima binti Omar', 'amount': Decimal('900.00'), 'method': 'bank_transfer'},
             {'name': 'Mohammed Al-Rashid', 'amount': Decimal('1600.00'), 'method': 'online'},
         ]
         
         # Add donations for Library Development
         library_donations = [
-            {'name': 'Aisha binti Hassan', 'amount': Decimal('300.00'), 'method': 'cash'},
+            {'name': 'Aisha binti Hassan', 'amount': Decimal('300.00'), 'method': 'online'},
             {'name': 'Omar bin Khalid', 'amount': Decimal('500.00'), 'method': 'bank_transfer'},
             {'name': 'Khadijah binti Ali', 'amount': Decimal('400.00'), 'method': 'online'},
-            {'name': 'Yusuf bin Ibrahim', 'amount': Decimal('600.00'), 'method': 'cash'},
+            {'name': 'Yusuf bin Ibrahim', 'amount': Decimal('600.00'), 'method': 'online'},
             {'name': 'Zainab binti Ahmed', 'amount': Decimal('350.00'), 'method': 'bank_transfer'},
         ]
         

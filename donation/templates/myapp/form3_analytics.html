@@ -1,0 +1,592 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Form 3 Analytics{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-chart-bar text-primary"></i>
+                    Form 3 Analytics
+                </h1>
+                <div class="text-muted">
+                    <i class="fas fa-user-shield"></i>
+                    Form 3 Administrator
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Students
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_students }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Payments
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_payments }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-credit-card fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Revenue
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                RM {{ total_revenue|floatformat:2 }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Average Payment
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                RM {% if total_payments > 0 %}{{ total_revenue|floatformat:2 }}{% else %}0.00{% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calculator fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Payment Status Chart -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie"></i>
+                        Payment Status Distribution
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="paymentStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fee Status Chart -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-doughnut"></i>
+                        Fee Status Distribution
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="feeStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Revenue Chart -->
+    <div class="row mb-4">
+        <div class="col-xl-12 col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line"></i>
+                        Monthly Revenue Trend
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="monthlyRevenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Statistics -->
+    <div class="row mb-4">
+        <!-- Payment Status Breakdown -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list"></i>
+                        Payment Status Breakdown
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if payment_statuses %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Status</th>
+                                        <th>Count</th>
+                                        <th>Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for status in payment_statuses %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge badge-{% if status.status == 'completed' %}success{% elif status.status == 'pending' %}warning{% else %}danger{% endif %}">
+                                                {{ status.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ status.count }}</td>
+                                        <td>
+                                            <div class="progress">
+                                                <div class="progress-bar" role="progressbar" 
+                                                     style="width: {% widthratio status.count total_payments 100 %}%">
+                                                    {% widthratio status.count total_payments 100 %}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No payment data available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Fee Status Breakdown -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list"></i>
+                        Fee Status Breakdown
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if fee_statuses %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Status</th>
+                                        <th>Count</th>
+                                        <th>Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for status in fee_statuses %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge badge-{% if status.status == 'paid' %}success{% elif status.status == 'pending' %}warning{% else %}danger{% endif %}">
+                                                {{ status.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ status.count }}</td>
+                                        <td>
+                                            <div class="progress">
+                                                <div class="progress-bar" role="progressbar" 
+                                                     style="width: {% widthratio status.count total_students 100 %}%">
+                                                    {% widthratio status.count total_students 100 %}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No fee data available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Revenue Table -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-table"></i>
+                        Monthly Revenue Details
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if monthly_revenue %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Revenue</th>
+                                        <th>Percentage of Total</th>
+                                        <th>Visual</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for month in monthly_revenue %}
+                                    <tr>
+                                        <td><strong>{{ month.month }}</strong></td>
+                                        <td>
+                                            <span class="font-weight-bold text-success">
+                                                RM {{ month.revenue|floatformat:2 }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if total_revenue > 0 %}
+                                                {% widthratio month.revenue total_revenue 100 %}%
+                                            {% else %}
+                                                0%
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                     style="width: {% if total_revenue > 0 %}{% widthratio month.revenue total_revenue 100 %}{% else %}0{% endif %}%">
+                                                    {% if total_revenue > 0 %}{% widthratio month.revenue total_revenue 100 %}{% else %}0{% endif %}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Revenue Data Available</h5>
+                            <p class="text-muted">No monthly revenue data has been recorded yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-download"></i>
+                        Export Analytics
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-success btn-block" onclick="exportToPDF()">
+                                <i class="fas fa-file-pdf"></i>
+                                Export to PDF
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-primary btn-block" onclick="exportToExcel()">
+                                <i class="fas fa-file-excel"></i>
+                                Export to Excel
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-info btn-block" onclick="exportToCSV()">
+                                <i class="fas fa-file-csv"></i>
+                                Export to CSV
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-warning btn-block" onclick="printAnalytics()">
+                                <i class="fas fa-print"></i>
+                                Print Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Dashboard -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="{% url 'form3_admin:dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Scripts -->
+<script>
+// Payment Status Chart
+const paymentStatusCtx = document.getElementById('paymentStatusChart').getContext('2d');
+const paymentStatusChart = new Chart(paymentStatusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [
+            {% for status in payment_statuses %}
+                '{{ status.status|title }}',
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for status in payment_statuses %}
+                    {{ status.count }},
+                {% endfor %}
+            ],
+            backgroundColor: [
+                '#1cc88a', '#f6c23e', '#e74a3b', '#36b9cc'
+            ],
+            hoverBackgroundColor: [
+                '#17a673', '#dda20a', '#c0392b', '#2c9faf'
+            ],
+            hoverBorderColor: "rgba(234, 236, 244, 1)",
+        }],
+    },
+    options: {
+        maintainAspectRatio: false,
+        tooltips: {
+            backgroundColor: "rgb(255,255,255)",
+            bodyFontColor: "#858796",
+            borderColor: '#dddfeb',
+            borderWidth: 1,
+            xPadding: 15,
+            yPadding: 15,
+            displayColors: false,
+            caretPadding: 10,
+        },
+        legend: {
+            display: false
+        },
+        cutoutPercentage: 80,
+    },
+});
+
+// Fee Status Chart
+const feeStatusCtx = document.getElementById('feeStatusChart').getContext('2d');
+const feeStatusChart = new Chart(feeStatusCtx, {
+    type: 'pie',
+    data: {
+        labels: [
+            {% for status in fee_statuses %}
+                '{{ status.status|title }}',
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for status in fee_statuses %}
+                    {{ status.count }},
+                {% endfor %}
+            ],
+            backgroundColor: [
+                '#1cc88a', '#f6c23e', '#e74a3b', '#36b9cc'
+            ],
+            hoverBackgroundColor: [
+                '#17a673', '#dda20a', '#c0392b', '#2c9faf'
+            ],
+            hoverBorderColor: "rgba(234, 236, 244, 1)",
+        }],
+    },
+    options: {
+        maintainAspectRatio: false,
+        tooltips: {
+            backgroundColor: "rgb(255,255,255)",
+            bodyFontColor: "#858796",
+            borderColor: '#dddfeb',
+            borderWidth: 1,
+            xPadding: 15,
+            yPadding: 15,
+            displayColors: false,
+            caretPadding: 10,
+        },
+        legend: {
+            display: false
+        },
+    },
+});
+
+// Monthly Revenue Chart
+const monthlyRevenueCtx = document.getElementById('monthlyRevenueChart').getContext('2d');
+const monthlyRevenueChart = new Chart(monthlyRevenueCtx, {
+    type: 'line',
+    data: {
+        labels: [
+            {% for month in monthly_revenue %}
+                '{{ month.month }}',
+            {% endfor %}
+        ],
+        datasets: [{
+            label: "Revenue",
+            lineTension: 0.3,
+            backgroundColor: "rgba(78, 115, 223, 0.05)",
+            borderColor: "rgba(78, 115, 223, 1)",
+            pointRadius: 3,
+            pointBackgroundColor: "rgba(78, 115, 223, 1)",
+            pointBorderColor: "rgba(78, 115, 223, 1)",
+            pointHoverRadius: 3,
+            pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+            pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+            pointHitRadius: 10,
+            pointBorderWidth: 2,
+            data: [
+                {% for month in monthly_revenue %}
+                    {{ month.revenue }},
+                {% endfor %}
+            ],
+        }],
+    },
+    options: {
+        maintainAspectRatio: false,
+        layout: {
+            padding: {
+                left: 10,
+                right: 25,
+                top: 25,
+                bottom: 0
+            }
+        },
+        scales: {
+            xAxes: [{
+                time: {
+                    unit: 'date'
+                },
+                gridLines: {
+                    display: false,
+                    drawBorder: false
+                },
+                ticks: {
+                    maxTicksLimit: 7
+                }
+            }],
+            yAxes: [{
+                ticks: {
+                    maxTicksLimit: 5,
+                    padding: 10,
+                    callback: function(value, index, values) {
+                        return 'RM ' + number_format(value);
+                    }
+                },
+                gridLines: {
+                    color: "rgb(234, 236, 244)",
+                    zeroLineColor: "rgb(234, 236, 244)",
+                    drawBorder: false,
+                    borderDash: [2],
+                    zeroLineBorderDash: [2]
+                }
+            }],
+        },
+        legend: {
+            display: false
+        },
+        tooltips: {
+            backgroundColor: "rgb(255,255,255)",
+            bodyFontColor: "#858796",
+            titleMarginBottom: 10,
+            titleFontColor: '#6e707e',
+            titleFontSize: 14,
+            borderColor: '#dddfeb',
+            borderWidth: 1,
+            xPadding: 15,
+            yPadding: 15,
+            displayColors: false,
+            intersect: false,
+            mode: 'index',
+            caretPadding: 10,
+            callbacks: {
+                label: function(tooltipItem, chart) {
+                    var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+                    return datasetLabel + ': RM ' + number_format(tooltipItem.yLabel);
+                }
+            }
+        }
+    }
+});
+
+// Helper function for number formatting
+function number_format(number) {
+    return number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+}
+
+// Export functions
+function exportToPDF() {
+    alert('Exporting analytics to PDF...');
+}
+
+function exportToExcel() {
+    alert('Exporting analytics to Excel...');
+}
+
+function exportToCSV() {
+    alert('Exporting analytics to CSV...');
+}
+
+function printAnalytics() {
+    window.print();
+}
+</script>
+{% endblock %}

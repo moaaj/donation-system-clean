@@ -11,6 +11,9 @@ class WaqafAsset(models.Model):
     total_slots = models.PositiveIntegerField(default=0)
     slots_available = models.PositiveIntegerField(default=0)
     slot_price = models.DecimalField(max_digits=10, decimal_places=2, default=50.00)  # Auto-calculated based on target_amount/total_slots
+    is_archived = models.BooleanField(default=False, help_text='Archive this asset to hide it from public view')
+    archived_at = models.DateTimeField(blank=True, null=True, help_text='When this asset was archived')
+    archived_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, help_text='User who archived this asset')
 
     def __str__(self):
         return self.name
@@ -36,6 +39,57 @@ class WaqafAsset(models.Model):
         if self.target_amount > 0 and self.total_slots > 0:
             self.slot_price = self.target_amount / self.total_slots
         super().save(*args, **kwargs)
+
+    def archive(self, user=None):
+        """Archive this asset"""
+        self.is_archived = True
+        self.archived_at = timezone.now()
+        self.archived_by = user
+        self.save()
+
+    def unarchive(self):
+        """Unarchive this asset"""
+        self.is_archived = False
+        self.archived_at = None
+        self.archived_by = None
+        self.save()
+
+    def is_fully_funded(self):
+        """Check if asset is fully funded"""
+        return self.contribution_set.count() >= self.total_slots
+
+    def get_funding_progress(self):
+        """Get funding progress percentage"""
+        if self.total_slots == 0:
+            return 0
+        filled_slots = self.total_slots - self.slots_available
+        return (filled_slots / self.total_slots) * 100
+
+    def get_status_display(self):
+        """Get human-readable status"""
+        if self.is_archived:
+            return "Archived"
+        elif self.slots_available == 0:
+            return "Completed"
+        elif self.slots_available < self.total_slots:
+            return "In Progress"
+        else:
+            return "Available"
+
+    def get_contribution_count(self):
+        """Get total number of contributions for this asset"""
+        return self.contribution_set.count()
+
+    def get_total_contributed(self):
+        """Get total amount contributed for this asset"""
+        return self.contribution_set.aggregate(
+            total=models.Sum('amount')
+        )['total'] or 0
+
+    class Meta:
+        verbose_name = "Waqaf Asset"
+        verbose_name_plural = "Waqaf Assets"
+        ordering = ['name']
 
 class Contributor(models.Model):
     name = models.CharField(max_length=255)
@@ -173,7 +227,6 @@ class Payment(models.Model):
     
     PAYMENT_METHOD_CHOICES = [
         ('BANK_TRANSFER', 'Bank Transfer'),
-        ('CASH', 'Cash'),
         ('CHEQUE', 'Cheque'),
         ('ONLINE', 'Online Payment'),
         ('AUTO_DEDUCTION', 'Auto Deduction')

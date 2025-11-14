@@ -70,26 +70,51 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    {% for item in cart.items.all %}
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div>
-                            <h6 class="mb-1">{{ item.asset.name }}</h6>
-                            <small class="text-muted">{{ item.number_of_slots }} slot(s) × RM{{ item.slot_price|floatformat:2 }}</small>
+                    {% if user.is_authenticated %}
+                        <!-- For authenticated users -->
+                        {% for item in cart.items.all %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="mb-1">{{ item.asset.name }}</h6>
+                                <small class="text-muted">{{ item.number_of_slots }} slot(s) × RM{{ item.slot_price|floatformat:2 }}</small>
+                            </div>
+                            <span class="fw-bold">RM {{ item.total_amount|floatformat:2 }}</span>
                         </div>
-                        <span class="fw-bold">RM {{ item.total_amount|floatformat:2 }}</span>
-                    </div>
-                    {% endfor %}
-                    
-                    <hr>
-                    
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Total Slots:</span>
-                        <span class="fw-bold">{{ cart.total_slots }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span class="h5 mb-0">Total Amount:</span>
-                        <span class="h5 mb-0 text-primary">RM {{ cart.total_amount|floatformat:2 }}</span>
-                    </div>
+                        {% endfor %}
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Slots:</span>
+                            <span class="fw-bold">{{ cart.total_slots }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="h5 mb-0">Total Amount:</span>
+                            <span class="h5 mb-0 text-primary">RM {{ cart.total_amount|floatformat:2 }}</span>
+                        </div>
+                    {% else %}
+                        <!-- For anonymous users -->
+                        {% for item in cart.items %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="mb-1">{{ item.asset_name }}</h6>
+                                <small class="text-muted">{{ item.number_of_slots }} slot(s) × RM{{ item.slot_price|floatformat:2 }}</small>
+                            </div>
+                            <span class="fw-bold">RM {{ item.total_amount|floatformat:2 }}</span>
+                        </div>
+                        {% endfor %}
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Slots:</span>
+                            <span class="fw-bold">{{ cart.total_slots }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="h5 mb-0">Total Amount:</span>
+                            <span class="h5 mb-0 text-primary">RM {{ cart.total_amount|floatformat:2 }}</span>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
             

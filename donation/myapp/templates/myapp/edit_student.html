@@ -15,6 +15,10 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Note:</strong> If this student doesn't have a user account yet, you can create one manually or contact the administrator.
+                    </div>
                     <form method="post">
                         {% csrf_token %}
                         <div class="form-group mb-3">
@@ -101,7 +105,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label for="{{ form.level_custom.id_for_label }}">Custom Level</label>
+                                    <label for="{{ form.level_custom.id_for_label }}">Form Number / Custom Level</label>
                                     {{ form.level_custom }}
                                     {% if form.level_custom.errors %}
                                     <div class="invalid-feedback d-block">
@@ -132,7 +136,7 @@
                         </div>
 
                         <div class="form-group">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" onclick="console.log('Form submit button clicked')">
                                 <i class="fas fa-save"></i> Update Student
                             </button>
                             <a href="{% url 'myapp:student_list' %}" class="btn btn-secondary">
@@ -150,16 +154,23 @@
 document.addEventListener('DOMContentLoaded', function() {
     const levelSelect = document.getElementById('{{ form.level.id_for_label }}');
     const levelCustomInput = document.getElementById('{{ form.level_custom.id_for_label }}');
+    const form = document.querySelector('form');
     
     // Show/hide custom level field based on current selection
     function toggleCustomLevel() {
-        if (levelSelect.value === 'others') {
+        if (levelSelect.value === 'form') {
+            // Show form number dropdown
+            levelCustomInput.style.display = 'block';
+            levelCustomInput.required = true;
+        } else if (levelSelect.value === 'others') {
+            // Show text input for custom level
             levelCustomInput.style.display = 'block';
             levelCustomInput.required = true;
         } else {
+            // Hide for other levels
             levelCustomInput.style.display = 'none';
             levelCustomInput.required = false;
-            if (levelSelect.value !== 'others') {
+            if (levelSelect.value !== 'form' && levelSelect.value !== 'others') {
                 levelCustomInput.value = '';
             }
         }
@@ -170,6 +181,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Listen for changes
     levelSelect.addEventListener('change', toggleCustomLevel);
+    
+    // Form submission tracking
+    form.addEventListener('submit', function(e) {
+        console.log('Form submission started');
+        console.log('Form data:', new FormData(form));
+    });
 });
 </script>
 {% endblock %} 

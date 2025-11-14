@@ -58,9 +58,12 @@
     .dashboard-row {
         row-gap: 2rem;
     }
+    .text-purple {
+        color: #9b59b6 !important;
+    }
     @media (max-width: 767px) {
         .dashboard-title {
-            font-size: 2rem;
+font-size: 2rem;
         }
     }
 </style>
@@ -69,7 +72,19 @@
 {% block content %}
 <div class="container dashboard-section">
     <div class="dashboard-title">School Fees Management</div>
-    {% if not is_tamim %}
+    
+    {% if is_tamim %}
+    <!-- Redirect tamim123 to student view -->
+    <div class="alert alert-warning">
+        <h5><i class="fas fa-exclamation-triangle"></i> Access Restricted</h5>
+        <p class="mb-0">You are being redirected to your student payment portal...</p>
+    </div>
+    <script>
+        setTimeout(function() {
+            window.location.href = "{% url 'myapp:school_fees_home' %}";
+        }, 2000);
+    </script>
+    {% else %}
     <div class="row dashboard-row">
         <!-- All the dashboard cards -->
         <div class="col-md-4 mb-4">
@@ -168,6 +183,17 @@
                     <p class="card-text">View the main dashboard with analytics, statistics, and recent activity.</p>
                     <a href="{% url 'myapp:school_fees_dashboard' %}" class="btn btn-secondary w-100">
                         <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-chart-pie text-success"></i> Admin Dashboard</h5>
+                    <p class="card-text">Comprehensive admin dashboard with detailed fee collection analytics and reports.</p>
+                    <a href="{% url 'myapp:admin_fee_dashboard' %}" class="btn btn-success w-100">
+                        <i class="fas fa-user-cog"></i> View Admin Dashboard
                     </a>
                 </div>
             </div>

@@ -5,6 +5,7 @@ from . import views
 from .views import PaymentViewSet
 from django.utils import timezone
 from . import views_ubac
+from . import views_admin
 
 router = DefaultRouter()
 router.register(r'payments', PaymentViewSet)
@@ -13,18 +14,25 @@ urlpatterns = [
     # Main URLs (login required)
     path('', views.school_fees, name='school_fees'),
     path('dashboard/', views.school_fees_dashboard, name='school_fees_dashboard'),
+    path('admin-dashboard/', views.admin_fee_dashboard, name='admin_fee_dashboard'),
+    path('admin-dashboard/download-pdf/', views.admin_fee_dashboard_pdf, name='admin_fee_dashboard_pdf'),
     path('home/', views.home, name='home'),
     
     # API URLs
     path('api/', include(router.urls)),
     
     # Student URLs
-    path('students/', views.student_list, name='student_list'),
+    path('students/', views.students_page, name='student_list'),
+    path('students-old/', views.student_list, name='student_list_old'),
+    path('students-public/', views.public_student_list, name='public_student_list'),
+    path('students-demo/', views.school_fees_student_demo, name='school_fees_student_demo'),
+    path('students-no-auth/', views.students_no_auth, name='students_no_auth'),
+    path('search-demo/', views.search_demo_links, name='search_demo_links'),
     path('students/<int:id>/', views.student_detail, name='student_detail'),
+    path('students/download-pdf/', views.download_all_students_pdf, name='download_all_students_pdf'),
     path('students/add/', views.add_student, name='add_student'),
     path('students/<int:id>/edit/', views.edit_student, name='edit_student'),
-    path('students/bulk-upload/', views.bulk_upload_students, name='bulk_upload_students'),
-    path('students/download-template/', views.download_student_template, name='download_student_template'),
+    path('students/bulk-add/', views.bulk_add_students_form, name='bulk_add_students_form'),
     path('students/<int:id>/delete/', views.delete_student, name='delete_student'),
     
     # Fee Structure URLs
@@ -32,10 +40,14 @@ urlpatterns = [
     path('fee-structure/add/', views.add_fee_structure, name='add_fee_structure'),
     path('fee-structure/<int:structure_id>/edit/', views.edit_fee_structure, name='edit_fee_structure'),
     path('fee-structure/<int:structure_id>/delete/', views.delete_fee_structure, name='delete_fee_structure'),
+    path('api/form-fees/', views.get_form_fees, name='get_form_fees'),
     
     # Payment URLs
     path('payments/', views.payment_list, name='payment_list'),
+    path('payments/download/', views.download_payment_data, name='download_payment_data'),
     path('payments/add/', views.add_payment, name='add_payment'),
+    path('payments/cash/record/', views.record_cash_payment, name='record_cash_payment'),
+    path('payments/cash/pending/', views.pending_cash_payments, name='pending_cash_payments'),
     path('payments/<int:pk>/edit/', views.edit_payment, name='edit_payment'),
     path('payments/<int:pk>/delete/', views.delete_payment, name='delete_payment'),
     path('payments/receipt/<int:payment_id>/', views.payment_receipt, name='payment_receipt'),
@@ -55,6 +67,7 @@ urlpatterns = [
     path('individual-fees/<int:fee_id>/edit/', views.edit_individual_student_fee, name='edit_individual_student_fee'),
     path('individual-fees/<int:fee_id>/delete/', views.delete_individual_student_fee, name='delete_individual_student_fee'),
     path('individual-fees/<int:fee_id>/mark-paid/', views.mark_fee_as_paid, name='mark_fee_as_paid'),
+    path('fee-status/<int:fee_status_id>/mark-paid/', views.mark_fee_status_as_paid, name='mark_fee_status_as_paid'),
     
     # Pending Fees URLs
     path('pending-fees/', views.pending_fees, name='pending_fees'),
@@ -87,9 +100,13 @@ urlpatterns = [
     path('discounts/add/', views.add_discount, name='add_discount'),
     path('bank-accounts/', views.bank_accounts, name='bank_accounts'),
     path('bank-accounts/add/', views.add_bank_account, name='add_bank_account'),
+    path('test-donation-amounts/', views.test_donation_amounts, name='test_donation_amounts'),
     path('reminders/', views.payment_reminders, name='payment_reminders'),
     path('reminders/<int:payment_id>/send/', views.send_payment_reminder, name='send_payment_reminder'),
     path('reminders/<int:payment_id>/letter/', views.generate_reminder_letter, name='generate_reminder_letter'),
+    path('reminders/<int:payment_id>/options/', views.reminder_options, name='reminder_options'),
+    path('reminders/<int:payment_id>/send-email/', views.send_reminder_email, name='send_reminder_email'),
+    path('reminders/<int:payment_id>/send-text/', views.send_reminder_text, name='send_reminder_text'),
     path('email-preferences/', views.email_preferences, name='email_preferences'),
     path('fee-settings/', views.fee_settings, name='fee_settings'),
     
@@ -102,6 +119,11 @@ urlpatterns = [
     # --- Merged from urls_ubac.py ---
     # ADMIN-ONLY URLS
     path('admin/dashboard/', views_ubac.admin_dashboard, name='admin_dashboard'),
+    path('admin/dashboard/download-pdf/', views_ubac.download_admin_dashboard_pdf, name='download_admin_dashboard_pdf'),
+    path('admin/fee-dashboard/', views.admin_dashboard, name='fee_admin_dashboard'),
+    path('admin/download-report/', views.download_report, name='download_report'),
+    path('admin/print-receipt/', views.print_receipt, name='print_receipt'),
+    path('admin/send-reminder/', views.send_reminder, name='send_reminder'),
     path('moaaj/dashboard/', views_ubac.moaaj_dashboard, name='moaaj_dashboard'),
     path('admin/students/', views_ubac.student_management, name='student_management'),
     path('admin/fee-structures/', views_ubac.fee_structure_management, name='fee_structure_management'),
@@ -118,13 +140,33 @@ urlpatterns = [
     path('student/cart-receipt-pdf/', views_ubac.cart_receipt_pdf, name='cart_receipt_pdf'),
     path('student/cart-invoice/', views_ubac.cart_invoice, name='cart_invoice'),
     path('student/cart-invoice-pdf/', views_ubac.cart_invoice_pdf, name='cart_invoice_pdf'),
+    # PARENT-ONLY URLS
+    path('parent/dashboard/', views_ubac.parent_dashboard, name='parent_dashboard'),
+    path('parent/child/<int:student_id>/fees/', views_ubac.parent_child_fees, name='parent_child_fees'),
+    path('parent/add-to-cart/', views_ubac.parent_add_to_cart, name='parent_add_to_cart'),
+    path('parent/view-cart/', views_ubac.parent_view_cart, name='parent_view_cart'),
+    path('parent/remove-from-cart/', views_ubac.parent_remove_from_cart, name='parent_remove_from_cart'),
+    path('parent/checkout-cart/', views_ubac.parent_checkout_cart, name='parent_checkout_cart'),
+    path('parent/cart-receipt/', views_ubac.parent_cart_receipt, name='parent_cart_receipt'),
+    path('parent/cart-invoice/', views_ubac.parent_cart_invoice, name='parent_cart_invoice'),
+    path('parent/cart-invoice-pdf/', views_ubac.parent_cart_invoice_pdf, name='parent_cart_invoice_pdf'),
+    path('parent/payments/', views_ubac.parent_payment_history, name='parent_payment_history'),
     # ROLE-BASED URLS
     path('payment/<int:payment_id>/', views_ubac.payment_detail, name='payment_detail'),
-    path('student/<int:student_id>/', views_ubac.student_detail, name='student_detail'),
+    path('student/<int:student_id>/', views_ubac.student_detail, name='student_detail_ubac'),
     # MODULE-BASED URLS
     path('school-fees/', views_ubac.school_fees_home, name='school_fees_home'),
+    path('school-fees/dashboard/', views.school_fees_dashboard, name='school_fees_dashboard'),
     path('donations/', views_ubac.donation_home, name='donation_home'),
     # UTILITY URLS
     path('profile/', views_ubac.profile_view, name='profile'),
     path('access-denied/', views_ubac.access_denied, name='access_denied'),
+    
+    # ENHANCED ADMIN URLS
+    path('admin/create-module-admin/', views_admin.create_module_admin, name='create_module_admin'),
+    path('admin/enhanced-dashboard/', views_admin.admin_dashboard, name='enhanced_admin_dashboard'),
+    
+    # FORM-SPECIFIC ADMIN URLS
+    path('form3-admin/dashboard/', views_ubac.form3_admin_dashboard, name='form3_admin_dashboard'),
+    path('form3-admin/students/', views_ubac.form3_students_page, name='form3_students'),
 ]

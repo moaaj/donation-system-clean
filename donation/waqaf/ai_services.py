@@ -201,4 +201,62 @@ class WaqafAIService:
                                 'Low engagement'
             })
         
-        return sorted(engagement_data, key=lambda x: x['engagement_score'], reverse=True) 
+        return sorted(engagement_data, key=lambda x: x['engagement_score'], reverse=True)
+
+    @staticmethod
+    def get_analytics():
+        """Get comprehensive analytics data for the waqaf system"""
+        try:
+            # Get contribution patterns
+            contribution_patterns = WaqafAIService.analyze_contribution_patterns()
+            
+            # Get asset management recommendations
+            asset_recommendations = WaqafAIService.get_asset_management_recommendations()
+            
+            # Get donor engagement analysis
+            donor_engagement = WaqafAIService.analyze_donor_engagement()
+            
+            # Get overall statistics
+            total_assets = WaqafAsset.objects.count()
+            total_contributors = Contributor.objects.count()
+            total_contributions = Contribution.objects.count()
+            total_amount_contributed = Contribution.objects.aggregate(
+                total=Sum('amount')
+            )['total'] or Decimal('0.00')
+            
+            # Get active assets (with available slots)
+            active_assets = WaqafAsset.objects.filter(slots_available__gt=0).count()
+            
+            # Get recent contributions (last 30 days)
+            recent_contributions = Contribution.objects.filter(
+                date_contributed__gte=timezone.now() - timedelta(days=30)
+            ).count()
+            
+            # Get recent contributions amount
+            recent_amount = Contribution.objects.filter(
+                date_contributed__gte=timezone.now() - timedelta(days=30)
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+            
+            return {
+                'contribution_patterns': contribution_patterns,
+                'asset_recommendations': asset_recommendations,
+                'donor_engagement': donor_engagement,
+                'overall_stats': {
+                    'total_assets': total_assets,
+                    'total_contributors': total_contributors,
+                    'total_contributions': total_contributions,
+                    'total_amount_contributed': total_amount_contributed,
+                    'active_assets': active_assets,
+                    'recent_contributions': recent_contributions,
+                    'recent_amount': recent_amount,
+                }
+            }
+            
+        except Exception as e:
+            return {
+                'error': f'Error generating analytics: {str(e)}',
+                'contribution_patterns': {},
+                'asset_recommendations': [],
+                'donor_engagement': [],
+                'overall_stats': {}
+            } 

@@ -1,0 +1,290 @@
+{% extends 'myapp/base_ubac.html' %}
+{% load myapp_filters %}
+
+{% block title %}Checkout - Student Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-credit-card"></i> Secure Checkout</h2>
+            <div>
+                <a href="{% url 'myapp:view_cart' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Cart
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if fee_statuses or regular_fees or individual_fees %}
+<form method="post" action="{% url 'myapp:checkout_cart' %}">
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Payment Method Selection -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-credit-card"></i> Payment Method</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="payment_method" id="cash" value="cash" checked>
+                        <label class="form-check-label" for="cash">
+                            <i class="fas fa-money-bill text-success me-2"></i>
+                            <strong>Cash Payment</strong>
+                            <br><small class="text-muted">Pay in cash at school office (requires admin confirmation)</small>
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="payment_method" id="bank_transfer" value="bank_transfer">
+                        <label class="form-check-label" for="bank_transfer">
+                            <i class="fas fa-university text-info me-2"></i>
+                            <strong>Bank Transfer</strong>
+                            <br><small class="text-muted">Direct bank transfer payment</small>
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="payment_method" id="online" value="online">
+                        <label class="form-check-label" for="online">
+                            <i class="fas fa-globe text-primary me-2"></i>
+                            <strong>Online Payment</strong>
+                            <br><small class="text-muted">Secure online payment gateway</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Cash Payment Notice -->
+            <div class="alert alert-warning" id="cash-notice">
+                <i class="fas fa-info-circle"></i>
+                <strong>Cash Payment Notice:</strong> 
+                When you select cash payment, your payment will be marked as "pending" until you make the actual cash payment at the school office and an admin confirms it.
+            </div>
+            
+            <!-- PIBG Muafakat Donation Section -->
+            {% if donation_settings.is_enabled %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6><i class="fas fa-heart text-danger"></i> Optional: PIBG Muafakat Donation</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">Support our school programs with an optional donation</p>
+                    
+                    <div class="row">
+                        {% for amount in donation_settings.preset_amounts %}
+                        <div class="col-6 col-md-3 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="donation_amount" id="donation_{{ amount }}" value="{{ amount }}">
+                                <label class="form-check-label" for="donation_{{ amount }}">
+                                    RM {{ amount }}
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="col-6 col-md-3 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="donation_amount" id="donation_custom" value="custom">
+                                <label class="form-check-label" for="donation_custom">
+                                    Custom
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3" id="custom_donation_div" style="display: none;">
+                        <label for="custom_donation_amount" class="form-label">Custom Amount (RM)</label>
+                        <input type="number" class="form-control" id="custom_donation_amount" name="custom_donation_amount" 
+                               min="{{ donation_settings.minimum_custom_amount }}" 
+                               max="{{ donation_settings.maximum_custom_amount }}" 
+                               step="0.01" placeholder="Enter amount">
+                        <div class="form-text">
+                            Minimum: RM {{ donation_settings.minimum_custom_amount }}, 
+                            Maximum: RM {{ donation_settings.maximum_custom_amount }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Security Notice -->
+            <div class="alert alert-info">
+                <i class="fas fa-shield-alt me-2"></i>
+                Your payment information is secure and encrypted. All transactions are processed safely.
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Order Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-receipt"></i> Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Fee Statuses -->
+                    {% for fee_status in fee_statuses %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ fee_status.fee_structure.category.name }}</strong>
+                            <br><small class="text-muted">{{ fee_status.student.first_name }} {{ fee_status.student.last_name }}</small>
+                            {% if fee_status.discount_info.has_discount %}
+                                <br><small class="text-success">{{ fee_status.discount_info.discount_percentage }}% discount applied</small>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            {% if fee_status.discount_info.has_discount %}
+                                <small class="text-muted text-decoration-line-through">RM {{ fee_status.amount|floatformat:2 }}</small><br>
+                            {% endif %}
+                            <strong>RM {{ fee_status.discount_info.discounted_amount|floatformat:2 }}</strong>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Regular Fees -->
+                    {% for fee in regular_fees %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ fee.category.name }}</strong>
+                        </div>
+                        <div>
+                            <strong>RM {{ fee.amount|floatformat:2 }}</strong>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Individual Fees -->
+                    {% for fee in individual_fees %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ fee.name }}</strong>
+                        </div>
+                        <div>
+                            <strong>RM {{ fee.amount|floatformat:2 }}</strong>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <hr>
+                    
+                    <!-- PIBG Donation Display -->
+                    <div class="d-flex justify-content-between align-items-center mb-2" id="donation_display" style="display: none !important;">
+                        <div>
+                            <strong>PIBG Donation</strong>
+                        </div>
+                        <div>
+                            <strong id="donation_amount_display">RM 0.00</strong>
+                        </div>
+                    </div>
+                    <hr id="donation_separator" style="display: none;">
+                    
+                    <!-- Total -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5>Total Amount:</h5>
+                        <h5 class="text-success" id="total_amount_display">RM {{ total|floatformat:2 }}</h5>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-success w-100 btn-lg" id="paymentButton">
+                        <i class="fas fa-lock me-2"></i> Complete Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% else %}
+<!-- Empty Cart -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-shopping-cart fa-4x text-muted mb-4"></i>
+                <h3>Your cart is empty</h3>
+                <p class="text-muted">Add some fees to your cart to proceed with payment.</p>
+                <a href="{% url 'myapp:school_fees_home' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Start Adding Fees
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cashRadio = document.getElementById('cash');
+    const cashNotice = document.getElementById('cash-notice');
+    const paymentMethodRadios = document.querySelectorAll('input[name="payment_method"]');
+    
+    // Show/hide cash payment notice
+    function toggleCashNotice() {
+        if (cashRadio.checked) {
+            cashNotice.style.display = 'block';
+        } else {
+            cashNotice.style.display = 'none';
+        }
+    }
+    
+    paymentMethodRadios.forEach(radio => {
+        radio.addEventListener('change', toggleCashNotice);
+    });
+    
+    // Initial check
+    toggleCashNotice();
+    
+    // PIBG Donation handling
+    {% if donation_settings.is_enabled %}
+    const donationRadios = document.querySelectorAll('input[name="donation_amount"]');
+    const customDonationDiv = document.getElementById('custom_donation_div');
+    const customDonationInput = document.getElementById('custom_donation_amount');
+    const donationDisplay = document.getElementById('donation_display');
+    const donationAmountDisplay = document.getElementById('donation_amount_display');
+    const donationSeparator = document.getElementById('donation_separator');
+    const totalAmountDisplay = document.getElementById('total_amount_display');
+    const baseTotal = {{ total|floatformat:2 }};
+    
+    function updateDonationDisplay() {
+        let donationAmount = 0;
+        const selectedDonation = document.querySelector('input[name="donation_amount"]:checked');
+        
+        if (selectedDonation) {
+            if (selectedDonation.value === 'custom') {
+                donationAmount = parseFloat(customDonationInput.value) || 0;
+                customDonationDiv.style.display = 'block';
+            } else {
+                donationAmount = parseFloat(selectedDonation.value) || 0;
+                customDonationDiv.style.display = 'none';
+            }
+        } else {
+            customDonationDiv.style.display = 'none';
+        }
+        
+        if (donationAmount > 0) {
+            donationDisplay.style.display = 'flex';
+            donationSeparator.style.display = 'block';
+            donationAmountDisplay.textContent = 'RM ' + donationAmount.toFixed(2);
+        } else {
+            donationDisplay.style.display = 'none';
+            donationSeparator.style.display = 'none';
+        }
+        
+        const newTotal = baseTotal + donationAmount;
+        totalAmountDisplay.textContent = 'RM ' + newTotal.toFixed(2);
+    }
+    
+    donationRadios.forEach(radio => {
+        radio.addEventListener('change', updateDonationDisplay);
+    });
+    
+    if (customDonationInput) {
+        customDonationInput.addEventListener('input', updateDonationDisplay);
+    }
+    {% endif %}
+});
+</script>
+{% endblock %}

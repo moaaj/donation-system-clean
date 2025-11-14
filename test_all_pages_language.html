@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Switcher Test - All Pages</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .test-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .test-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .test-button.success {
+            background-color: #27ae60;
+        }
+        
+        .test-button.warning {
+            background-color: #f39c12;
+        }
+        
+        .info-box {
+            background: #e8f4fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        .error-box {
+            background: #f8d7da;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .page-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .page-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .page-card h4 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-pending {
+            background-color: #f39c12;
+        }
+        
+        .status-success {
+            background-color: #27ae60;
+        }
+        
+        .status-error {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🌐 Language Switcher Test - All Pages</h1>
+        
+        <div class="info-box">
+            <h3>📋 Test Instructions:</h3>
+            <ol>
+                <li>Make sure your Django server is running: <code>cd donation && python manage.py runserver</code></li>
+                <li>Click the test buttons below to visit different pages</li>
+                <li>Check if the language switcher buttons are visible on each page</li>
+                <li>Test switching between English and Malay on each page</li>
+                <li>Verify that content changes language appropriately</li>
+            </ol>
+        </div>
+        
+        <h3>🔍 Pages to Test:</h3>
+        
+        <div class="page-grid">
+            <div class="page-card">
+                <h4><span class="status-indicator status-pending"></span>Home Page</h4>
+                <p>Main landing page with hero section and modules</p>
+                <a href="http://127.0.0.1:8000/" class="test-button" target="_blank">Test Home Page</a>
+            </div>
+            
+            <div class="page-card">
+                <h4><span class="status-indicator status-pending"></span>Donation Pages</h4>
+                <p>Donation module pages</p>
+                <a href="http://127.0.0.1:8000/donation/" class="test-button" target="_blank">Test Donation</a>
+                <a href="http://127.0.0.1:8000/donation/events/" class="test-button" target="_blank">Test Events</a>
+            </div>
+            
+            <div class="page-card">
+                <h4><span class="status-indicator status-pending"></span>School Fees Pages</h4>
+                <p>School fees module pages</p>
+                <a href="http://127.0.0.1:8000/school-fees/" class="test-button" target="_blank">Test School Fees</a>
+            </div>
+            
+            <div class="page-card">
+                <h4><span class="status-indicator status-pending"></span>Waqaf Pages</h4>
+                <p>Waqaf module pages</p>
+                <a href="http://127.0.0.1:8000/waqaf/" class="test-button" target="_blank">Test Waqaf</a>
+            </div>
+            
+            <div class="page-card">
+                <h4><span class="status-indicator status-pending"></span>Cart Pages</h4>
+                <p>Shopping cart pages</p>
+                <a href="http://127.0.0.1:8000/donation/cart/" class="test-button" target="_blank">Test Donation Cart</a>
+                <a href="http://127.0.0.1:8000/waqaf/cart/" class="test-button" target="_blank">Test Waqaf Cart</a>
+            </div>
+            
+            <div class="page-card">
+                <h4><span class="status-indicator status-pending"></span>Admin Pages</h4>
+                <p>Administrative pages</p>
+                <a href="http://127.0.0.1:8000/admin/" class="test-button" target="_blank">Test Admin</a>
+            </div>
+        </div>
+        
+        <div class="success-box">
+            <h3>✅ What to Look For:</h3>
+            <ul>
+                <li><strong>Language Switcher Buttons:</strong> Should be visible in the navigation bar on ALL pages</li>
+                <li><strong>Button Styling:</strong> Should have "ENGLISH" and "MALAY" buttons with proper styling</li>
+                <li><strong>Active State:</strong> Current language button should be highlighted</li>
+                <li><strong>Functionality:</strong> Clicking buttons should change the page language</li>
+                <li><strong>Content Translation:</strong> Page content should change between English and Malay</li>
+            </ul>
+        </div>
+        
+        <div class="error-box">
+            <h3>❌ Common Issues to Check:</h3>
+            <ul>
+                <li><strong>Missing Buttons:</strong> If language switcher is not visible, check if the page extends the correct base template</li>
+                <li><strong>Template Errors:</strong> If you see template syntax errors, check if `{% load i18n %}` is present</li>
+                <li><strong>No Language Change:</strong> If clicking buttons doesn't change language, check if translation files are compiled</li>
+                <li><strong>Server Issues:</strong> If pages don't load, make sure Django server is running</li>
+            </ul>
+        </div>
+        
+        <h3>🧪 Language Switching Test:</h3>
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="http://127.0.0.1:8000/i18n/setlang/?language=en" class="test-button success" target="_blank">🇺🇸 Switch to English</a>
+            <a href="http://127.0.0.1:8000/i18n/setlang/?language=ms" class="test-button warning" target="_blank">🇲🇾 Switch to Malay</a>
+        </div>
+        
+        <h3>📊 Expected Content Changes:</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="background: #f8f9fa;">
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Element</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">English</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Malay</th>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;">Site Title</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Charity Platform</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Platform Amal</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;">Navigation - Home</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Home</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Utama</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;">Navigation - Donate</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Donate</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Derma</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;">Navigation - Events</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Events</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Acara</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;">Navigation - School Fees</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">School Fees</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Yuran Sekolah</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;">Navigation - Waqaf</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Waqaf</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Wakaf</td>
+            </tr>
+        </table>
+        
+        <div id="testResults" style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+            <h3>📝 Test Results:</h3>
+            <p>Click the buttons above and report what you see here. Note any issues or successes.</p>
+        </div>
+    </div>
+
+    <script>
+        // Add click tracking
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.test-button');
+            const results = document.getElementById('testResults');
+            
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const url = this.href;
+                    const text = this.textContent;
+                    
+                    results.innerHTML = `
+                        <h3>📝 Test Results:</h3>
+                        <p><strong>Clicked:</strong> ${text}</p>
+                        <p><strong>URL:</strong> ${url}</p>
+                        <p><strong>Status:</strong> Opening in new tab...</p>
+                        <p><em>Check the new tab to see if the language switcher is visible and working.</em></p>
+                        <p><strong>Look for:</strong></p>
+                        <ul>
+                            <li>Language switcher buttons in the navigation bar</li>
+                            <li>Current language button highlighted</li>
+                            <li>Ability to switch between English and Malay</li>
+                            <li>Content changing language when switched</li>
+                        </ul>
+                    `;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

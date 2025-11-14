@@ -1,0 +1,171 @@
+{% extends 'myapp/base_ubac.html' %}
+{% load myapp_filters %}
+
+{% block title %}Parent Payment History{% endblock %}
+
+{% block content %}
+<!-- Success Messages -->
+{% if messages %}
+<div class="row">
+    <div class="col-12">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-history"></i> Payment History</h2>
+            <div>
+                <a href="{% url 'myapp:parent_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h4><i class="fas fa-money-bill-wave me-2"></i>Total Paid</h4>
+                <h2>RM {{ total_paid|floatformat:2 }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h4><i class="fas fa-receipt me-2"></i>Total Payments</h4>
+                <h2>{{ payments_count }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Parent Information -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-user"></i> Parent Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Name:</strong> {{ parent.user.get_full_name }}</p>
+                        <p><strong>Username:</strong> {{ parent.user.username }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Phone:</strong> {{ parent.phone_number }}</p>
+                        <p><strong>Children:</strong> {{ parent.students.count }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment History Table -->
+{% if payments %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-table"></i> Payment History</h5>
+                <small class="text-muted">Showing completed payments only</small>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Student</th>
+                                <th>Fee Category</th>
+                                <th>Form</th>
+                                <th>Amount (RM)</th>
+                                <th>Payment Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <strong>{{ payment.student.first_name }} {{ payment.student.last_name }}</strong>
+                                    <br><small class="text-muted">{{ payment.student.student_id }}</small>
+                                </td>
+                                <td>{{ payment.fee_structure.category.name }}</td>
+                                <td>{{ payment.fee_structure.form }}</td>
+                                <td><strong>RM {{ payment.amount|floatformat:2 }}</strong></td>
+                                <td>{{ payment.payment_date|date:"d M Y" }}</td>
+                                <td>
+                                    {% if payment.status == 'completed' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>Completed
+                                        </span>
+                                    {% elif payment.status == 'pending' %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock me-1"></i>Pending
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times-circle me-1"></i>{{ payment.status|title }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No Payment History Found</h4>
+                <p class="text-muted">You haven't made any completed payments yet.</p>
+                <a href="{% url 'myapp:parent_dashboard' %}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h5><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                    <a href="{% url 'myapp:parent_dashboard' %}" class="btn btn-primary">
+                        <i class="fas fa-home me-1"></i> Dashboard
+                    </a>
+                    <a href="{% url 'myapp:parent_view_cart' %}" class="btn btn-success">
+                        <i class="fas fa-shopping-cart me-1"></i> View Cart
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

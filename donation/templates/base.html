@@ -1,9 +1,10 @@
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Charity Platform{% endblock %}</title>
+    <title>{% block title %}{% trans "Charity Platform" %}{% endblock %}</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -92,6 +93,7 @@
             float: right;
             margin-top: 3px;
         }
+        
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -99,47 +101,97 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">Charity Platform</a>
+            <a class="navbar-brand" href="{% url 'home' %}">{% trans "Charity Platform" %}</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">Home</a>
+                        <a class="nav-link" href="{% url 'home' %}">{% trans "Home" %}</a>
+                    </li>
+                    
+                    <!-- Show donation module links for all users (public access) -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'donate' %}">{% trans "Donate" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'donate' %}">Donate</a>
+                        <a class="nav-link" href="{% url 'donation_events' %}">{% trans "Events" %}</a>
                     </li>
+                    
+                    <!-- Show waqaf module links for all users (public access) -->
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'donation_events' %}">Events</a>
+                        <a class="nav-link" href="{% url 'waqaf:waqaf' %}">
+                            <i class="fas fa-mosque"></i> {% trans "Waqaf" %}
+                        </a>
                     </li>
-                    {% if user.is_authenticated %}
+                    
+                    <!-- Show cart links for all users (public access) -->
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'view_cart' %}">
-                            <i class="fas fa-shopping-cart"></i> Cart
+                            <i class="fas fa-shopping-cart"></i> {% trans "Cart" %}
                             <span id="nav-cart-count" class="badge bg-warning text-dark" style="display: none;">0</span>
                         </a>
                     </li>
+                    
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'waqaf:view_waqaf_cart' %}">
-                            <i class="fas fa-mosque"></i> Waqaf Cart
+                            <i class="fas fa-mosque"></i> {% trans "Waqaf Cart" %}
                             <span id="nav-waqaf-cart-count" class="badge bg-info text-dark" style="display: none;">0</span>
                         </a>
                     </li>
-                    {% endif %}
+                    
                     {% if user.is_authenticated %}
+                    <!-- Show donation history only if user is NOT waqaf admin -->
+                    {% if not is_waqaf_admin %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'donation_history' %}">
-                            <i class="fas fa-history"></i> History
+                            <i class="fas fa-history"></i> {% trans "History" %}
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'get_donor_messages' %}">
-                            Messages
+                            {% trans "Messages" %}
                             <span id="message-count" class="badge bg-danger" style="display: none;">0</span>
                         </a>
                     </li>
+                    {% endif %}
+                    
+                    <!-- Show activity dashboard only for superusers (not waqaf admin) -->
+                    {% if user.is_superuser and not is_waqaf_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:public_activity_dashboard' %}">
+                            <i class="fas fa-chart-line"></i> Activity Dashboard
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <!-- Show waqaf admin link for waqaf admin users -->
+                    {% if is_waqaf_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/waqaf-admin/">
+                            <i class="fas fa-cog"></i> Waqaf Admin
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <!-- Show donation admin link for donation admin users -->
+                    {% if is_donation_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'donation_events' %}">
+                            <i class="fas fa-cog"></i> Donation Admin
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <!-- Show main admin link for superusers and regular admins (not waqaf admin or donation admin) -->
+                    {% if can_access_main_admin and not is_waqaf_admin and not is_donation_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'admin:index' %}">
+                            <i class="fas fa-tools"></i> Admin
+                        </a>
+                    </li>
+                    {% endif %}
                     <!-- User Profile Icon and Username as Logout Button -->
                     <li class="nav-item ms-3 d-flex align-items-center">
                         <form method="post" action="{% url 'accounts:logout' %}" style="display:inline;" novalidate id="logoutProfileForm">
@@ -158,14 +210,15 @@
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
+                        <a class="nav-link" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:register' %}">Register</a>
+                        <a class="nav-link" href="{% url 'accounts:register' %}">{% trans "Register" %}</a>
                     </li>
                     {% endif %}
                 </ul>
             </div>
+            
         </div>
     </nav>
 
@@ -180,11 +233,11 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5>Charity Platform</h5>
-                    <p>Making a difference one contribution at a time.</p>
+                    <h5>{% trans "Charity Platform" %}</h5>
+                    <p>{% trans "Making a difference one contribution at a time." %}</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p>&copy; 2024 Charity Platform. All rights reserved.</p>
+                    <p>&copy; 2024 {% trans "Charity Platform" %}. {% trans "All rights reserved." %}</p>
                 </div>
             </div>
         </div>
@@ -193,80 +246,141 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Update message count badge
+        // Set user role flags for JavaScript
+        const isWaqafAdmin = JSON.parse('{{ is_waqaf_admin|yesno:"true,false" }}');
+        const isDonationAdmin = JSON.parse('{{ is_donation_admin|yesno:"true,false" }}');
+        const isParentUser = false; // Disabled for now to prevent JS errors
+        
+        // Update message count badge (only for non-waqaf admin users)
         function updateMessageCount() {
+            // Check if we're on a page where message count is needed
+            const messageBadge = document.getElementById('message-count');
+            if (!messageBadge) {
+                return; // Don't fetch if badge doesn't exist
+            }
+            
+            // Check if user is waqaf admin or parent - if so, don't update message count
+            if (isWaqafAdmin || isParentUser) {
+                messageBadge.style.display = 'none';
+                return;
+            }
+            
+            // Check if we're in parent portal - don't update message count
+            if (window.location.pathname.includes('/parent/')) {
+                messageBadge.style.display = 'none';
+                return;
+            }
+            
             fetch('/donation/donor/messages/', {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    console.log(`Message count request failed with status: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 const count = data.messages ? data.messages.length : 0;
-                const badge = document.getElementById('message-count');
-                if (badge) {
-                    badge.textContent = count;
-                    badge.style.display = count > 0 ? 'inline' : 'none';
+                if (messageBadge) {
+                    messageBadge.textContent = count;
+                    messageBadge.style.display = count > 0 ? 'inline' : 'none';
                 }
+                console.log(`Message count updated: ${count} messages`);
             })
             .catch(error => {
-                console.error('Error fetching message count:', error);
+                console.log('Message count not available, hiding badge:', error.message);
                 // Hide the badge on error
-                const badge = document.getElementById('message-count');
-                if (badge) {
-                    badge.style.display = 'none';
+                if (messageBadge) {
+                    messageBadge.style.display = 'none';
                 }
             });
         }
 
-        // Update cart count badge
+        // Update cart count badge for all users
         function updateCartCount() {
-                               fetch('{% url "get_cart_count" %}', {
+            const cartBadge = document.getElementById('nav-cart-count');
+            if (!cartBadge) {
+                return; // Don't fetch if badge doesn't exist
+            }
+            
+            // Don't update cart count for parent users
+            if (isParentUser || window.location.pathname.includes('/parent/')) {
+                cartBadge.style.display = 'none';
+                return;
+            }
+            
+            fetch('{% url "get_cart_count" %}', {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 const count = data.cart_count || 0;
-                const badge = document.getElementById('nav-cart-count');
-                if (badge) {
-                    badge.textContent = count;
-                    badge.style.display = count > 0 ? 'inline' : 'none';
+                if (cartBadge) {
+                    cartBadge.textContent = count;
+                    // Hide badge if user is not authenticated or count is 0
+                    if (data.authenticated === false || count === 0) {
+                        cartBadge.style.display = 'none';
+                    } else {
+                        cartBadge.style.display = 'inline';
+                    }
                 }
             })
             .catch(error => {
-                console.error('Error fetching cart count:', error);
+                console.log('Cart count not available, hiding badge');
                 // Hide the badge on error
-                const badge = document.getElementById('nav-cart-count');
-                if (badge) {
-                    badge.style.display = 'none';
+                if (cartBadge) {
+                    cartBadge.style.display = 'none';
                 }
             });
         }
 
-        // Update waqaf cart count badge
+        // Update waqaf cart count badge for all users
         function updateWaqafCartCount() {
+            const waqafBadge = document.getElementById('nav-waqaf-cart-count');
+            if (!waqafBadge) {
+                return; // Don't fetch if badge doesn't exist
+            }
+            
+            // Don't update waqaf cart count for parent users
+            if (isParentUser || window.location.pathname.includes('/parent/')) {
+                waqafBadge.style.display = 'none';
+                return;
+            }
+            
             fetch('{% url "waqaf:get_waqaf_cart_count" %}', {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 const count = data.count || 0;
-                const badge = document.getElementById('nav-waqaf-cart-count');
-                if (badge) {
-                    badge.textContent = count;
-                    badge.style.display = count > 0 ? 'inline' : 'none';
+                if (waqafBadge) {
+                    waqafBadge.textContent = count;
+                    waqafBadge.style.display = count > 0 ? 'inline' : 'none';
                 }
             })
             .catch(error => {
-                console.error('Error fetching waqaf cart count:', error);
+                console.log('Waqaf cart count not available, hiding badge');
                 // Hide the badge on error
-                const badge = document.getElementById('nav-waqaf-cart-count');
-                if (badge) {
-                    badge.style.display = 'none';
+                if (waqafBadge) {
+                    waqafBadge.style.display = 'none';
                 }
             });
         }
@@ -282,6 +396,7 @@
             updateCartCount();
             updateWaqafCartCount();
         });
+        
     </script>
     {% block extra_js %}{% endblock %}
 </body>

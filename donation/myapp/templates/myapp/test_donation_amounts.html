@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Test Donation Amounts{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>🧪 Test Donation Amounts</h1>
+            <p class="text-muted">This page shows the current donation amounts from the database in real-time.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-database"></i> Current Database Values</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Settings ID:</strong></div>
+                        <div class="col-sm-9">{{ settings.pk }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Banner Text:</strong></div>
+                        <div class="col-sm-9">{{ settings.banner_text }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Is Enabled:</strong></div>
+                        <div class="col-sm-9">
+                            <span class="badge {% if settings.is_enabled %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ settings.is_enabled|yesno:"Yes,No" }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Is Mandatory:</strong></div>
+                        <div class="col-sm-9">
+                            <span class="badge {% if settings.is_mandatory %}bg-warning{% else %}bg-secondary{% endif %}">
+                                {{ settings.is_mandatory|yesno:"Yes,No" }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Last Updated:</strong></div>
+                        <div class="col-sm-9">{{ settings.updated_at }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>Current Time:</strong></div>
+                        <div class="col-sm-9">{{ current_time }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-coins"></i> Preset Amounts</h5>
+                </div>
+                <div class="card-body">
+                    {% if settings.preset_amounts %}
+                        <div class="mb-3">
+                            <strong>Total Amounts:</strong> {{ settings.preset_amounts|length }}
+                        </div>
+                        <div class="mb-3">
+                            <strong>Raw JSON:</strong><br>
+                            <code>{{ amounts_json }}</code>
+                        </div>
+                        <div class="mb-3">
+                            <strong>As User Buttons:</strong><br>
+                            {% for amount in settings.preset_amounts %}
+                                <span class="badge bg-primary me-1 mb-1" style="font-size: 14px; padding: 8px 12px;">
+                                    RM {{ amount }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            No preset amounts configured
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-eye"></i> Live Preview (How Users See It)</h5>
+                </div>
+                <div class="card-body">
+                    {% if settings.is_enabled %}
+                        <div class="alert alert-info">
+                            <h6>{{ settings.banner_text }}</h6>
+                            <p>{{ settings.donation_message }}</p>
+                        </div>
+                        
+                        <div class="row">
+                            {% if not settings.is_mandatory %}
+                            <div class="col-6 col-md-4 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="donation_amount" id="no_donation" value="0" checked>
+                                    <label class="form-check-label btn btn-outline-secondary w-100 text-center" for="no_donation">
+                                        No Donation
+                                    </label>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% for amount in settings.preset_amounts %}
+                            <div class="col-6 col-md-4 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="donation_amount" id="preset_{{ amount }}" value="{{ amount }}">
+                                    <label class="form-check-label btn btn-outline-primary w-100 text-center" for="preset_{{ amount }}">
+                                        RM {{ amount }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Donation feature is currently disabled
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5><i class="fas fa-tools"></i> Admin Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="btn-group" role="group">
+                        <a href="/admin/myapp/pibgdonationsettings/" class="btn btn-primary" target="_blank">
+                            <i class="fas fa-cog"></i> Open Admin Settings
+                        </a>
+                        <button type="button" class="btn btn-secondary" onclick="location.reload()">
+                            <i class="fas fa-sync"></i> Refresh Page
+                        </button>
+                        <button type="button" class="btn btn-info" onclick="location.reload(true)">
+                            <i class="fas fa-sync-alt"></i> Hard Refresh
+                        </button>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <strong>Cache Buster:</strong> {{ cache_buster }}<br>
+                            <strong>Instructions:</strong> Change amounts in admin, then refresh this page to see updates.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Test page loaded');
+    
+    // Parse amounts from JSON
+    try {
+        const amounts = JSON.parse('{{ amounts_json|escapejs }}');
+        console.log('Current amounts:', amounts);
+    } catch (e) {
+        console.error('Error parsing amounts:', e);
+    }
+    
+    console.log('Cache buster:', '{{ cache_buster|floatformat:0 }}');
+    
+    // Auto-refresh every 10 seconds for testing
+    setTimeout(function() {
+        console.log('Auto-refreshing page...');
+        location.reload();
+    }, 10000);
+});
+</script>
+{% endblock %}

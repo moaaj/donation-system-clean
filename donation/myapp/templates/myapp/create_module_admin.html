@@ -1,0 +1,318 @@
+{% extends 'myapp/base_ubac.html' %}
+{% load static %}
+
+{% block title %}Create Module Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .form-section {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .form-section h4 {
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #007bff;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 5px;
+        display: block;
+    }
+    
+    .form-control {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+    
+    .checkbox-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 10px;
+    }
+    
+    .form-check {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        background: #f8f9fa;
+        border-radius: 5px;
+    }
+    
+    .form-check-input {
+        margin-right: 10px;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 5px;
+        font-weight: 600;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+    }
+    
+    .role-description {
+        background: #e3f2fd;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 10px;
+        font-size: 14px;
+        color: #1976d2;
+    }
+    
+    .hidden {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-user-plus"></i> Create Module Admin</h2>
+        <a href="{% url 'admin:myapp_userprofile_changelist' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Admin List
+        </a>
+    </div>
+
+    <form method="post" id="adminForm">
+        {% csrf_token %}
+        
+        <!-- Basic Information -->
+        <div class="form-section">
+            <h4><i class="fas fa-user"></i> Basic Information</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.username.id_for_label }}">Username *</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger">{{ form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.email.id_for_label }}">Email *</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.first_name.id_for_label }}">First Name *</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-danger">{{ form.first_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.last_name.id_for_label }}">Last Name *</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-danger">{{ form.last_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.password1.id_for_label }}">Password *</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="text-danger">{{ form.password1.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.password2.id_for_label }}">Confirm Password *</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="text-danger">{{ form.password2.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Selection -->
+        <div class="form-section">
+            <h4><i class="fas fa-user-tag"></i> Role Assignment</h4>
+            <div class="form-group">
+                <label for="{{ form.role.id_for_label }}">Admin Role *</label>
+                {{ form.role }}
+                {% if form.role.errors %}
+                    <div class="text-danger">{{ form.role.errors }}</div>
+                {% endif %}
+                <div class="role-description" id="roleDescription">
+                    Select a role to see description
+                </div>
+            </div>
+            
+            <!-- Level Selection (for school fees level admin) -->
+            <div class="form-group" id="levelGroup" style="display: none;">
+                <label for="{{ form.level.id_for_label }}">School Level *</label>
+                {{ form.level }}
+                {% if form.level.errors %}
+                    <div class="text-danger">{{ form.level.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Module Permissions -->
+        <div class="form-section">
+            <h4><i class="fas fa-shield-alt"></i> Module Permissions</h4>
+            <div class="form-group">
+                <label>Select Modules</label>
+                <div class="checkbox-group">
+                    {% for choice in form.modules %}
+                        <div class="form-check">
+                            {{ choice.tag }}
+                            <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                {{ choice.choice_label }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Basic Permissions</label>
+                <div class="checkbox-group">
+                    <div class="form-check">
+                        {{ form.can_view }}
+                        <label class="form-check-label" for="{{ form.can_view.id_for_label }}">
+                            Can View
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        {{ form.can_add }}
+                        <label class="form-check-label" for="{{ form.can_add.id_for_label }}">
+                            Can Add
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        {{ form.can_change }}
+                        <label class="form-check-label" for="{{ form.can_change.id_for_label }}">
+                            Can Change
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        {{ form.can_delete }}
+                        <label class="form-check-label" for="{{ form.can_delete.id_for_label }}">
+                            Can Delete
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        {{ form.can_manage_settings }}
+                        <label class="form-check-label" for="{{ form.can_manage_settings.id_for_label }}">
+                            Can Manage Settings
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group" id="schoolFeesPermissions" style="display: none;">
+                <label>School Fees Specialized Permissions</label>
+                <div class="checkbox-group">
+                    <div class="form-check">
+                        {{ form.can_manage_fees }}
+                        <label class="form-check-label" for="{{ form.can_manage_fees.id_for_label }}">
+                            Can Manage Fees
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        {{ form.can_manage_payments }}
+                        <label class="form-check-label" for="{{ form.can_manage_payments.id_for_label }}">
+                            Can Manage Payments
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-save"></i> Create Admin User
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.getElementById('id_role');
+    const levelGroup = document.getElementById('levelGroup');
+    const schoolFeesPermissions = document.getElementById('schoolFeesPermissions');
+    const roleDescription = document.getElementById('roleDescription');
+    
+    const roleDescriptions = {
+        'admin': 'Super Admin - Full access to all modules and settings',
+        'donation_admin': 'Donation Module Admin - Manage donation events, categories, and PIBG donations',
+        'waqaf_admin': 'Waqaf Module Admin - Manage waqaf assets, contributions, and distributions',
+        'school_fees_admin': 'School Fees Module Admin - Manage all school fees, payments, and students',
+        'school_fees_level_admin': 'School Fees Level Admin - Manage fees for specific school levels/forms',
+        'student': 'Student - Access to personal school fees and payments',
+        'parent': 'Parent - Access to children\'s school fees and payments'
+    };
+    
+    function updateForm() {
+        const selectedRole = roleSelect.value;
+        
+        // Update role description
+        roleDescription.textContent = roleDescriptions[selectedRole] || 'Select a role to see description';
+        
+        // Show/hide level selection
+        if (selectedRole === 'school_fees_level_admin') {
+            levelGroup.style.display = 'block';
+            schoolFeesPermissions.style.display = 'block';
+        } else {
+            levelGroup.style.display = 'none';
+            schoolFeesPermissions.style.display = 'none';
+        }
+    }
+    
+    roleSelect.addEventListener('change', updateForm);
+    updateForm(); // Initialize form state
+});
+</script>
+{% endblock %}

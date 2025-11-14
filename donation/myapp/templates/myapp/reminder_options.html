@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reminder Options{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Send Payment Reminder</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'myapp:payment_reminders' %}">Payment Reminders</a></li>
+                    <li class="breadcrumb-item active">Reminder Options</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Choose Reminder Method</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Student Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Student Information</h6>
+                            <p><strong>Name:</strong> {{ student.first_name }} {{ student.last_name }}</p>
+                            <p><strong>Student ID:</strong> {{ fee_status.student.student_id }}</p>
+                            <p><strong>Fee Category:</strong> {{ fee_status.fee_structure.category.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Payment Details</h6>
+                            <p><strong>Amount Due:</strong> RM {{ amount_to_pay|floatformat:2 }}</p>
+                            <p><strong>Due Date:</strong> {{ fee_status.due_date|date:"d M Y" }}</p>
+                            <p><strong>Status:</strong> 
+                                {% if is_overdue %}
+                                    <span class="badge bg-danger">{{ days_text }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning">{{ days_text }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6>Contact Information</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Email:</strong> 
+                                        {% if student_email %}
+                                            {{ student_email }}
+                                        {% else %}
+                                            <span class="text-muted">No email available</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Phone:</strong> 
+                                        {% if student_phone %}
+                                            {{ student_phone }}
+                                        {% else %}
+                                            <span class="text-muted">No phone available</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reminder Options -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Select Reminder Method</h6>
+                            <p class="text-muted">Choose how you want to send the reminder. After sending, you'll be redirected to Gmail with a generated letter.</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Email Option -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-primary">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
+                                    <h5 class="card-title">Send Email</h5>
+                                                                         <p class="card-text">
+                                         Send an immediate email reminder directly to the student and get redirected to Gmail with a professional letter.
+                                     </p>
+                                    <ul class="list-unstyled text-start">
+                                        <li><i class="fas fa-check text-success"></i> Instant email delivery</li>
+                                        <li><i class="fas fa-check text-success"></i> Professional HTML template</li>
+                                        <li><i class="fas fa-check text-success"></i> Gmail letter generation</li>
+                                                                                 {% if student_email %}
+                                             <li><i class="fas fa-check text-success"></i> Send directly to student email</li>
+                                         {% else %}
+                                             <li><i class="fas fa-exclamation-triangle text-warning"></i> Admin email (student email not available)</li>
+                                         {% endif %}
+                                    </ul>
+                                    <a href="{% url 'myapp:send_reminder_email' fee_status.id %}" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-envelope"></i> Send Email
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Text Option -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-success">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-sms fa-3x text-success mb-3"></i>
+                                    <h5 class="card-title">Send Text Message</h5>
+                                                                         <p class="card-text">
+                                         Send an SMS reminder and get redirected to Messages app with the student's phone number pre-filled.
+                                     </p>
+                                    <ul class="list-unstyled text-start">
+                                                                                 <li><i class="fas fa-check text-success"></i> Instant SMS delivery</li>
+                                         <li><i class="fas fa-check text-success"></i> Urgent/reminder messaging</li>
+                                         <li><i class="fas fa-check text-success"></i> Messages app redirect</li>
+                                        {% if student_phone %}
+                                            <li><i class="fas fa-check text-success"></i> Send to parent phone</li>
+                                        {% else %}
+                                            <li><i class="fas fa-exclamation-triangle text-warning"></i> No phone available</li>
+                                        {% endif %}
+                                    </ul>
+                                    <a href="{% url 'myapp:send_reminder_text' fee_status.id %}" class="btn btn-success btn-lg">
+                                        <i class="fas fa-sms"></i> Send Text
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Back Button -->
+                    <div class="row mt-4">
+                        <div class="col-12 text-center">
+                            <a href="{% url 'myapp:payment_reminders' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Payment Reminders
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-lg {
+    padding: 12px 24px;
+    font-size: 16px;
+}
+
+.list-unstyled li {
+    margin-bottom: 8px;
+}
+
+.badge {
+    font-size: 0.9em;
+}
+</style>
+{% endblock %}

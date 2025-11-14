@@ -3,11 +3,45 @@
 
 {% block title %}Student Details - {{ student.first_name }} {{ student.last_name }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .debug-info {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .debug-info h6 {
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
             <h1>Student Details</h1>
+        </div>
+    </div>
+
+    <!-- Debug Information -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="debug-info">
+                <h6>Debug Information:</h6>
+                <p><strong>Student ID:</strong> {{ student.id }}</p>
+                <p><strong>Student Name:</strong> {{ student.first_name }} {{ student.last_name }}</p>
+                <p><strong>User Info Available:</strong> {% if user_info %}Yes{% else %}No{% endif %}</p>
+                {% if user_info %}
+                <p><strong>Username:</strong> {{ user_info.username }}</p>
+                <p><strong>Email:</strong> {{ user_info.email }}</p>
+                {% endif %}
+                <p><strong>Payments Count:</strong> {{ payments|length }}</p>
+                <p><strong>Discounts Count:</strong> {{ discounts|length }}</p>
+            </div>
         </div>
     </div>
 
@@ -56,6 +90,31 @@
                                 </span>
                             </td>
                         </tr>
+                        {% if user_info %}
+                        <tr>
+                            <th>Username:</th>
+                            <td>{{ user_info.username }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>{{ user_info.email }}</td>
+                        </tr>
+                        <tr>
+                            <th>Account Created:</th>
+                            <td>{{ user_info.date_joined|date:"d M Y" }}</td>
+                        </tr>
+                        {% if request.user.is_staff %}
+                        <tr>
+                            <th>Password:</th>
+                            <td>{{ user_info.username|lower|slice:"7:" }}123</td>
+                        </tr>
+                        {% endif %}
+                        {% else %}
+                        <tr>
+                            <th>User Account:</th>
+                            <td><span class="text-muted">No user account created yet</span></td>
+                        </tr>
+                        {% endif %}
                     </table>
                 </div>
             </div>
@@ -168,4 +227,31 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Student Detail Page Loaded');
+    console.log('Student ID:', '{{ student.id }}');
+    console.log('Student Name:', '{{ student.first_name }} {{ student.last_name }}');
+    console.log('User Info Available:', {% if user_info %}true{% else %}false{% endif %});
+    
+    {% if user_info %}
+    console.log('Username:', '{{ user_info.username }}');
+    console.log('Email:', '{{ user_info.email }}');
+    {% endif %}
+    
+    // Check if all elements are loaded
+    const studentInfo = document.querySelector('.card-body table');
+    if (studentInfo) {
+        console.log('Student info table found');
+    } else {
+        console.log('Student info table NOT found');
+    }
+    
+    // Check for any JavaScript errors
+    window.addEventListener('error', function(e) {
+        console.error('JavaScript Error:', e.error);
+    });
+});
+</script>
 {% endblock %} 

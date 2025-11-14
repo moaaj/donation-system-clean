@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Form 3 Admin - Fee Waivers{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-section {
+        background: #f8f9fa;
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    .dashboard-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    .dashboard-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        border: none;
+    }
+    .card-header {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        color: white;
+        border-radius: 10px 10px 0 0 !important;
+        border: none;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6c757d;
+    }
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        color: #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container dashboard-section">
+    <div class="dashboard-title">
+        <i class="fas fa-file-invoice"></i>
+        Fee Waivers Management
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="dashboard-card card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-list"></i>
+                        Fee Waivers for Form 3 Students
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Fee Waivers</h5>
+                        <a href="{% url 'form3_admin:add_fee_waiver' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Add Fee Waiver
+                        </a>
+                    </div>
+                    
+                    {% if fee_waivers %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Fee Category</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for waiver in fee_waivers %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ waiver.student.first_name }} {{ waiver.student.last_name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ waiver.student.student_id }}</small>
+                                        </td>
+                                        <td>{{ waiver.fee_category.name }}</td>
+                                        <td>RM {{ waiver.amount|floatformat:2 }}</td>
+                                        <td>
+                                            <span class="badge badge-{{ waiver.status|lower }}">{{ waiver.get_status_display }}</span>
+                                        </td>
+                                        <td>{{ waiver.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <a href="{% url 'form3_admin:student_detail' waiver.student.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                                View Student
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-file-invoice"></i>
+                            <h4>No Fee Waivers Found</h4>
+                            <p>No fee waivers have been created for Form 3 students yet.</p>
+                            <a href="{% url 'form3_admin:add_fee_waiver' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Add First Waiver
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="dashboard-card card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'form3_admin:dashboard' %}" class="btn btn-outline-primary btn-block">
+                                <i class="fas fa-home"></i>
+                                Back to Dashboard
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'form3_admin:student_list' %}" class="btn btn-outline-info btn-block">
+                                <i class="fas fa-users"></i>
+                                View Students
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'form3_admin:fee_management' %}" class="btn btn-outline-success btn-block">
+                                <i class="fas fa-money-bill-wave"></i>
+                                Fee Management
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'form3_admin:pending_fees' %}" class="btn btn-outline-warning btn-block">
+                                <i class="fas fa-clock"></i>
+                                Pending Fees
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

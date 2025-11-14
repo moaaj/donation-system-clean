@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Switcher Demo - EXACT COPY</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .navbar {
+            background-color: #2c3e50;
+            padding: 1rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar-brand {
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-decoration: none;
+        }
+        
+        .navbar-nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-link {
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: #3498db;
+        }
+        
+        /* EXACT COPY OF THE LANGUAGE SWITCHER CSS */
+        .simple-language-switcher {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 20px;
+        }
+        
+        .lang-btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .lang-btn:hover {
+            background-color: rgba(52, 152, 219, 0.8);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-color: #3498db;
+        }
+        
+        .lang-btn.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #2980b9;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .content {
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .highlight-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+    </style>
+</head>
+<body>
+    <!-- EXACT COPY OF THE NAVIGATION BAR FROM BASE.HTML -->
+    <nav class="navbar">
+        <div class="container">
+            <a class="navbar-brand" href="#">Charity Platform</a>
+            <ul class="navbar-nav">
+                <li><a class="nav-link" href="#">Home</a></li>
+                <li><a class="nav-link" href="#">Donate</a></li>
+                <li><a class="nav-link" href="#">Events</a></li>
+                <li><a class="nav-link" href="#">School Fees</a></li>
+                <li><a class="nav-link" href="#">AI Analytics</a></li>
+                <li><a class="nav-link" href="#">Waqaf Analytics</a></li>
+                
+                <!-- LANGUAGE SWITCHER - EXACT COPY FROM BASE.HTML -->
+                <div class="simple-language-switcher">
+                    <a href="#" class="lang-btn active">English</a>
+                    <a href="#" class="lang-btn">Malay</a>
+                </div>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="content">
+        <h1>Language Switcher Demo</h1>
+        
+        <div class="highlight-box">
+            <h2>🔍 LOOK ABOVE - This is exactly how your language switcher should look!</h2>
+            <p>You should see two buttons: <strong>"ENGLISH"</strong> and <strong>"MALAY"</strong> on the right side of the navigation bar.</p>
+        </div>
+        
+        <div class="success-box">
+            <h3>✅ If you can see the buttons above, the language switcher is working correctly!</h3>
+            <p>The language switcher appears as two rounded buttons with white text on a semi-transparent background.</p>
+        </div>
+        
+        <h3>Features of the Language Switcher:</h3>
+        <ul style="text-align: left; max-width: 600px; margin: 0 auto;">
+            <li><strong>Two buttons:</strong> "ENGLISH" and "MALAY"</li>
+            <li><strong>Position:</strong> Right side of the navigation bar</li>
+            <li><strong>Style:</strong> Rounded buttons with white text</li>
+            <li><strong>Active state:</strong> One button is highlighted in blue</li>
+            <li><strong>Hover effect:</strong> Buttons lift up and change color when hovered</li>
+            <li><strong>Responsive:</strong> Works on all screen sizes</li>
+        </ul>
+        
+        <h3>Test the Buttons:</h3>
+        <p>Click the buttons above to see the hover effects and active states.</p>
+        
+        <div style="margin: 30px 0;">
+            <button onclick="testEnglish()" class="lang-btn" style="margin-right: 10px;">Test English</button>
+            <button onclick="testMalay()" class="lang-btn">Test Malay</button>
+        </div>
+        
+        <div id="testResult" style="padding: 15px; background: #e9ecef; border-radius: 5px; margin: 20px auto; max-width: 400px;">
+            Click a button above to test the functionality
+        </div>
+    </div>
+
+    <script>
+        function testEnglish() {
+            document.getElementById('testResult').innerHTML = '✅ English button clicked! Language would switch to English.';
+            document.getElementById('testResult').style.background = '#d4edda';
+        }
+        
+        function testMalay() {
+            document.getElementById('testResult').innerHTML = '✅ Malay button clicked! Language would switch to Malay.';
+            document.getElementById('testResult').style.background = '#d4edda';
+        }
+        
+        // Add click effects to language buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            const langButtons = document.querySelectorAll('.lang-btn');
+            
+            langButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all buttons
+                    langButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Add visual feedback
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

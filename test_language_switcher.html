@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Switcher Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .navbar {
+            background-color: #2c3e50;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .navbar-brand {
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .nav-link {
+            color: #ecf0f1;
+            margin: 0 10px;
+            text-decoration: none;
+        }
+        
+        .nav-link:hover {
+            color: #3498db;
+        }
+        
+        /* Simple Language Switcher */
+        .simple-language-switcher {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 20px;
+        }
+        
+        .lang-btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .lang-btn:hover {
+            background-color: rgba(52, 152, 219, 0.8);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-color: #3498db;
+        }
+        
+        .lang-btn.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #2980b9;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .highlight-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔍 Language Switcher Visibility Test</h1>
+        
+        <div class="highlight-box">
+            <h3>⚠️ IMPORTANT: Look for the Language Switcher Below</h3>
+            <p>You should see two buttons: <strong>"ENGLISH"</strong> and <strong>"MALAY"</strong> in the navigation bar below.</p>
+        </div>
+        
+        <!-- Navigation Bar with Language Switcher -->
+        <nav class="navbar">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="navbar-brand">Charity Platform</div>
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <a href="#" class="nav-link">Home</a>
+                    <a href="#" class="nav-link">Donate</a>
+                    <a href="#" class="nav-link">Events</a>
+                    <a href="#" class="nav-link">School Fees</a>
+                    
+                    <!-- Language Switcher - This should be visible! -->
+                    <div class="simple-language-switcher">
+                        <a href="#" class="lang-btn active">English</a>
+                        <a href="#" class="lang-btn">Malay</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="success-box">
+            <h3>✅ If you can see the buttons above, the language switcher is working!</h3>
+            <p>The language switcher should appear as two rounded buttons on the right side of the navigation bar.</p>
+        </div>
+        
+        <h3>What to Look For:</h3>
+        <ul>
+            <li><strong>Two buttons:</strong> "ENGLISH" and "MALAY"</li>
+            <li><strong>Position:</strong> Right side of the navigation bar</li>
+            <li><strong>Style:</strong> Rounded buttons with white text</li>
+            <li><strong>Active state:</strong> One button should be blue (active)</li>
+            <li><strong>Hover effect:</strong> Buttons should lift up when hovered</li>
+        </ul>
+        
+        <h3>If You Can't See the Buttons:</h3>
+        <ol>
+            <li>Check if the navigation bar is visible (dark blue background)</li>
+            <li>Look for any error messages in the browser console</li>
+            <li>Try refreshing the page</li>
+            <li>Check if the CSS is loading properly</li>
+        </ol>
+        
+        <h3>Test the Functionality:</h3>
+        <p>Click the buttons below to test the language switching:</p>
+        <div style="margin: 20px 0;">
+            <button onclick="switchLanguage('en')" class="lang-btn" style="margin-right: 10px;">Switch to English</button>
+            <button onclick="switchLanguage('ms')" class="lang-btn">Switch to Malay</button>
+        </div>
+        
+        <div id="languageStatus" style="padding: 10px; background: #e9ecef; border-radius: 5px; margin: 10px 0;">
+            Current Language: <strong>English</strong>
+        </div>
+    </div>
+
+    <script>
+        function switchLanguage(lang) {
+            const status = document.getElementById('languageStatus');
+            const buttons = document.querySelectorAll('.lang-btn');
+            
+            // Remove active class from all buttons
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            // Update status
+            if (lang === 'en') {
+                status.innerHTML = 'Current Language: <strong>English</strong>';
+            } else {
+                status.innerHTML = 'Current Language: <strong>Malay</strong>';
+            }
+            
+            // Show alert
+            alert(`Language switched to: ${lang === 'en' ? 'English' : 'Malay'}`);
+        }
+        
+        // Check if language switcher is visible
+        document.addEventListener('DOMContentLoaded', function() {
+            const switcher = document.querySelector('.simple-language-switcher');
+            if (switcher) {
+                console.log('✅ Language switcher found!');
+            } else {
+                console.log('❌ Language switcher not found!');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,450 @@
+{% extends 'myapp/base_ubac.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --color-green: #28a745;
+        --color-blue: #007bff;
+        --color-purple: #6f42c1;
+        --color-red: #dc3545;
+        --color-orange: #fd7e14;
+        --color-yellow: #ffc107;
+        --color-info: #17a2b8;
+        --color-light: #f8f9fa;
+        --color-dark: #343a40;
+    }
+    
+    body {
+        background-color: #f5f6fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .dashboard-container {
+        padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--color-dark);
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    /* Main Summary Cards */
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .summary-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 5px solid;
+    }
+    
+    .summary-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .summary-card.green { border-left-color: var(--color-green); }
+    .summary-card.blue { border-left-color: var(--color-blue); }
+    .summary-card.purple { border-left-color: var(--color-purple); }
+    .summary-card.red { border-left-color: var(--color-red); }
+    .summary-card.orange { border-left-color: var(--color-orange); }
+    .summary-card.info { border-left-color: var(--color-info); }
+    
+    .summary-card .title {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+    
+    .summary-card .value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+    
+    .summary-card.green .value { color: var(--color-green); }
+    .summary-card.blue .value { color: var(--color-blue); }
+    .summary-card.purple .value { color: var(--color-purple); }
+    .summary-card.red .value { color: var(--color-red); }
+    .summary-card.orange .value { color: var(--color-orange); }
+    .summary-card.info .value { color: var(--color-info); }
+    
+    .summary-card .subtitle {
+        font-size: 0.8rem;
+        color: #999;
+    }
+    
+    /* Charts Section */
+    .charts-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .chart-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .chart-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--color-dark);
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    /* Recent Activities */
+    .recent-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+    }
+    
+    .recent-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .recent-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--color-dark);
+        margin-bottom: 20px;
+    }
+    
+    .recent-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .recent-item:last-child {
+        border-bottom: none;
+    }
+    
+    .recent-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 1rem;
+    }
+    
+    .recent-icon.green { background-color: rgba(40, 167, 69, 0.1); color: var(--color-green); }
+    .recent-icon.blue { background-color: rgba(0, 123, 255, 0.1); color: var(--color-blue); }
+    .recent-icon.orange { background-color: rgba(253, 126, 20, 0.1); color: var(--color-orange); }
+    .recent-icon.info { background-color: rgba(23, 162, 184, 0.1); color: var(--color-info); }
+    
+    .recent-content h6 {
+        margin: 0 0 5px 0;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .recent-content p {
+        margin: 0;
+        font-size: 0.8rem;
+        color: #666;
+    }
+    
+    .recent-time {
+        margin-left: auto;
+        font-size: 0.8rem;
+        color: #999;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title mb-0">
+            <i class="fas fa-tachometer-alt"></i> Admin Dashboard
+        </h1>
+        {% if user.is_superuser %}
+        <a href="{% url 'myapp:download_admin_dashboard_pdf' %}" class="btn btn-danger" title="Download complete dashboard report with charts and graphs">
+            <i class="fas fa-file-pdf"></i> Download PDF Report
+        </a>
+        {% endif %}
+    </div>
+    
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+        <div class="summary-card green">
+            <div class="title">Total Students</div>
+            <div class="value">{{ total_students }}</div>
+            <div class="subtitle">Active: {{ active_students }}</div>
+        </div>
+        
+        <div class="summary-card blue">
+            <div class="title">Total Payments</div>
+            <div class="value">{{ total_payments }}</div>
+            <div class="subtitle">Completed: {{ total_paid }}</div>
+        </div>
+        
+        <div class="summary-card purple">
+            <div class="title">Total Revenue</div>
+            <div class="value">RM {{ total_revenue|floatformat:2 }}</div>
+            <div class="subtitle">Collection Rate: {{ collection_rate|floatformat:1 }}%</div>
+        </div>
+        
+        <div class="summary-card orange">
+            <div class="title">Pending Payments</div>
+            <div class="value">{{ pending_payments }}</div>
+            <div class="subtitle">Overdue: {{ overdue_payments }}</div>
+        </div>
+        
+        <div class="summary-card info">
+            <div class="title">PIBG Donations</div>
+            <div class="value">{{ total_pibg_donations }}</div>
+            <div class="subtitle">Total: RM {{ total_pibg_amount|floatformat:2 }}</div>
+        </div>
+        
+        <div class="summary-card red">
+            <div class="title">Fee Structures</div>
+            <div class="value">{{ total_fee_structures }}</div>
+            <div class="subtitle">Categories: {{ total_categories }}</div>
+        </div>
+    </div>
+    
+    <!-- Charts Section -->
+    <div class="charts-section">
+        <!-- PIBG Donation Chart -->
+        <div class="chart-card">
+            <h3 class="chart-title">
+                <i class="fas fa-heart text-info"></i> PIBG Muafakat Donations (Last 12 Months)
+            </h3>
+            <canvas id="donationChart" width="400" height="200"></canvas>
+        </div>
+        
+        <!-- Revenue Chart -->
+        <div class="chart-card">
+            <h3 class="chart-title">
+                <i class="fas fa-chart-line text-success"></i> Payment Statistics
+            </h3>
+            <canvas id="paymentChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+    
+    <!-- Recent Activities -->
+    <div class="recent-section">
+        <!-- Recent Donations -->
+        {% if recent_donations %}
+        <div class="recent-card">
+            <h3 class="recent-title">
+                <i class="fas fa-heart text-info"></i> Recent PIBG Donations
+            </h3>
+            {% for donation in recent_donations %}
+            <div class="recent-item">
+                <div class="recent-icon info">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="recent-content">
+                    <h6>{{ donation.student.first_name }} {{ donation.student.last_name }}</h6>
+                    <p>RM {{ donation.amount|floatformat:2 }} - {{ donation.receipt_number }}</p>
+                </div>
+                <div class="recent-time">
+                    {{ donation.created_at|timesince }} ago
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Recent Payments -->
+        <div class="recent-card">
+            <h3 class="recent-title">
+                <i class="fas fa-money-bill-wave text-success"></i> Recent Payments
+            </h3>
+            {% for payment in recent_payments %}
+            <div class="recent-item">
+                <div class="recent-icon green">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="recent-content">
+                    <h6>{{ payment.student.first_name }} {{ payment.student.last_name }}</h6>
+                    <p>RM {{ payment.amount|floatformat:2 }} - {{ payment.fee_structure.category.name|default:"Individual Fee" }}</p>
+                </div>
+                <div class="recent-time">
+                    {{ payment.created_at|timesince }} ago
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Donation Settings Info -->
+    {% if donation_settings %}
+    <div class="mt-4">
+        <div class="chart-card">
+            <h3 class="chart-title">
+                <i class="fas fa-cog text-secondary"></i> PIBG Donation Settings
+            </h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Status:</strong> 
+                        <span class="badge {{ donation_settings.is_enabled|yesno:'bg-success,bg-danger' }}">
+                            {{ donation_settings.is_enabled|yesno:'Enabled,Disabled' }}
+                        </span>
+                    </p>
+                    <p><strong>Required:</strong> 
+                        <span class="badge {{ donation_settings.is_mandatory|yesno:'bg-warning,bg-info' }}">
+                            {{ donation_settings.is_mandatory|yesno:'Mandatory,Optional' }}
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Preset Amounts:</strong> 
+                        {% for amount in donation_settings.preset_amounts %}
+                            <span class="badge bg-light text-dark">RM {{ amount }}</span>
+                        {% endfor %}
+                    </p>
+                    <p><strong>Custom Range:</strong> RM {{ donation_settings.minimum_custom_amount }} - RM {{ donation_settings.maximum_custom_amount }}</p>
+                </div>
+            </div>
+            <p><strong>Message:</strong> {{ donation_settings.donation_message }}</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Hidden data for JavaScript -->
+<script type="application/json" id="chart-data">
+{
+    "monthly_labels": {{ monthly_labels|safe }},
+    "monthly_amounts": {{ monthly_amounts|safe }},
+    "monthly_donations": {{ monthly_donations|safe }},
+    "total_paid": {{ total_paid }},
+    "pending_payments": {{ pending_payments }},
+    "overdue_payments": {{ overdue_payments }}
+}
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get data from JSON script tag
+    const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+    
+    // PIBG Donation Chart
+    const donationCtx = document.getElementById('donationChart').getContext('2d');
+    const donationChart = new Chart(donationCtx, {
+        type: 'bar',
+        data: {
+            labels: chartData.monthly_labels,
+            datasets: [{
+                label: 'Donation Amount (RM)',
+                data: chartData.monthly_amounts,
+                backgroundColor: 'rgba(23, 162, 184, 0.8)',
+                borderColor: 'rgba(23, 162, 184, 1)',
+                borderWidth: 1
+            }, {
+                label: 'Number of Donations',
+                data: chartData.monthly_donations,
+                type: 'line',
+                borderColor: 'rgba(253, 126, 20, 1)',
+                backgroundColor: 'rgba(253, 126, 20, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Monthly PIBG Donation Trends'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Amount (RM)'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Number of Donations'
+                    },
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                }
+            }
+        }
+    });
+    
+    // Payment Statistics Chart
+    const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+    const paymentChart = new Chart(paymentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'Pending', 'Overdue'],
+            datasets: [{
+                data: [chartData.total_paid, chartData.pending_payments, chartData.overdue_payments],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(253, 126, 20, 0.8)',
+                    'rgba(220, 53, 69, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(253, 126, 20, 1)',
+                    'rgba(220, 53, 69, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Payment Status Distribution'
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
