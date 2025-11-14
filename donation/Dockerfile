@@ -22,8 +22,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy entire project
 COPY . .
 
-# Make sure manage.py is executable
-RUN chmod +x manage.py || echo "manage.py not found or not executable"
+# Make scripts executable
+RUN chmod +x manage.py start.sh || echo "Scripts not found or not executable"
 
 # List files for debugging
 RUN echo "Files in /app:" && ls -la
@@ -34,5 +34,5 @@ RUN mkdir -p staticfiles media
 # Expose port
 EXPOSE 8000
 
-# Simple start command
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Use startup script
+CMD ["./start.sh"]
