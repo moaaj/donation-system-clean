@@ -4,18 +4,18 @@
 
 Click the button below to deploy your donation management system automatically:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/moaaj/donation-system-clean&env=DJANGO_SECRET_KEY,DEBUG&envDescription=Django%20configuration%20variables&envLink=https://docs.djangoproject.com/en/4.2/ref/settings/)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/moaaj/django-donation-management-2024&env=DJANGO_SECRET_KEY,DEBUG&envDescription=Django%20configuration%20variables&envLink=https://docs.djangoproject.com/en/4.2/ref/settings/)
 
 ## Alternative Easy Deployments:
 
 ### 🟢 Render.com (Recommended)
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/moaaj/donation-system-clean)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/moaaj/django-donation-management-2024)
 
 ### 🔵 Railway
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/django)
 
 ### 🟠 Heroku
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/moaaj/donation-system-clean)
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/moaaj/django-donation-management-2024)
 
 ## 🎯 What Happens Automatically:
 
