@@ -2,13 +2,6 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-# Try to import dj_database_url, but don't fail if it's not available
-try:
-    import dj_database_url
-    HAS_DJ_DATABASE_URL = True
-except ImportError:
-    HAS_DJ_DATABASE_URL = False
-
 # Load environment variables from .env file
 load_dotenv()
 
@@ -24,17 +17,10 @@ STRIPE_TEST_SECRET_KEY = os.getenv('STRIPE_TEST_SECRET_KEY', '')
 STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
 
 # Security: Don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+DEBUG = True
 
 # In production, set ALLOWED_HOSTS to include your domain(s)
-ALLOWED_HOSTS = []
-if os.getenv('ALLOWED_HOSTS'):
-    ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS').split(',')]
-else:
-    ALLOWED_HOSTS = ['*']  # Allow all hosts in development
-
-# Add deployment domains
-ALLOWED_HOSTS.extend(['.onrender.com', '.render.com', '.vercel.app', '.now.sh'])
+ALLOWED_HOSTS = ['*', '.pythonanywhere.com', '.replit.dev', '.replit.co']
 
 # Security settings for development
 SECURE_SSL_REDIRECT = False
@@ -114,33 +100,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'donation.wsgi.application'
 
-# Database configuration
-DATABASE_URL = os.getenv('DATABASE_URL')
-if DATABASE_URL and HAS_DJ_DATABASE_URL:
-    # Use cloud PostgreSQL database (Railway, Render, etc.)
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
+# Database configuration (use PostgreSQL or MySQL for production)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'donation_db'),
+        'USER': os.getenv('DB_USER', 'donation_user'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'your_secure_password_here'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
-elif os.getenv('VERCEL') or os.getenv('RENDER'):
-    # Use SQLite for serverless deployments
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': '/tmp/db.sqlite3',
-        }
-    }
-else:
-    # Fallback to SQLite for development (more reliable than PostgreSQL)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
 
 # Database connection pooling (optional but recommended for production)
 if not DEBUG:
@@ -183,20 +153,8 @@ LANGUAGES = [
 # ]
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
+STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Static files directories (only if they exist)
-STATICFILES_DIRS = []
-if os.path.exists(os.path.join(BASE_DIR, 'static')):
-    STATICFILES_DIRS.append(os.path.join(BASE_DIR, 'static'))
-if os.path.exists(os.path.join(BASE_DIR, 'staticfiles_build', 'static')):
-    STATICFILES_DIRS.append(os.path.join(BASE_DIR, 'staticfiles_build', 'static'))
-
-# Add WhiteNoise for serving static files in production
-if not DEBUG or os.getenv('RAILWAY_ENVIRONMENT') or os.getenv('VERCEL'):
-    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -217,7 +175,15 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = 'moaaj.upm@gmail.com'
 EMAIL_USE_SSL = False
 
-# Email settings configured above
+# Print email settings for debugging
+print("\n=== Email Settings ===")
+print(f"EMAIL_BACKEND: {EMAIL_BACKEND}")
+print(f"EMAIL_HOST: {EMAIL_HOST}")
+print(f"EMAIL_PORT: {EMAIL_PORT}")
+print(f"EMAIL_USE_TLS: {EMAIL_USE_TLS}")
+print(f"EMAIL_HOST_USER: {EMAIL_HOST_USER}")
+print(f"DEFAULT_FROM_EMAIL: {DEFAULT_FROM_EMAIL}")
+print("===================\n")
 
 # Site settings
 SITE_DOMAIN = '127.0.0.1:8000'  # Development domain

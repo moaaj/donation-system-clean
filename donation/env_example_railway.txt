@@ -1,0 +1,21 @@
+# Django Settings
+DJANGO_SECRET_KEY=your-secret-key-here
+DJANGO_SETTINGS_MODULE=donation.settings_production
+
+# Database (Railway will provide DATABASE_URL automatically)
+# DATABASE_URL=postgresql://user:password@host:port/database
+
+# Stripe Payment Keys
+STRIPE_TEST_PUBLIC_KEY=pk_test_your_stripe_public_key
+STRIPE_TEST_SECRET_KEY=sk_test_your_stripe_secret_key
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
+
+# FPX Payment Configuration
+FPX_API_KEY=your_fpx_api_key
+FPX_SECRET=your_fpx_secret
+
+# Email Configuration
+EMAIL_HOST_PASSWORD=your_email_password
+
+# Other API Keys
+# Add any other API keys your app needs
