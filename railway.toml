@@ -1,0 +1,15 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "python donation/manage.py migrate && gunicorn donation.wsgi:application"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[environments.production.variables]
+DEBUG = "False"
+DJANGO_SECRET_KEY = "4c2%d_*q69o&k)xojzv##yz#+xjxpl9*im4)$9529jc4r9%d5)"
+ALLOWED_HOSTS = ".railway.app"
+RAILWAY_ENVIRONMENT = "production"
