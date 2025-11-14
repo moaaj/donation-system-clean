@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: django-donation-demo
+    env: python
+    plan: free
+    buildCommand: pip install Django==4.2.7 whitenoise gunicorn
+    startCommand: python -c "
+      import os;
+      os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'donation.settings');
+      import django;
+      django.setup();
+      from django.core.management import execute_from_command_line;
+      execute_from_command_line(['manage.py', 'runserver', '0.0.0.0:' + os.environ.get('PORT', '8000')])
+      "
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DEBUG
+        value: "True"
+      - key: ALLOWED_HOSTS
+        value: "*"
