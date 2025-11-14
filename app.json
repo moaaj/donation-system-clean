@@ -1,0 +1,39 @@
+{
+  "name": "Django Donation Management System",
+  "description": "A comprehensive Django web application for managing donations, school fees, and financial transactions with AI-powered analytics",
+  "repository": "https://github.com/moaaj/donation-system-clean",
+  "logo": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/django/django-plain.svg",
+  "keywords": ["django", "python", "donation", "school-fees", "management", "ai-analytics"],
+  "success_url": "/",
+  "env": {
+    "DJANGO_SECRET_KEY": {
+      "description": "A secret key for Django",
+      "generator": "secret"
+    },
+    "DEBUG": {
+      "description": "Debug mode",
+      "value": "False"
+    },
+    "ALLOWED_HOSTS": {
+      "description": "Allowed hosts for Django",
+      "value": ".herokuapp.com"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "free"
+    }
+  },
+  "addons": [
+    "heroku-postgresql:mini"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "scripts": {
+    "postdeploy": "python donation/manage.py migrate && python donation/manage.py collectstatic --noinput"
+  }
+}

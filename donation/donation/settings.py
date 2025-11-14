@@ -33,8 +33,8 @@ if os.getenv('ALLOWED_HOSTS'):
 else:
     ALLOWED_HOSTS = ['*']  # Allow all hosts in development
 
-# Add render.com domains for deployment
-ALLOWED_HOSTS.extend(['.onrender.com', '.render.com'])
+# Add deployment domains
+ALLOWED_HOSTS.extend(['.onrender.com', '.render.com', '.vercel.app', '.now.sh'])
 
 # Security settings for development
 SECURE_SSL_REDIRECT = False
@@ -117,13 +117,21 @@ WSGI_APPLICATION = 'donation.wsgi.application'
 # Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL and HAS_DJ_DATABASE_URL:
-    # Use Railway's PostgreSQL database
+    # Use cloud PostgreSQL database (Railway, Render, etc.)
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
             conn_max_age=600,
             conn_health_checks=True,
         )
+    }
+elif os.getenv('VERCEL'):
+    # Use SQLite for Vercel (simpler deployment)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': '/tmp/db.sqlite3',
+        }
     }
 else:
     # Fallback to local PostgreSQL for development
@@ -182,8 +190,13 @@ LANGUAGES = [
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+# For Vercel deployment
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'staticfiles_build', 'static')
+]
+
 # Add WhiteNoise for serving static files in production
-if not DEBUG or os.getenv('RAILWAY_ENVIRONMENT'):
+if not DEBUG or os.getenv('RAILWAY_ENVIRONMENT') or os.getenv('VERCEL'):
     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
