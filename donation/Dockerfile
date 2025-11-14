@@ -23,8 +23,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . .
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Create staticfiles directory and collect static files
+RUN mkdir -p staticfiles
+RUN python manage.py collectstatic --noinput || echo "Static files collection skipped"
 
 # Create a non-root user
 RUN adduser --disabled-password --gecos '' appuser

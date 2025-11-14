@@ -37,12 +37,15 @@ services:
       - "8000:8000"
     environment:
       - DEBUG=True
+      - DATABASE_URL=postgresql://donation_user:donation_password@db:5432/donation_db
       - DB_HOST=db
       - DB_NAME=donation_db
       - DB_USER=donation_user
       - DB_PASSWORD=donation_password
       - DB_PORT=5432
       - REDIS_URL=redis://redis:6379/0
+      - DJANGO_SECRET_KEY=your-demo-secret-key-change-in-production
+      - ALLOWED_HOSTS=*
     depends_on:
       - db
       - redis
