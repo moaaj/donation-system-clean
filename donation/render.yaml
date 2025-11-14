@@ -3,16 +3,10 @@ services:
     name: django-donation-app
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
-    startCommand: python manage.py runserver 0.0.0.0:$PORT
+    buildCommand: pip install Django==4.2.7 gunicorn whitenoise
+    startCommand: python -c "import django; print('Django version:', django.get_version()); import os; os.system('python manage.py runserver 0.0.0.0:' + os.environ.get('PORT', '8000'))"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
-      - key: DJANGO_SECRET_KEY
-        generateValue: true
       - key: DEBUG
-        value: "False"
-
-databases:
-  - name: django-donation-db
-    plan: free
+        value: "True"
