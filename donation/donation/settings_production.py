@@ -37,9 +37,9 @@ if os.getenv('RAILWAY_PUBLIC_DOMAIN'):
 if os.getenv('DATABASE_URL'):
     # Parse database URL manually (no external dependencies needed)
     url = urlparse.urlparse(os.getenv('DATABASE_URL'))
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
             'NAME': url.path[1:],
             'USER': url.username,
             'PASSWORD': url.password,
