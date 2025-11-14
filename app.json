@@ -1,7 +1,7 @@
 {
   "name": "Django Donation Management System",
   "description": "A comprehensive Django web application for managing donations, school fees, and financial transactions with AI-powered analytics",
-  "repository": "https://github.com/moaaj/django-donation-management-2024",
+  "repository": "https://github.com/moaaj/donation-system-clean",
   "logo": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/django/django-plain.svg",
   "keywords": ["django", "python", "donation", "school-fees", "management", "ai-analytics"],
   "success_url": "/",
